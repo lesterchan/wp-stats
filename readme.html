@@ -1,0 +1,510 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>	
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<title>WP-Stats 2.50 Readme</title>
+	<style type="text/css" media="screen">
+		/* Default Style */
+		BODY {
+			font-family: Verdana, Arial;
+			font-size: 12px;
+			color: #000000;
+			background: #FFFFFF;
+		}
+		P {
+			padding-left: 10px;
+		}
+		BLOCKQUOTE {
+			margin: 10px 20px 0px 20px;
+			padding: 10px;
+			border: 1px solid #8d8d8d;
+			background-color: #f5f5f5;
+		}
+		LI {
+			margin-top: 20px;
+		}
+		UL LI UL LI {
+			margin-top: 10px;
+		}
+		A, A:active, A:link, A:visited {
+			color: #2d3a4c;
+			text-decoration: none;
+		}
+		A:hover {
+			color: #5577a5;
+			text-decoration: underline;
+		}
+		/* Place Holder Style */
+		#Container {
+			width: 780px;
+			margin-left: auto;
+			margin-right: auto; 
+		}
+		#Content {
+			background-color: #fafafa;
+			border: 1px solid #a2b6cb;
+			padding: 10px;
+			margin-top: -13px;
+		}
+		/* Title Style */
+		#Title {
+			font-family: Verdana, Arial;
+			font-size: 22px;
+			font-weight: bold;
+			color: #389aff;
+			border-bottom: 1px solid #389aff;
+			margin-bottom: 10px;
+		}
+		.SubTitle {
+			font-family: Verdana, Arial;
+			font-size: 18px;
+			font-weight: bold;
+			color: #5b87b4;
+		}
+		.SubSubTitle {
+			font-family: Verdana, Arial;
+			font-size: 14px;
+			font-weight: bold;
+			color: #73a4d6;
+		}
+		/* Tabs */
+		UL#Tabs {
+			font-family: Verdana, Arial;
+			font-size: 12px;
+			font-weight: bold;
+			list-style-type: none;
+			padding-bottom: 28px;
+			border-bottom: 1px solid #a2b6cb;
+			margin-bottom: 12px;
+			z-index: 1;
+		}
+		#Tabs LI.Tab {
+			float: right;
+			height: 25px;
+			background-color: #deedfb;
+			margin: 2px 0px 0px 5px;
+			border: 1px solid #a2b6cb;
+		}
+		#Tabs LI.Tab A {
+			float: left;
+			display: block;
+			color: #666666;
+			text-decoration: none;
+			padding: 5px;
+		}
+		#Tabs LI.Tab A:hover {
+			background-color: #bfe0fe;
+			border-bottom: 1px solid #bfe0fe;
+		}
+		/* Selected Tab */
+		#Tabs LI.SelectedTab {
+			float: right;
+			height: 25px;
+			background-color: #fafafa;
+			margin: 2px 0px 0px 5px;
+			border-top: 1px solid #a2b6cb;
+			border-right: 1px solid #a2b6cb;
+			border-bottom: 1px solid #fafafa;
+			border-left: 1px solid #a2b6cb;
+		}
+		#Tabs LI.SelectedTab A {
+			float: left;
+			display: block;
+			color: #666666;
+			text-decoration: none;
+			padding: 5px;
+			cursor: default;
+		}
+		/* Copyright */
+		#Copyright {
+			text-align: center;
+		}
+	</style>
+	<script type="text/javascript">
+	/* <![CDATA[*/
+		// Index Page
+		function index() {
+			// Tab
+			document.getElementById('IndexTab').className = 'SelectedTab';
+			document.getElementById('ChangelogTab').className = 'Tab';
+			document.getElementById('InstallTab').className = 'Tab';
+			document.getElementById('UpgradeTab').className = 'Tab';
+			document.getElementById('UsageTab').className = 'Tab';
+			// Page
+			document.getElementById('Index').style.display= 'block';
+			document.getElementById('Changelog').style.display = 'none';
+			document.getElementById('Install').style.display = 'none';
+			document.getElementById('Upgrade').style.display = 'none';
+			document.getElementById('Usage').style.display = 'none';
+		}
+		// Changelog Page
+		function changelog() {
+			// Tab
+			document.getElementById('IndexTab').className = 'Tab';
+			document.getElementById('ChangelogTab').className = 'SelectedTab';
+			document.getElementById('InstallTab').className = 'Tab';
+			document.getElementById('UpgradeTab').className = 'Tab';
+			document.getElementById('UsageTab').className = 'Tab';
+			// Page
+			document.getElementById('Index').style.display = 'none';
+			document.getElementById('Changelog').style.display = 'block';
+			document.getElementById('Install').style.display = 'none';
+			document.getElementById('Upgrade').style.display = 'none';
+			document.getElementById('Usage').style.display = 'none';
+		}
+		// Installation Page
+		function install() {
+			// Tab
+			document.getElementById('IndexTab').className = 'Tab';
+			document.getElementById('ChangelogTab').className = 'Tab';
+			document.getElementById('InstallTab').className = 'SelectedTab';
+			document.getElementById('UpgradeTab').className = 'Tab';
+			document.getElementById('UsageTab').className = 'Tab';
+			// Page
+			document.getElementById('Index').style.display= 'none';
+			document.getElementById('Changelog').style.display = 'none';
+			document.getElementById('Install').style.display = 'block';
+			document.getElementById('Upgrade').style.display = 'none';
+			document.getElementById('Usage').style.display = 'none';
+		}
+		// Upgrade Page
+		function upgrade() {
+			// Tab
+			document.getElementById('IndexTab').className = 'Tab';
+			document.getElementById('ChangelogTab').className = 'Tab';
+			document.getElementById('InstallTab').className = 'Tab';
+			document.getElementById('UpgradeTab').className = 'SelectedTab';
+			document.getElementById('UsageTab').className = 'Tab';
+			// Page
+			document.getElementById('Index').style.display= 'none';
+			document.getElementById('Changelog').style.display = 'none';
+			document.getElementById('Install').style.display = 'none';
+			document.getElementById('Upgrade').style.display = 'block';
+			document.getElementById('Usage').style.display = 'none';
+		}
+		// Usage Page
+		function usage() {
+			// Tab
+			document.getElementById('IndexTab').className = 'Tab';
+			document.getElementById('ChangelogTab').className = 'Tab';
+			document.getElementById('InstallTab').className = 'Tab';
+			document.getElementById('UpgradeTab').className = 'Tab';
+			document.getElementById('UsageTab').className = 'SelectedTab';
+			// Page
+			document.getElementById('Index').style.display= 'none';
+			document.getElementById('Changelog').style.display = 'none';
+			document.getElementById('Install').style.display = 'none';
+			document.getElementById('Upgrade').style.display = 'none';
+			document.getElementById('Usage').style.display = 'block';
+		}
+	/* ]]> */
+	</script>
+</head>
+<body>
+<div id="Container">
+	<!-- Title -->
+	<div id="Title">WP-Stats 2.50&nbsp;&nbsp;&nbsp;<span style="color: #aaaaaa;">Readme</span></div>
+
+	<!-- Tabs -->
+	<ul id="Tabs">
+		<li id="UsageTab" class="Tab"><a href="#Usage" onclick="usage(); return false;" title="Usage Instructions">Usage</a></li>
+		<li id="UpgradeTab" class="Tab"><a href="#Upgrade" onclick="upgrade(); return false;" title="Upgrade Instructions">Upgrade</a></li>
+		<li id="InstallTab" class="Tab"><a href="#Installation" onclick="install(); return false;" title="Installation Instructions">Installation</a></li>
+		<li id="ChangelogTab" class="Tab"><a href="#Changelog" onclick="changelog(); return false;" title="Changelog">Changelog</a></li>
+		<li id="IndexTab" class="SelectedTab"><a href="#Index" onclick="index(); return false;" title="Index Instructions">Index</a></li>
+	</ul>
+
+	<!-- Content -->
+	<div id="Content">
+		<!-- Index -->
+		<div id="Index">
+			<div class="SubTitle">&raquo; Index</div>
+			<div class="SubSubTitle">Plugin Information</div>
+			<p>
+				<strong>Author:</strong><br />
+				<strong>&raquo;</strong> Lester 'GaMerZ' Chan
+			</p>
+			<p>
+				<strong>Website:</strong><br /><strong>&raquo;</strong> <a href="http://lesterchan.net/" title="http://lesterchan.net/">http://lesterchan.net/</a>
+			</p>
+			<p>
+				<strong>Features:</strong><br />
+				<strong>&raquo;</strong> Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
+			</p>
+			<p>
+				<strong>Download:</strong><br />
+				<strong>&raquo;</strong> <a href="http://downloads.wordpress.org/plugin/wp-stats.2.50.zip" title="http://downloads.wordpress.org/plugin/wp-stats.2.50.zip">WP-Stats 2.50 For WordPress 2.8.x</a><br />
+				<strong>&raquo;</strong> <a href="http://downloads.wordpress.org/plugin/wp-stats.2.40.zip" title="http://downloads.wordpress.org/plugin/wp-stats.2.40.zip">WP-Stats 2.40 For WordPress 2.7.x</a><br />
+				<strong>&raquo;</strong> <a href="http://downloads.wordpress.org/plugin/wp-stats.2.31.zip" title="http://downloads.wordpress.org/plugin/wp-stats.2.31.zip">WP-Stats 2.31 For WordPress 2.5.x And 2.6.x</a><br />
+				<strong>&raquo;</strong> <a href="http://downloads.wordpress.org/plugin/wp-stats.2.20.zip" title="http://downloads.wordpress.org/plugin/wp-stats.2.20.zip">WP-Stats 2.20 For WordPress 2.3.x</a><br />
+				<strong>&raquo;</strong> <a href="http://downloads.wordpress.org/plugin/wp-stats.2.11.zip" title="http://downloads.wordpress.org/plugin/wp-stats.2.11.zip">WP-Stats 2.11 For WordPress 2.1.x And 2.2.x</a><br />
+				<strong>&raquo;</strong> <a href="http://downloads.wordpress.org/plugin/wp-stats.2.06.zip" title="http://downloads.wordpress.org/plugin/wp-stats.2.06.zip">WP-Stats 2.06 For WordPress 2.0.x</a><br />
+				<strong>&raquo;</strong> <a href="http://downloads.wordpress.org/plugin/wp-stats.1.00.zip" title="http://downloads.wordpress.org/plugin/wp-stats.1.00.zip">WP-Stats 1.00 For WordPress 1.5.2 </a>
+			</p>
+			<p>
+				<strong>Screenshots:</strong><br />
+				<strong>&raquo;</strong> <a href="http://lesterchan.net/wordpress/screenshots/browse/wp-stats/" title="http://lesterchan.net/wordpress/screenshots/browse/wp-stats/">http://lesterchan.net/wordpress/screenshots/browse/wp-stats/</a>
+			</p>
+			<p>
+				<strong>Demo:</strong><br /><strong>&raquo;</strong> <a href="http://lesterchan.net/wordpress/stats/" title="http://lesterchan.net/wordpress/stats/">http://lesterchan.net/wordpress/stats/</a>
+			</p>
+			<p>
+				<strong>Development:</strong><br />
+				<strong>&raquo;</strong> <a href="http://dev.wp-plugins.org/browser/wp-stats/" title="http://dev.wp-plugins.org/browser/wp-stats/">http://dev.wp-plugins.org/browser/wp-stats/</a>
+			</p>
+			<p>
+				<strong>Translations:</strong><br />
+				<strong>&raquo;</strong> <a href="http://dev.wp-plugins.org/browser/wp-stats/i18n/" title="http://dev.wp-plugins.org/browser/wp-stats/i18n/">http://dev.wp-plugins.org/browser/wp-stats/i18n/</a>
+			</p>
+			<p>
+				<strong>Support Forums:</strong><br />
+				<strong>&raquo;</strong> <a href="http://forums.lesterchan.net/index.php?board=20.0" title="http://forums.lesterchan.net/index.php?board=20.0">http://forums.lesterchan.net/index.php?board=20.0</a>
+			</p>
+			<p>
+				<strong>Credits:</strong><br />
+				<strong>&raquo;</strong> __ngetext() by <a href="http://hweia.ru/" title="http://hweia.ru/">Anna Ozeritskaya</a>.<br />
+				<strong>&raquo;</strong> Right To Left Language Support by <a href="http://persian-programming.com/" title="http://persian-programming.com/">Kambiz R. Khojasteh</a>.
+			</p>
+			<p>
+				<strong>Note:</strong><br />
+				<strong>&raquo;</strong> The <strong>Changelog</strong>, <strong>Installation</strong>, <strong>Upgrade</strong>, <strong>Usage</strong> Tab at the top of the page.
+			</p>
+			<p>
+				<strong>Donations:</strong><br />
+				<strong>&raquo;</strong> I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks as my school allowance, I will really appericiate it. If not feel free to use it without any obligations. Thank You. My Paypal account is 
+				<script type="text/javascript">
+					/* <![CDATA[*/
+					document.write(' <strong>lesterchan@gmail.com</strong>.');
+					/* ]]> */
+				</script>
+			</p>
+		</div>
+
+		<!-- Changelog -->
+		<div id="Changelog" style="display: none;">
+			<div class="SubTitle">Changelog</div>
+			<ul>
+				<li>
+					<strong>Version 2.50 (01-06-2009)</strong>
+					<ul>
+						<li>NEW: Works For WordPress 2.8</li>
+						<li>NEW: Update PageNavi Function Names</li>
+						<li>NEW: Added Most Commented Pages</li>
+						<li>NEW: Use _n() Instead Of __ngettext() And _n_noop() Instead Of __ngettext_noop()</li>
+						<li>NEW: Uses New Widget Class From WordPress</li>
+						<li>NEW: Merge Widget Code To wp-stats.php And Remove wp-stats-widget.php</li>
+						<li>FIXED: Uses $_SERVER['PHP_SELF'] With plugin_basename(__FILE__) Instead Of Just $_SERVER['REQUEST_URI']</li>
+						<li>FIXED: Recent Comments Now Include Comments Posted In Pages</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.40 (12-12-2008)</strong>
+					<ul>
+						<li>NEW: Works For WordPress 2.7 Only</li>
+						<li>NEW: Right To Left Language Support by <a href="http://persian-programming.com/" title="http://persian-programming.com/">Kambiz R. Khojasteh</a></li>
+						<li>NEW: Uses wp_register_style(), wp_print_styles(), plugins_url() And site_url()</li>		
+						<li>FIXED: Comment Will Not Work With HTML Code by <a href="http://persian-programming.com/" title="http://persian-programming.com/">Kambiz R. Khojasteh</a></li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.31 (16-07-2008)</strong>
+					<ul>
+						<li>NEW: Works For WordPress 2.6</li>
+						<li>NEW: Added stats-css.css For Use In Comment Author Stats Paging</li>
+						<li>NEW: Better Translation Using __ngetext() by <a href="http://hweia.ru/" title="http://hweia.ru/">Anna Ozeritskaya</a></li>
+						<li>FIXED: Changed Default Threshold For Comment Author Stats To 5 Comments</li>
+						<li>FIXED: Renamed Widget To WP-Stats To Advoid Conflict With FireStats</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.30 (01-06-2008)</strong>
+					<ul>
+						<li>NEW: Works With WordPress 2.5 Only</li>
+						<li>NEW: Uses Shortcode API</li>
+						<li>NEW: Uses /wp-stats/ Folder Instead Of /stats/</li>
+						<li>NEW: Uses wp-stats.php Instead Of stats.php</li>
+						<li>NEW: Uses wp-stats-widget.php Instead Of stats-widget.php</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.20 (01-10-2007)</strong>
+					<ul>
+						<li>NEW: Works For WordPress 2.3 Only</li>
+						<li>NEW: Added Total Tags And Tag Lists</li>
+						<li>NEW: Added Total Post Categories And Total Link Categories Stats</li>
+						<li>NEW: Ability To Uninstall WP-Stats</li>
+						<li>NEW: Added Filters For WP-Stats So That Plugins Can Plug Into WP-Stats</li>
+						<li>NEW: Removed All Plugins Stats (Plugins Are Plugged In Via Filters Now)</li>
+						<li>FIXED: Recent Post Authors Are Now Displayed By Their Display Name Instead Of Nickname</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.11 (01-06-2007)</strong>
+					<ul>
+						<li>NEW: Post Categories Are Now Hierarchical</li>
+						<li>NEW: Used WordPress's Date/Time Format</li>
+						<li>FIXED: Missing WHERE in get_authorsstats()</li>
+						<li>FIXED: Password Protected Post Comments Viewable On Comment Author Stats</li>
+						<li>FIXED: Wrong URL For Page Under Certain Stat Posts Listing</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.10 (01-02-2007)</strong>
+					<ul>
+						<li>NEW: Works For WordPress 2.1 Only</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.06 (02-01-2007)</strong>
+					<ul>
+						<li>NEW: Localize WP-Stats</li>
+					</ul>
+				</li>			
+				<li>
+					<strong>Version 2.05 (01-10-2006)</strong>
+					<ul>
+						<li>NEW: Allow You To Choose Which Type Of Stats To Display Under Options -> Stats</li>
+						<li>NEW: Stats Is Now Embedded Into A Page, And Hence No More Integrating Of Stats Page (Removed wp-stats.php)</li>
+						<li>NEW: Added Widget Title Option To WP-Stats Widget</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.04 (01-07-2006)</strong>
+					<ul>
+						<li>NEW: Added Highest Rated Post If WP-PostRatings Is Installed</li>
+						<li>NEW: Remove My Other Plugins Stats Functions Inside stats.php</li>
+						<li>NEW: WP-Stats Files Are Now In wp-content/plugins/stats/ Folder</li>
+						<li>NEW: You Can Now Place Selected Stats On The Sidebar As A Widget</li>
+						<li>NEW: Code That WP-Stats Generated Is XHTML 1.0 Transitional</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.03 (01-04-2006)</strong>
+					<ul>
+						<li>FIXED: Hardcoded Table Name For Ratings Stats</li>
+						<li>FIXED: Removed Table From Comment's Author Page Navigation</li>
+						<li>FIXED: Password Protected Post's Comments Viewable</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.02 (01-03-2006)</strong>
+					<ul>
+						<li>NEW: Added WP-PostRatings, WP-PostViews, WP-UserOnline Stats</li>
+						<li>NEW: Slightly Changed The Grouping Of Stats</li>
+						<li>NEW: WP-Stats Now Can Be Found ALso On The Dashboard</li>
+						<li>NEW: Added Author Status</li>
+						<li>FIXED: Moved All Stats Functions To stats.php</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.01 (01-02-2006)</strong>
+					<ul>
+						<li>NEW: Display EMail Stats If You Have WP-EMail Installed</li>
+						<li>NEW: Display N/A If There Are No Stats For That Particular Stats</li>
+						<li>FIXED: Page Permalink Issues</li>
+						<li>FIXED: Error If User Has Not Posted Comment</li>
+						<li>FIXED: Page Navigation if There Are 0 or 1 Page</li>
+						<li>FIXED: Exploit $comment_author</li>
+					</ul>
+				</li>
+				<li>
+					<strong>Version 2.00 (01-01-2006)</strong>
+					<ul>
+						<li>NEW: Compatible With WordPress 2.0 Only</li>
+						<li>NEW: Display Poll Stats If You Have WP-Polls Installed</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+
+		<!-- Installation Instructions -->
+		<div id="Install" style="display: none;">
+			<div class="SubTitle">&raquo; Installation Instructions</div>
+			<ol>
+				<li>
+					Open <strong>wp-content/plugins</strong> Folder
+				</li>
+				<li>
+					Put:
+					<blockquote>Folder: wp-stats</blockquote>
+				</li>
+				<li>
+					<strong>Activate</strong> WP-Stats Plugin
+				</li>
+				<li>
+					Refer To <strong>Usage</strong> For Further Instructions
+				</li>
+			</ol>
+		</div>
+
+		<!-- Upgrade Instructions -->	
+		<div id="Upgrade" style="display: none;">
+			<div class="SubTitle">&raquo; Upgrade Instructions</div>
+			<div class="SubSubTitle">From v2.0x To v2.50</div>
+			<ol>
+				<li>
+					<strong>Deactivate</strong> WP-Stats Plugin
+				</li>
+				<li>
+					Open <strong>wp-content/plugins</strong> Folder
+				</li>
+				<li>
+					Put/Overwrite:
+					<blockquote>Folder: wp-stats</blockquote>
+				</li>
+				<li>
+					Delete this folder if exists:
+					<blockquote>
+						Folder: stats
+					</blockquote>
+				</li>
+				<li>
+					<strong>Activate</strong> WP-Stats Plugin
+				</li>
+				<li>
+					Refer To <strong>Usage</strong> For Further Instructions
+				</li>
+			</ol>
+		</div>
+
+		<!-- Usage Instructions -->	
+		<div id="Usage" style="display: none;">
+			<div class="SubTitle">&raquo; Usage Instructions</div>
+			<div class="SubSubTitle">General Usage</div>
+			<ol>
+				<li>
+					Go to '<strong>WP-Admin -> Pages -> Add New</strong>'
+				</li>
+				<li>
+					Type any title you like in the post's title area
+				</li>
+				<li>
+					If you <strong>ARE </strong> using nice permalinks, after typing the title, WordPress will generate the permalink to the page. You will see an 'Edit' link just beside the permalink.
+				</li>
+				<li>
+					Click 'Edit' and type in '<strong>stats</strong>' in the text field (without the quotes) and click 'Save'.
+				</li>
+				<li>
+					Type '<strong>[page_stats]</strong>' in the post's content area (without the quotes)
+				</li>
+				<li>
+					Click 'Publish'
+				</li>
+				<li>If you <strong>ARE NOT</strong> using nice permalinks, you need to go to 'WP-Admin -> Settings -> Stats' and under '<strong>Stats URL</strong>', you need to fill in the URL to the Stats Page you created above.</li>
+			</ol>
+			<div class="SubSubTitle">Using Stats Widget</div>
+			<ol>
+				<li>
+					Go to '<strong>WP-Admin -> Appearance -> Widgets</strong>'
+				</li>
+
+				<li>
+					The widget name is <strong>Stats</strong>.
+				</li>
+			</ol>
+		</div>
+	</div>
+</div>
+<p id="Copyright">WP-Stats 2.50<br />Copyright &copy; 2009 Lester 'GaMerZ' Chan. All Rights Reserved.</p>
+</body>
+</html>
