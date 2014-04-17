@@ -3,29 +3,18 @@ Contributors: GamerZ
 Donate link: http://leterchan.net/site/donation/  
 Tags: stat, stats, statistics, wp-stats, wp-stat, top, most, widget, popular, information  
 Requires at least: 2.8  
-Tested up to: 3.5  
+Tested up to: 3.9  
 Stable tag: trunk  
 
 Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
 
 ## Description
 
-### Previous Versions
-* [WP-Stats 2.40 For WordPress 2.7.x](http://downloads.wordpress.org/plugin/wp-stats.2.40.zip "WP-Stats 2.40 For WordPress 2.7.x")
-* [WP-Stats 2.31 For WordPress 2.5.x And 2.6.x](http://downloads.wordpress.org/plugin/wp-stats.2.31.zip "WP-Stats 2.31 For WordPress 2.5.x And 2.6.x")
-* [WP-Stats 2.20 For WordPress 2.3.x](http://downloads.wordpress.org/plugin/wp-stats.2.20.zip "WP-Stats 2.20 For WordPress 2.3.x")
-* [WP-Stats 2.11 For WordPress 2.1.x And 2.2.x](http://downloads.wordpress.org/plugin/wp-stats.2.11.zip "WP-Stats 2.11 For WordPress 2.1.x And 2.2.x")
-* [WP-Stats 2.06 For WordPress 2.0.x](http://downloads.wordpress.org/plugin/wp-stats.2.06.zip "WP-Stats 2.06 For WordPress 2.0.x")
-* [WP-Stats 1.00 For WordPress 1.5.2](ttp://downloads.wordpress.org/plugin/wp-stats.1.00.zip "WP-Stats 1.00 For WordPress 1.5.2")
-
 ### Development
-* [http://dev.wp-plugins.org/browser/wp-stats/](http://dev.wp-plugins.org/browser/wp-stats/ "http://dev.wp-plugins.org/browser/wp-stats/")
+* [https://github.com/lesterchan/wp-stats](https://github.com/lesterchan/wp-stats "https://github.com/lesterchan/wp-stats")
 
 ### Translations
 * [http://dev.wp-plugins.org/browser/wp-stats/i18n/](http://dev.wp-plugins.org/browser/wp-stats/i18n/ "http://dev.wp-plugins.org/browser/wp-stats/i18n/")
-
-### Support Forums
-* [http://forums.lesterchan.net/index.php?board=20.0](http://forums.lesterchan.net/index.php?board=20.0 "http://forums.lesterchan.net/index.php?board=20.0")
 
 ### Credits
 * __ngetext() by [Anna Ozeritskaya](http://hweia.ru/ "Anna Ozeritskaya")
