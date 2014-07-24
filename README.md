@@ -10,18 +10,21 @@ Display your WordPress blog statistics. Ranging from general total statistics, s
 
 ## Description
 
+### Build Status
+[![Build Status](https://travis-ci.org/lesterchan/wp-stats.svg?branch=master)](https://travis-ci.org/lesterchan/wp-stats)
+
 ### Development
-* [https://github.com/lesterchan/wp-stats](https://github.com/lesterchan/wp-stats "https://github.com/lesterchan/wp-stats")
+[https://github.com/lesterchan/wp-stats](https://github.com/lesterchan/wp-stats "https://github.com/lesterchan/wp-stats")
 
 ### Translations
-* [http://dev.wp-plugins.org/browser/wp-stats/i18n/](http://dev.wp-plugins.org/browser/wp-stats/i18n/ "http://dev.wp-plugins.org/browser/wp-stats/i18n/")
+[http://dev.wp-plugins.org/browser/wp-stats/i18n/](http://dev.wp-plugins.org/browser/wp-stats/i18n/ "http://dev.wp-plugins.org/browser/wp-stats/i18n/")
 
 ### Credits
 * __ngetext() by [Anna Ozeritskaya](http://hweia.ru/ "Anna Ozeritskaya")
 * Right To Left Language Support by [Kambiz R. Khojasteh](http://persian-programming.com/ "Kambiz R. Khojasteh")
 
 ### Donations
-* I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
+I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
 
