@@ -1,22 +1,4 @@
 <?php
-/*
-+----------------------------------------------------------------+
-|																							|
-|	WordPress 2.8 Plugin: WP-Stats 2.50										|
-|	Copyright (c) 2009 Lester "GaMerZ" Chan									|
-|																							|
-|	File Written By:																	|
-|	- Lester "GaMerZ" Chan															|
-|	- http://lesterchan.net															|
-|																							|
-|	File Information:																	|
-|	- WordPress Statistics															|
-|	- wp-content/plugins/wp-stats/stats-options.php						|
-|																							|
-+----------------------------------------------------------------+
-*/
-
-
 ### Variables Variables Variables
 $base_name = plugin_basename('wp-stats/stats-options.php');
 $base_page = 'admin.php?page='.$base_name;
