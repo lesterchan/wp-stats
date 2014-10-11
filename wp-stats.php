@@ -3,7 +3,7 @@
 Plugin Name: WP-Stats
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
-Version: 2.50
+Version: 2.51
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-stats
@@ -11,7 +11,7 @@ Text Domain: wp-stats
 
 
 /*
-	Copyright 2013  Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2014  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,9 +30,9 @@ Text Domain: wp-stats
 
 
 ### Create Text Domain For Translations
-add_action('init', 'stats_textdomain');
+add_action( 'plugins_loaded', 'stats_textdomain' );
 function stats_textdomain() {
-	load_plugin_textdomain('wp-stats', false, 'wp-stats');
+	load_plugin_textdomain( 'wp-stats', false, dirname( plugin_basename( __FILE__ ) ) );
 }
 
 
@@ -873,10 +873,31 @@ function widget_stats_init() {
 }
 
 
-### Function: Stats Option
-add_action('activate_wp-stats/wp-stats.php', 'stats_init');
-function stats_init() {
-	global $wpdb;
+### Function: Activate Plugin
+register_activation_hook( __FILE__, 'stats_activation' );
+function stats_activation( $network_wide )
+{
+	if ( is_multisite() && $network_wide )
+	{
+		$ms_sites = wp_get_sites();
+
+		if( 0 < sizeof( $ms_sites ) )
+		{
+			foreach ( $ms_sites as $ms_site )
+			{
+				switch_to_blog( $ms_site['blog_id'] );
+				stats_activate();
+			}
+		}
+
+		restore_current_blog();
+	}
+	else
+	{
+		stats_activate();
+	}
+}
+function stats_activate() {
 	$stats_display = array('total_stats'  => 1, 'email'  => 1, 'polls' => 1, 'ratings' => 1, 'views' => 1, 'useronline' => 1, 'recent_posts' => 1, 'recent_comments' => 1, 'commented_post' => 1, 'commented_page' => 0, 'emailed_most_post' => 1, 'emailed_most_page' => 0, 'rated_highest_post' => 1, 'rated_highest_page' => 0, 'rated_most_post' => 1, 'rated_most_page' => 0, 'viewed_most_post' => 1, 'viewed_most_page' => 0, 'authors' => 1, 'comment_members' => 1, 'post_cats' => 1, 'link_cats' => 1);
 	add_option('stats_mostlimit', '10', 'Stats Most Limit');
 	add_option('stats_display', $stats_display, 'Stats To Display');

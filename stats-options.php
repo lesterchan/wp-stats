@@ -20,12 +20,8 @@
 ### Variables Variables Variables
 $base_name = plugin_basename('wp-stats/stats-options.php');
 $base_page = 'admin.php?page='.$base_name;
-$mode = trim($_GET['mode']);
-$stats_settings = array('stats_mostlimit', 'stats_display', 'stats_url', 'widget_stats');
-
 
 ### Form Processing
-// Update Options
 if(!empty($_POST['Submit'])) {
 	$stats_url = addslashes(trim($_POST['stats_url']));
 	$stats_mostlimit = intval(trim($_POST['stats_mostlimit']));
@@ -49,59 +45,17 @@ if(!empty($_POST['Submit'])) {
 	$text = '';
 	foreach($update_stats_queries as $update_stats_query) {
 		if($update_stats_query) {
-			$text .= '<font color="green">'.$update_stats_text[$i].' '.__('Updated', 'wp-stats').'</font><br />';
+			$text .= '<p style="color: green">'.$update_stats_text[$i].' '.__('Updated', 'wp-stats').'</p>';
 		}
 		$i++;
 	}
 	if(empty($text)) {
-		$text = '<font color="red">'.__('No Stats Option Updated', 'wp-stats').'</font>';
-	}
-}
-// Uninstall WP-Stats
-if(!empty($_POST['do'])) {
-	switch($_POST['do']) {		
-		case __('UNINSTALL WP-Stats', 'wp-stats') :
-			if(trim($_POST['uninstall_stats_yes']) == 'yes') {
-				echo '<div id="message" class="updated fade">';
-				echo '<p>';
-				foreach($stats_settings as $setting) {
-					$delete_setting = delete_option($setting);
-					if($delete_setting) {
-						echo '<font color="green">';
-						printf(__('Setting Key \'%s\' has been deleted.', 'wp-stats'), "<strong><em>{$setting}</em></strong>");
-						echo '</font><br />';
-					} else {
-						echo '<font color="red">';
-						printf(__('Error deleting Setting Key \'%s\'.', 'wp-stats'), "<strong><em>{$setting}</em></strong>");
-						echo '</font><br />';
-					}
-				}
-				echo '</p>';
-				echo '</div>'; 
-				$mode = 'end-UNINSTALL';
-			}
-			break;
+		$text = '<p style="color: red">'.__('No Stats Option Updated', 'wp-stats').'</p>';
 	}
 }
 
-
-### Determines Which Mode It Is
-switch($mode) {
-		//  Deactivating WP-Stats
-		case 'end-UNINSTALL':
-			$deactivate_url = 'plugins.php?action=deactivate&amp;plugin=wp-stats/wp-stats.php';
-			if(function_exists('wp_nonce_url')) { 
-				$deactivate_url = wp_nonce_url($deactivate_url, 'deactivate-plugin_wp-stats/wp-stats.php');
-			}
-			echo '<div class="wrap">';
-			echo '<h2>'.__('Uninstall WP-Stats', 'wp-stats').'</h2>';
-			echo '<p><strong>'.sprintf(__('<a href="%s">Click Here</a> To Finish The Uninstallation And WP-Stats Will Be Deactivated Automatically.', 'wp-stats'), $deactivate_url).'</strong></p>';
-			echo '</div>';
-			break;
-	// Main Page
-	default:
-		$stats_mostlimit = intval(get_option('stats_mostlimit'));
-		$stats_display = get_option('stats_display');
+$stats_mostlimit = intval(get_option('stats_mostlimit'));
+$stats_display = get_option('stats_display');
 ?>
 <?php if(!empty($text)) { echo '<!-- Last Action --><div id="message" class="updated fade"><p>'.$text.'</p></div>'; } ?>
 <form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>?page=<?php echo plugin_basename(__FILE__); ?>">
@@ -177,47 +131,3 @@ switch($mode) {
 	</p>
 </div>
 </form>
-<p>&nbsp;</p>
-
-<!-- Uninstall WP-Stats -->
-<form method="post" action="<?php echo $_SERVER['PHP_SELF']; ?>?page=<?php echo plugin_basename(__FILE__); ?>">
-<div class="wrap"> 
-	<h3><?php _e('Uninstall WP-Stats', 'wp-stats'); ?></h3>
-	<p>
-		<?php _e('Deactivating WP-Stats plugin does not remove any data that may have been created, such as the stats options. To completely remove this plugin, you can uninstall it here.', 'wp-stats'); ?>
-	</p>
-	<p style="color: red">
-		<strong><?php _e('WARNING:', 'wp-stats'); ?></strong><br />
-		<?php _e('Once uninstalled, this cannot be undone. You should use a Database Backup plugin of WordPress to back up all the data first.', 'wp-stats'); ?>
-	</p>
-	<p style="color: red">
-		<strong><?php _e('The following WordPress Options will be DELETED:', 'wp-stats'); ?></strong><br />
-	</p>
-	<table class="widefat">
-		<thead>
-			<tr>
-				<th><?php _e('WordPress Options', 'wp-stats'); ?></th>
-			</tr>
-		</thead>
-		<tr>
-			<td valign="top">
-				<ol>
-				<?php
-					foreach($stats_settings as $settings) {
-						echo '<li>'.$settings.'</li>'."\n";
-					}
-				?>
-				</ol>
-			</td>
-		</tr>
-	</table>
-	<p>&nbsp;</p>
-	<p style="text-align: center;">
-		<input type="checkbox" name="uninstall_stats_yes" value="yes" />&nbsp;<?php _e('Yes', 'wp-stats'); ?><br /><br />
-		<input type="submit" name="do" value="<?php _e('UNINSTALL WP-Stats', 'wp-stats'); ?>" class="button" onclick="return confirm('<?php _e('You Are About To Uninstall WP-Stats From WordPress.\nThis Action Is Not Reversible.\n\n Choose [Cancel] To Stop, [OK] To Uninstall.', 'wp-stats'); ?>')" />
-	</p>
-</div> 
-</form>
-<?php
-} // End switch($mode)
-?>

@@ -3,7 +3,7 @@ Contributors: GamerZ
 Donate link: http://leterchan.net/site/donation/  
 Tags: stat, stats, statistics, wp-stats, wp-stat, top, most, widget, popular, information  
 Requires at least: 2.8  
-Tested up to: 4.0  
+Tested up to: 4.1  
 Stable tag: trunk  
 
 Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
@@ -26,6 +26,9 @@ Display your WordPress blog statistics. Ranging from general total statistics, s
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appericiate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 2.51
+* NEW: Supports WordPress Multisite Network Activation
+* NEW: Uses WordPress native uninstall.php
 
 ### Version 2.50 (01-06-2009)
 * NEW: Works For WordPress 2.8
