@@ -40,7 +40,7 @@ function stats_textdomain() {
 add_action('admin_menu', 'stats_menu');
 function stats_menu() {
 	if (function_exists('add_submenu_page')) {
-		add_submenu_page('index.php',  __('WP-Stats', 'wp-stats'),  __('WP-Stats', 'wp-stats'), 1, 'wp-stats/wp-stats.php', 'display_stats');
+		add_submenu_page('index.php',  __('WP-Stats', 'wp-stats'),  __('WP-Stats', 'wp-stats'), 'manage_options', 'wp-stats/wp-stats.php', 'display_stats');
 	}
 	if (function_exists('add_options_page')) {
 		add_options_page(__('Stats', 'wp-stats'), __('Stats', 'wp-stats'), 'manage_options', 'wp-stats/stats-options.php');
