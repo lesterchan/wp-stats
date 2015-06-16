@@ -26,6 +26,9 @@ Display your WordPress blog statistics. Ranging from general total statistics, s
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 2.52
+* FIXED: Added nonce field and esc_url() to fix XSS. Props HSASec-Team.
+
 ### Version 2.51
 * NEW: Supports WordPress Multisite Network Activation
 * NEW: Uses WordPress native uninstall.php

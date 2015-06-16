@@ -3,7 +3,7 @@
 Plugin Name: WP-Stats
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
-Version: 2.51
+Version: 2.52
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-stats
@@ -11,7 +11,7 @@ Text Domain: wp-stats
 
 
 /*
-	Copyright 2014  Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2015  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,12 +39,8 @@ function stats_textdomain() {
 ### Function: WP-Stats Menu
 add_action('admin_menu', 'stats_menu');
 function stats_menu() {
-	if (function_exists('add_submenu_page')) {
-		add_submenu_page('index.php',  __('WP-Stats', 'wp-stats'),  __('WP-Stats', 'wp-stats'), 'manage_options', 'wp-stats/wp-stats.php', 'display_stats');
-	}
-	if (function_exists('add_options_page')) {
-		add_options_page(__('Stats', 'wp-stats'), __('Stats', 'wp-stats'), 'manage_options', 'wp-stats/stats-options.php');
-	}
+	add_submenu_page('index.php',  __('WP-Stats', 'wp-stats'),  __('WP-Stats', 'wp-stats'), 'manage_options', 'wp-stats/wp-stats.php', 'display_stats');
+	add_options_page(__('Stats', 'wp-stats'), __('Stats', 'wp-stats'), 'manage_options', 'wp-stats/stats-options.php');
 }
 
 
@@ -391,7 +387,7 @@ function stats_page_shortcode($atts) {
 
 ### Function: Stats Page
 function stats_page_link($author, $page = 0) {
-	$stats_url = get_option('stats_url');
+	$stats_url = esc_url( get_option( 'stats_url' ) );
 	if($page > 1) {
 		$page = "&amp;stats_page=$page";
 	} else {
@@ -553,7 +549,7 @@ function stats_page() {
 	// Displaying Comments Posted By User
 	} else {
 		// Stats URL
-		$stats_url = get_option('stats_url');
+		$stats_url = esc_url( get_option( 'stats_url' ) );
 		// Number Of Comments Per Page
 		$perpage = 10;
 		// Comment Author Link
@@ -761,7 +757,7 @@ function stats_page() {
 		}
 		if($show_link) {
 			echo '<ul>'."\n";
-			echo '<li><a href="'.stripslashes(get_option('stats_url')).'">'.__('My Blog Statistics', 'wp-stats').'</a></li>'."\n";
+			echo '<li><a href="'.esc_url( get_option( 'stats_url' ) ).'">'.__('My Blog Statistics', 'wp-stats').'</a></li>'."\n";
 			echo '</ul>'."\n";
 		}
 		echo $after_widget;
@@ -898,9 +894,9 @@ function stats_activation( $network_wide )
 	}
 }
 function stats_activate() {
-	$stats_display = array('total_stats'  => 1, 'email'  => 1, 'polls' => 1, 'ratings' => 1, 'views' => 1, 'useronline' => 1, 'recent_posts' => 1, 'recent_comments' => 1, 'commented_post' => 1, 'commented_page' => 0, 'emailed_most_post' => 1, 'emailed_most_page' => 0, 'rated_highest_post' => 1, 'rated_highest_page' => 0, 'rated_most_post' => 1, 'rated_most_page' => 0, 'viewed_most_post' => 1, 'viewed_most_page' => 0, 'authors' => 1, 'comment_members' => 1, 'post_cats' => 1, 'link_cats' => 1);
-	add_option('stats_mostlimit', '10', 'Stats Most Limit');
-	add_option('stats_display', $stats_display, 'Stats To Display');
-	add_option('stats_url', get_option('siteurl').'/stats/', 'Stats URL');
+	$stats_display = array( 'total_stats'  => 1, 'email'  => 1, 'polls' => 1, 'ratings' => 1, 'views' => 1, 'useronline' => 1, 'recent_posts' => 1, 'recent_comments' => 1, 'commented_post' => 1, 'commented_page' => 0, 'emailed_most_post' => 1, 'emailed_most_page' => 0, 'rated_highest_post' => 1, 'rated_highest_page' => 0, 'rated_most_post' => 1, 'rated_most_page' => 0, 'viewed_most_post' => 1, 'viewed_most_page' => 0, 'authors' => 1, 'comment_members' => 1, 'post_cats' => 1, 'link_cats' => 1 );
+	add_option( 'stats_mostlimit', '10', 'Stats Most Limit' );
+	add_option( 'stats_display', $stats_display, 'Stats To Display' );
+	add_option( 'stats_url', esc_url( get_option( 'siteurl' ) ) .'/stats/', 'Stats URL' );
 }
 ?>
