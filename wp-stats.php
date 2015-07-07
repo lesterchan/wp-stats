@@ -675,9 +675,9 @@ function stats_page() {
 ### Class: WP-Stats Widget
  class WP_Widget_Stats extends WP_Widget {
 	// Constructor
-	function WP_Widget_Stats() {
+	function __construct() {
 		$widget_ops = array('description' => __('WP-Stats statistics', 'wp-stats'));
-		$this->WP_Widget('stats', __('Stats', 'wp-stats'), $widget_ops);
+		parent::__construct('stats', __('Stats', 'wp-stats'), $widget_ops);
 	}
 
 	// Display Widget
