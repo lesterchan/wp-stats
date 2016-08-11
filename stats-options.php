@@ -8,8 +8,8 @@ if( ! empty( $_POST['Submit'] ) ) {
     check_admin_referer( 'wp-stats_options' );
     $stats_url = ! empty( $_POST['stats_url'] ) ? esc_url_raw( $_POST['stats_url'] ) : '';
     $stats_mostlimit = ! empty( $_POST['stats_mostlimit'] ) ? intval( trim( $_POST['stats_mostlimit'] ) ) : 10;
-    $stats_display =  empty( $_POST['stats_display'] ) ? $_POST['stats_display'] : [];
-    $stats_display_array = [];
+    $stats_display =  empty( $_POST['stats_display'] ) ? $_POST['stats_display'] : array();
+    $stats_display_array = array();
     if( ! empty( $stats_display ) ) {
         foreach($stats_display as $stat_display) {
             $stat_display = addslashes( $stat_display );
