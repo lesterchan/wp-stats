@@ -3,7 +3,7 @@
 Plugin Name: WP-Stats
 Plugin URI: http://lesterchan.net/portfolio/programming/php/
 Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
-Version: 2.53
+Version: 2.54
 Author: Lester 'GaMerZ' Chan
 Author URI: http://lesterchan.net
 Text Domain: wp-stats
@@ -11,7 +11,7 @@ Text Domain: wp-stats
 
 
 /*
-    Copyright 2015  Lester Chan  (email : lesterchan@gmail.com)
+    Copyright 2016  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -430,8 +430,9 @@ function stats_page() {
             $temp_stats .= '<li>'.sprintf(_n('<strong>%s</strong> link was added.', '<strong>%s</strong> links were added.', get_totallinks(false), 'wp-stats'), number_format_i18n(get_totallinks(false))).'</li>'."\n";
             $temp_stats .= '<li>'.sprintf(_n('<strong>%s</strong> post category was needed.', '<strong>%s</strong> post categories were needed.', wp_count_terms('category'), 'wp-stats'), number_format_i18n(wp_count_terms('category'))).'</li>'."\n";
             $temp_stats .= '<li>'.sprintf(_n('<strong>%s</strong> link category was needed.', '<strong>%s</strong> link categories were needed.', wp_count_terms('link_category'), 'wp-stats'), number_format_i18n(wp_count_terms('link_category'))).'</li>'."\n";
-            if(function_exists('akismet_spam_count')) {
-                $temp_stats .= '<li>'.sprintf(_n('<strong>%s</strong> spam blocked.', '<strong>%s</strong> spam blocked.', get_option('akismet_spam_count'), 'wp-stats'), number_format_i18n(get_option('akismet_spam_count'))).'</li>'."\n";
+            if( class_exists( 'Akismet_Admin' ) ) {
+                $spam_count = Akismet_Admin::get_spam_count();
+                $temp_stats .= '<li>' . sprintf( _n( '<strong>%s</strong> spam blocked.', '<strong>%s</strong> spam blocked.', $spam_count, 'wp-stats' ), number_format_i18n( $spam_count ) ) . '</li>' . "\n";
             }
             // WP-Stats: General Stats Filter
             $temp_stats = apply_filters('wp_stats_page_general', $temp_stats);
@@ -737,8 +738,9 @@ function stats_page() {
             echo '<li>'.sprintf(_n('<strong>%s</strong> Link Category', '<strong>%s</strong> Link Categories', wp_count_terms('link_category'), 'wp-stats'), number_format_i18n(wp_count_terms('link_category'))).'</li>'."\n";
         }
         // Total Spam
-        if($stats_total_spam && function_exists('akismet_spam_count')) {
-            echo '<li>'.sprintf(_n('<strong>%s</strong> Spam Blocked', '<strong>%s</strong> Spam Blockeds', akismet_spam_count(), 'wp-stats'), number_format_i18n(akismet_spam_count())).'</li>'."\n";
+        if($stats_total_spam && class_exists( 'Akismet_Admin' ) ) {
+            $spam_count = Akismet_Admin::get_spam_count();
+            echo '<li>' . sprintf( _n( '<strong>%s</strong> Spam Blocked', '<strong>%s</strong> Spam Blockeds', $spam_count, 'wp-stats' ), number_format_i18n( $spam_count ) ) . '</li>' . "\n";
         }
         echo '</ul>'."\n";
         echo '</li>'."\n";
@@ -828,7 +830,7 @@ function stats_page() {
             <br />
             <input type="checkbox" id="<?php echo $this->get_field_id('stats_total_link_cat'); ?>" name="<?php echo $this->get_field_name('stats_total_link_cat'); ?>" value="1" <?php checked(1, $instance['stats_total_link_cat']); ?> />&nbsp;&nbsp;<label for="<?php echo $this->get_field_id('stats_total_link_cat'); ?>"><?php _e('Total Link Categories', 'wp-stats'); ?></label>
             <br />
-            <?php if(function_exists('akismet_spam_count')): ?>
+            <?php if( class_exists( 'Akismet_Admin' ) ): ?>
                 <input type="checkbox" id="<?php echo $this->get_field_id('stats_total_spam'); ?>" name="<?php echo $this->get_field_name('stats_total_spam'); ?>" value="1" <?php checked(1, $instance['stats_total_spam']); ?> />&nbsp;&nbsp;<label for="<?php echo $this->get_field_id('stats_total_spam'); ?>"><?php _e('Total Spam Blocked', 'wp-stats'); ?></label>
                 <br />
             <?php endif; ?>
