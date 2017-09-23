@@ -7,7 +7,7 @@ $base_page = 'admin.php?page='.$base_name;
 if( ! empty( $_POST['Submit'] ) ) {
     check_admin_referer( 'wp-stats_options' );
     $stats_url = ! empty( $_POST['stats_url'] ) ? esc_url_raw( $_POST['stats_url'] ) : '';
-    $stats_mostlimit = ! empty( $_POST['stats_mostlimit'] ) ? intval( trim( $_POST['stats_mostlimit'] ) ) : 10;
+    $stats_mostlimit = ! empty( $_POST['stats_mostlimit'] ) ? (int) trim( $_POST['stats_mostlimit'] ) : 10;
     $stats_display =  empty( $_POST['stats_display'] ) ? $_POST['stats_display'] : array();
     $stats_display_array = array();
     if( ! empty( $stats_display ) ) {
@@ -38,8 +38,16 @@ if( ! empty( $_POST['Submit'] ) ) {
     }
 }
 
-$stats_mostlimit = intval(get_option('stats_mostlimit'));
-$stats_display = get_option('stats_display');
+$stats_mostlimit = (int) get_option( 'stats_mostlimit' );
+$stats_display = get_option( 'stats_display' );
+
+$page_admin_general_stats = '';
+$page_admin_plugins_stats = '';
+$page_admin_recent_stats = '';
+$page_page_admin_most_stats = '';
+$page_admin_authors_stats = '';
+$admin_comments_members_stats = '';
+$page_admin_misc_stats = '';
 ?>
 <?php if(!empty($text)) { echo '<!-- Last Action --><div id="message" class="updated fade"><p>'.$text.'</p></div>'; } ?>
 <form method="post" action="<?php echo admin_url( 'admin.php?page='.plugin_basename( __FILE__ ) ); ?>">
