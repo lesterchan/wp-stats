@@ -40,6 +40,16 @@ if( ! empty( $_POST['Submit'] ) ) {
 
 $stats_mostlimit = (int) get_option( 'stats_mostlimit' );
 $stats_display = get_option( 'stats_display' );
+$stats_display['total_stats'] = isset( $stats_display['total_stats'] ) ? (int) $stats_display['total_stats'] : 0;
+$stats_display['recent_posts'] = isset( $stats_display['recent_posts'] ) ? (int) $stats_display['recent_posts'] : 0;
+$stats_display['recent_comments'] = isset( $stats_display['recent_comments'] ) ? (int) $stats_display['recent_comments'] : 0;
+$stats_display['commented_post'] = isset( $stats_display['commented_post'] ) ? (int) $stats_display['commented_post'] : 0;
+$stats_display['commented_page'] = isset( $stats_display['commented_page'] ) ? (int) $stats_display['commented_page'] : 0;
+$stats_display['authors'] = isset( $stats_display['authors'] ) ? (int) $stats_display['authors'] : 0;
+$stats_display['comment_members'] = isset( $stats_display['total_stats'] ) ? (int) $stats_display['comment_members'] : 0;
+$stats_display['post_cats'] = isset( $stats_display['post_cats'] ) ? (int) $stats_display['post_cats'] : 0;
+$stats_display['link_cats'] = isset( $stats_display['link_cats'] ) ? (int) $stats_display['link_cats'] : 0;
+$stats_display['tags_list'] = isset( $stats_display['tags_list'] ) ? (int) $stats_display['tags_list'] : 0;
 
 $page_admin_general_stats = '';
 $page_admin_plugins_stats = '';
