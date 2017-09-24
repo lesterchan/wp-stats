@@ -1,40 +1,40 @@
 <?php
 ### Variables Variables Variables
-$base_name = plugin_basename('wp-stats/stats-options.php');
-$base_page = 'admin.php?page='.$base_name;
+$base_name = plugin_basename( 'wp-stats/stats-options.php' );
+$base_page = 'admin.php?page=' . $base_name;
 
 ### Form Processing
-if( ! empty( $_POST['Submit'] ) ) {
+if ( ! empty( $_POST['Submit'] ) ) {
     check_admin_referer( 'wp-stats_options' );
     $stats_url = ! empty( $_POST['stats_url'] ) ? esc_url_raw( $_POST['stats_url'] ) : '';
     $stats_mostlimit = ! empty( $_POST['stats_mostlimit'] ) ? (int) trim( $_POST['stats_mostlimit'] ) : 10;
-    $stats_display =  empty( $_POST['stats_display'] ) ? $_POST['stats_display'] : array();
+    $stats_display = ! empty( $_POST['stats_display'] ) ? $_POST['stats_display'] : array();
     $stats_display_array = array();
-    if( ! empty( $stats_display ) ) {
-        foreach($stats_display as $stat_display) {
+    if ( ! empty( $stats_display ) ) {
+        foreach ( $stats_display as $stat_display ) {
             $stat_display = addslashes( $stat_display );
-            $stats_display_array[$stat_display] = 1;
+            $stats_display_array[ $stat_display ] = 1;
         }
     }
     $stats_display = $stats_display_array;
     $update_stats_queries = array();
     $update_stats_text = array();
-    $update_stats_queries[] = update_option('stats_url', $stats_url);
-    $update_stats_queries[] = update_option('stats_mostlimit', $stats_mostlimit);
-    $update_stats_queries[] = update_option('stats_display', $stats_display);
-    $update_stats_text[] = __('Stats URL', 'wp-stats');
-    $update_stats_text[] = __('Stats Most Limit', 'wp-stats');
-    $update_stats_text[] = __('Stats Display Options', 'wp-stats');
+    $update_stats_queries[] = update_option( 'stats_url', $stats_url );
+    $update_stats_queries[] = update_option( 'stats_mostlimit', $stats_mostlimit) ;
+    $update_stats_queries[] = update_option( 'stats_display', $stats_display );
+    $update_stats_text[] = __( 'Stats URL', 'wp-stats' );
+    $update_stats_text[] = __( 'Stats Most Limit', 'wp-stats' );
+    $update_stats_text[] = __( 'Stats Display Options', 'wp-stats' );
     $i=0;
     $text = '';
-    foreach($update_stats_queries as $update_stats_query) {
-        if($update_stats_query) {
-            $text .= '<p style="color: green">'.$update_stats_text[$i].' '.__('Updated', 'wp-stats').'</p>';
+    foreach( $update_stats_queries as $update_stats_query ) {
+        if ( $update_stats_query ) {
+            $text .= '<p style="color: green">' . $update_stats_text[ $i ] . ' ' . __( 'Updated', 'wp-stats' ) . '</p>';
         }
         $i++;
     }
-    if(empty($text)) {
-        $text = '<p style="color: red">'.__('No Stats Option Updated', 'wp-stats').'</p>';
+    if ( empty( $text ) ) {
+        $text = '<p style="color: red">' . __( 'No Stats Option Updated', 'wp-stats' ) . '</p>';
     }
 }
 
@@ -46,7 +46,7 @@ $stats_display['recent_comments'] = isset( $stats_display['recent_comments'] ) ?
 $stats_display['commented_post'] = isset( $stats_display['commented_post'] ) ? (int) $stats_display['commented_post'] : 0;
 $stats_display['commented_page'] = isset( $stats_display['commented_page'] ) ? (int) $stats_display['commented_page'] : 0;
 $stats_display['authors'] = isset( $stats_display['authors'] ) ? (int) $stats_display['authors'] : 0;
-$stats_display['comment_members'] = isset( $stats_display['total_stats'] ) ? (int) $stats_display['comment_members'] : 0;
+$stats_display['comment_members'] = isset( $stats_display['comment_members'] ) ? (int) $stats_display['comment_members'] : 0;
 $stats_display['post_cats'] = isset( $stats_display['post_cats'] ) ? (int) $stats_display['post_cats'] : 0;
 $stats_display['link_cats'] = isset( $stats_display['link_cats'] ) ? (int) $stats_display['link_cats'] : 0;
 $stats_display['tags_list'] = isset( $stats_display['tags_list'] ) ? (int) $stats_display['tags_list'] : 0;
