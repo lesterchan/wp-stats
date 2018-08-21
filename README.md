@@ -3,7 +3,7 @@ Contributors: GamerZ
 Donate link: http://leterchan.net/site/donation/  
 Tags: stat, stats, statistics, wp-stats, wp-stat, top, most, widget, popular, information  
 Requires at least: 4.0
-Tested up to: 4.7
+Tested up to: 4.9  
 Stable tag: trunk  
 
 Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
@@ -39,6 +39,9 @@ Display your WordPress blog statistics. Ranging from general total statistics, s
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 2.55
+* FIXED: Notices
+
 ### Version 2.54
 * FIXED: Akismet_Admin class not found
 

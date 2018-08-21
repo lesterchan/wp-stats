@@ -1,17 +1,17 @@
 <?php
 /*
 Plugin Name: WP-Stats
-Plugin URI: http://lesterchan.net/portfolio/programming/php/
+Plugin URI: https://lesterchan.net/portfolio/programming/php/
 Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
-Version: 2.54
+Version: 2.55
 Author: Lester 'GaMerZ' Chan
-Author URI: http://lesterchan.net
+Author URI: https://lesterchan.net
 Text Domain: wp-stats
 */
 
 
 /*
-    Copyright 2016  Lester Chan  (email : lesterchan@gmail.com)
+    Copyright 2018  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ function stats_menu() {
 
 
 ### Function: Enqueue Stats Stylesheets
-add_action('wp_print_styles', 'stats_stylesheets');
+add_action('wp_enqueue_script', 'stats_stylesheets');
 function stats_stylesheets() {
     if(!function_exists('pagenavi_stylesheets')) {
         if(@file_exists(TEMPLATEPATH.'/stats-css.css')) {
@@ -69,7 +69,7 @@ function display_stats() {
 ### Function: Get Total Authors
 function get_totalauthors($display = true) {
     global $wpdb;
-    $totalauthors = intval($wpdb->get_var("SELECT COUNT(ID) FROM $wpdb->users LEFT JOIN $wpdb->usermeta ON $wpdb->usermeta.user_id = $wpdb->users.ID WHERE $wpdb->users.user_activation_key = '' AND $wpdb->usermeta.meta_key = '".$wpdb->prefix."user_level' AND (meta_value+0.00) > 1"));
+    $totalauthors = (int) $wpdb->get_var("SELECT COUNT(ID) FROM $wpdb->users LEFT JOIN $wpdb->usermeta ON $wpdb->usermeta.user_id = $wpdb->users.ID WHERE $wpdb->users.user_activation_key = '' AND $wpdb->usermeta.meta_key = '".$wpdb->prefix."user_level' AND (meta_value+0.00) > 1");
     if($display) {
         echo $totalauthors;
     } else {
@@ -81,7 +81,7 @@ function get_totalauthors($display = true) {
 ### Function: Get Total Posts
 function get_totalposts($display = true) {
     global $wpdb;
-    $totalposts = intval($wpdb->get_var("SELECT COUNT(ID) FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish'"));
+    $totalposts = (int) $wpdb->get_var("SELECT COUNT(ID) FROM $wpdb->posts WHERE post_type = 'post' AND post_status = 'publish'");
     if($display) {
         echo $totalposts;
     } else {
@@ -93,7 +93,7 @@ function get_totalposts($display = true) {
 ### Function: Get Total Pages
 function get_totalpages($display = true) {
     global $wpdb;
-    $totalpages = intval($wpdb->get_var("SELECT COUNT(ID) FROM $wpdb->posts WHERE post_type = 'page' AND post_status = 'publish'"));
+    $totalpages = (int) $wpdb->get_var("SELECT COUNT(ID) FROM $wpdb->posts WHERE post_type = 'page' AND post_status = 'publish'");
     if($display) {
         echo $totalpages;
     } else {
@@ -105,7 +105,7 @@ function get_totalpages($display = true) {
 ### Function: Get Total Comments
 function get_totalcomments($display = true) {
     global $wpdb;
-    $totalcomments = intval($wpdb->get_var("SELECT COUNT(comment_ID) FROM $wpdb->comments WHERE comment_approved = '1'"));
+    $totalcomments = (int) $wpdb->get_var("SELECT COUNT(comment_ID) FROM $wpdb->comments WHERE comment_approved = '1'");
     if($display) {
         echo $totalcomments;
     } else {
@@ -117,7 +117,7 @@ function get_totalcomments($display = true) {
 ### Function: Get Total Comments Poster
 function get_totalcommentposters($display = true) {
     global $wpdb;
-    $totalcommentposters = intval($wpdb->get_var("SELECT COUNT(DISTINCT comment_author) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type = ''"));
+    $totalcommentposters = (int) $wpdb->get_var("SELECT COUNT(DISTINCT comment_author) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type = ''");
     if($display) {
         echo $totalcommentposters;
     } else {
@@ -129,7 +129,7 @@ function get_totalcommentposters($display = true) {
 ### Function: Get Total Links
 function get_totallinks($display = true) {
     global $wpdb;
-    $totallinks = intval($wpdb->get_var("SELECT COUNT(link_id) FROM $wpdb->links"));
+    $totallinks = (int) $wpdb->get_var("SELECT COUNT(link_id) FROM $wpdb->links");
     if($display) {
         echo $totallinks;
     } else {
@@ -141,9 +141,8 @@ function get_totallinks($display = true) {
 ### Function: Get Recent Posts
 function get_recentposts($mode = '', $limit = 10, $display = true) {
     global $wpdb, $post;
-    $where = '';
     $temp = '';
-    if(!empty($mode) && $mode != 'both') {
+    if(!empty($mode) && $mode !== 'both') {
         $where = "post_type = '$mode'";
     } else {
         $where = '1=1';
@@ -170,9 +169,8 @@ function get_recentposts($mode = '', $limit = 10, $display = true) {
 ### Function: Get Recent Comments
 function get_recentcomments($mode = '', $limit = 10, $display = true) {
     global $wpdb, $post;
-    $where = '';
     $temp = '';
-    if(!empty($mode) && $mode != 'both') {
+    if(!empty($mode) && $mode !== 'both') {
         $where = "post_type = '$mode'";
     } else {
         $where = '1=1';
@@ -199,9 +197,8 @@ function get_recentcomments($mode = '', $limit = 10, $display = true) {
 ### Function: Get Top Commented Posts
 function get_mostcommented($mode = '', $limit = 10, $chars = 0, $display = true) {
     global $wpdb, $post;
-    $where = '';
     $temp = '';
-    if(!empty($mode) && $mode != 'both') {
+    if(!empty($mode) && $mode !== 'both') {
         $where = "post_type = '$mode'";
     } else {
         $where = '1=1';
@@ -235,9 +232,8 @@ function get_mostcommented($mode = '', $limit = 10, $chars = 0, $display = true)
 ### Function: Get Author Stats
 function get_authorsstats($mode = '', $display = true) {
     global $wpdb, $wp_rewrite;
-    $where = '';
     $temp = '';
-    if(!empty($mode) && $mode != 'both') {
+    if(!empty($mode) && $mode !== 'both') {
         $where = "post_type = '$mode'";
     } else {
         $where = '1=1';
@@ -281,7 +277,7 @@ function get_commentmembersstats($threshhold = -1, $limit = 0, $display = true) 
     $comments = $wpdb->get_results("SELECT comment_author, COUNT(comment_ID) AS 'comment_total' FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_approved = '1' AND comment_type = '' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = '' GROUP BY comment_author ORDER BY comment_total DESC $limit_sql");
     if($comments) {
         foreach ($comments as $comment) {
-                $comment_total = intval($comment->comment_total);
+                $comment_total = (int) $comment->comment_total;
                 // If Total Comments Is Below Threshold
                 if($comment_total >= $threshhold) {
                     $comment_author = strip_tags(stripslashes($comment->comment_author));
@@ -302,26 +298,12 @@ function get_commentmembersstats($threshhold = -1, $limit = 0, $display = true) 
 
 ### Function: Get Post Categories Stats
 function get_postcats($display = true) {
-    global $wpdb;
-    $temp = '';
-    $defaults = array('type' => 'post', 'style' => 'list', 'show_count' => 1);
-    $categories = get_categories($defaults);
-    if (empty($categories)){
-        $temp .= '<li>'.__('No categories', 'wp-stats').'</li>';
-    } else {
-        $temp .= walk_category_tree($categories, 0, $defaults);
-    }
-    if($display) {
-        echo $temp;
-    } else {
-        return $temp;
-    }
+    return wp_list_categories(array('style' => 'list', 'show_count' => 1, 'title_li' => '', 'hide_title_if_empty' => true, 'echo' => $display ));
 }
 
 
 ### Function: Get Links Categories Stats
 function get_linkcats($display = true) {
-    global $wpdb;
     $temp = '';
     $cats = get_categories('type=link');
     if ($cats) {
@@ -339,7 +321,6 @@ function get_linkcats($display = true) {
 
 ### Function: Get Tags List
 function get_tags_list($display = true) {
-    global $wpdb;
     $temp = '';
     $tags = get_tags('orderby=count&order=DESC');
     if ($tags) {
@@ -358,21 +339,12 @@ function get_tags_list($display = true) {
 ### Function: Snippet Text
 if(!function_exists('snippet_text')) {
     function snippet_text($text, $length = 0) {
-        if (defined('MB_OVERLOAD_STRING')) {
-          $text = @html_entity_decode($text, ENT_QUOTES, get_option('blog_charset'));
-             if (mb_strlen($text) > $length) {
-                return htmlentities(mb_substr($text,0,$length), ENT_COMPAT, get_option('blog_charset')).'...';
-             } else {
-                return htmlentities($text, ENT_COMPAT, get_option('blog_charset'));
-             }
-        } else {
-            $text = @html_entity_decode($text, ENT_QUOTES, get_option('blog_charset'));
-             if (strlen($text) > $length) {
-                return htmlentities(substr($text,0,$length), ENT_COMPAT, get_option('blog_charset')).'...';
-             } else {
-                return htmlentities($text, ENT_COMPAT, get_option('blog_charset'));
-             }
-        }
+       $text = html_entity_decode($text, ENT_QUOTES, get_option('blog_charset'));
+       if (mb_strlen($text) > $length) {
+           return htmlentities(mb_substr($text,0,$length), ENT_COMPAT, get_option('blog_charset')).'...';
+       }
+
+       return htmlentities($text, ENT_COMPAT, get_option('blog_charset'));
     }
 }
 
@@ -387,15 +359,14 @@ function stats_page_shortcode($atts) {
 ### Function: Stats Page
 function stats_page_link($author, $page = 0) {
     $stats_url = esc_url( get_option( 'stats_url' ) );
+    $page_string = '';
     if($page > 1) {
-        $page = "&amp;stats_page=$page";
-    } else {
-        $page = '';
+        $page_string = "&amp;stats_page=$page";
     }
     if(strpos($stats_url, '?') !== false) {
-        $stats_url = "$stats_url&amp;stats_author=$author$page";
+        $stats_url = "$stats_url&amp;stats_author=$author$page_string";
     } else {
-        $stats_url = "$stats_url?stats_author=$author$page";
+        $stats_url = "$stats_url?stats_author=$author$page_string";
     }
     return $stats_url;
 }
@@ -405,17 +376,17 @@ function stats_page_link($author, $page = 0) {
 function stats_page() {
     global $wpdb, $post;
     // Variables Variables Variables
-    $comment_author = urldecode(strip_tags(stripslashes(trim($_GET['stats_author']))));
-    $page = intval($_GET['stats_page']);
+    $comment_author = isset( $_GET['stats_author'] ) ? urldecode(strip_tags(stripslashes(trim($_GET['stats_author'])))) : '';
+    $page = isset( $_GET['stats_page'] ) ? (int) $_GET['stats_page'] : 1;
     $temp_stats = '';
     $temp_post = $post;
-    $stats_mostlimit = intval(get_option('stats_mostlimit'));
+    $stats_mostlimit = (int) get_option('stats_mostlimit');
     $stats_display = get_option('stats_display');
 
     // Default wp-stats.php Page
     if(empty($comment_author)) {
         // General Stats
-        if($stats_display['total_stats'] == 1) {
+        if($stats_display['total_stats'] === 1) {
             $temp_stats .= '<h2 id="GeneralStats">'.__('General Stats', 'wp-stats').'</h2>'."\n";
             $temp_stats .= '<p><strong>'.__('Total Stats', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
@@ -449,7 +420,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="TopRecentStats">'.sprintf(_n('Top %s Recent Stat', 'Top %s Recent Stats', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</h2>'."\n";
 
         // Recent Posts
-        if($stats_display['recent_posts'] == 1) {
+        if($stats_display['recent_posts'] === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Recent Post', '%s Recent Posts', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_recentposts('post', $stats_mostlimit, false);
@@ -457,7 +428,7 @@ function stats_page() {
         }
 
         // Recent Comments
-        if($stats_display['recent_comments'] == 1) {
+        if($stats_display['recent_comments'] === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Recent Comment', '%s Recent Comments', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_recentcomments('both', $stats_mostlimit, false);
@@ -471,7 +442,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="TopMostHighestStats">'.sprintf(_n('%s Most/Highest Stat', '%s Most/Highest Stats', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</h2>'."\n";
 
         // Most Commented Posts
-        if($stats_display['commented_post'] == 1) {
+        if($stats_display['commented_post'] === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Most Commented Post', '%s Most Commented Posts', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_mostcommented('post', $stats_mostlimit, 0, false);
@@ -479,7 +450,7 @@ function stats_page() {
         }
 
         // Most Commented Pages
-        if($stats_display['commented_page'] == 1) {
+        if($stats_display['commented_page'] === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Most Commented Page', '%s Most Commented Pages', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_mostcommented('page', $stats_mostlimit, 0, false);
@@ -493,7 +464,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="AuthorsStats">'.__('Authors Stats', 'wp-stats').'</h2>'."\n";
 
         // Authors
-        if($stats_display['authors'] == 1) {
+        if($stats_display['authors'] === 1) {
             $temp_stats .= '<p><strong>'.__('Authors', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ol>'."\n";
             $temp_stats .= get_authorsstats('post', false);
@@ -507,7 +478,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="CommentsMembersStats">'.__('Comments\' Members Stats', 'wp-stats').'</h2>'."\n";
 
         // Comments' Member
-        if($stats_display['comment_members'] == 1) {
+        if($stats_display['comment_members'] === 1) {
             $temp_stats .= '<p><strong>'.__('Comment Members', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ol>'."\n";
             $temp_stats .= get_commentmembersstats(5, 0, false);
@@ -521,7 +492,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="MiscStats">'.__('Misc Stats', 'wp-stats').'</h2>'."\n";
 
         // Post Categories
-        if($stats_display['post_cats'] == 1) {
+        if($stats_display['post_cats'] === 1) {
             $temp_stats .= '<p><strong>'.__('Post Categories', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_postcats(false);
@@ -529,14 +500,14 @@ function stats_page() {
         }
 
         // Link Categories
-        if($stats_display['link_cats'] == 1) {
+        if($stats_display['link_cats'] === 1) {
             $temp_stats .= '<p><strong>'.__('Link Categories', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_linkcats(false);
             $temp_stats .= '</ul>'."\n";
         }
 
-        if($stats_display['tags_list'] == 1) {
+        if($stats_display['tags_list'] === 1) {
             $temp_stats .= '<p><strong>'.__('Tags List', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_tags_list(false);
@@ -551,16 +522,15 @@ function stats_page() {
         // Stats URL
         $stats_url = esc_url( get_option( 'stats_url' ) );
         // Number Of Comments Per Page
-        $perpage = 10;
+        $perpage = 30;
         // Comment Author Link
         $comment_author_link = urlencode($comment_author);
         // Comment Author SQL
         $comment_author_sql = $wpdb->escape($comment_author);
         // Total Comments Posted By User
-        $totalcomments = $wpdb->get_var("SELECT COUNT(comment_ID) FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author =  '$comment_author_sql' AND comment_approved = '1' AND comment_type = '' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = ''");
+        $totalcomments = $wpdb->get_var("SELECT COUNT(comment_ID) FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = '$comment_author_sql' AND comment_approved = '1' AND comment_type = '' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = ''");
         // Calculate Paging
         $numposts = $totalcomments;
-        $perpage = 30;
         $max_page = ceil($numposts/$perpage);
         if(empty($page) || $page == 0) {
             $page = 1;
@@ -575,7 +545,7 @@ function stats_page() {
             $start_page = 1;
         }
         $end_page = $page + $half_page_end;
-        if(($end_page - $start_page) != $pages_to_show_minus_1) {
+        if(($end_page - $start_page) !== $pages_to_show_minus_1) {
             $end_page = $start_page + $pages_to_show_minus_1;
         }
         if($end_page > $max_page) {
@@ -590,22 +560,23 @@ function stats_page() {
         } else {
             $max_on_page = ($offset + $perpage);
         }
-        if (($offset + 1) > ($numposts)) {
+        if (($offset + 1) > $numposts) {
             $display_on_page = $numposts;
         } else {
             $display_on_page = ($offset + 1);
         }
 
         // Getting The Comments
-        $gmz_comments =  $wpdb->get_results("SELECT $wpdb->posts.*, $wpdb->comments.* FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author =  '$comment_author_sql' AND comment_approved = '1' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = '' ORDER  BY comment_post_ID DESC, comment_date DESC  LIMIT $offset, $perpage");
+        $gmz_comments =  $wpdb->get_results("SELECT $wpdb->posts.*, $wpdb->comments.* FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = '$comment_author_sql' AND comment_approved = '1' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = '' ORDER  BY comment_post_ID DESC, comment_date DESC  LIMIT $offset, $perpage");
         $temp_stats .= '<h2>'.__('Comments Posted By', 'wp-stats').' '.$comment_author.'</h2>';
         $temp_stats .= '<p>'.sprintf(__('Displaying <strong>%s</strong> To <strong>%s</strong> Of <strong>%s</strong> Comments', 'wp-stats'), number_format_i18n($display_on_page), number_format_i18n($max_on_page), number_format_i18n($numposts)).'</p>';
 
 
         // Get Comments
         if($gmz_comments) {
+            $cache_post_title = '';
             foreach($gmz_comments as $post) {
-                $comment_id = intval($post->comment_ID);
+                $comment_id = (int) $post->comment_ID;
                 $comment_author2 = htmlspecialchars(stripslashes($post->comment_author));
                 $comment_date = mysql2date(sprintf(__('%s @ %s', 'wp-stats'), get_option('date_format'), get_option('time_format')), $post->comment_date);
                 $comment_content = apply_filters('comment_text', $post->comment_content);
@@ -613,15 +584,15 @@ function stats_page() {
                 $post_title = get_the_title();
 
                 // Check For Password Protected Post
-                if(!empty($post->post_password) && stripslashes($_COOKIE['wp-postpass_'.COOKIEHASH]) != $post->post_password) {
+                if(!empty($post->post_password) && stripslashes($_COOKIE['wp-postpass_'.COOKIEHASH]) !== $post->post_password) {
                     // If New Title, Print It Out
-                    if($post_title != $cache_post_title) {
-                        $temp_stats .= "<p><strong><a href=\"".get_permalink()."\" title=\"".__('Posted On', 'wp-stats')." $post_date\">".__('Protected', 'wp-stats').": $post_title</a></strong></p>";
+                    if($post_title !== $cache_post_title) {
+                        $temp_stats .= '<p><strong><a href="'.get_permalink().'" title="'.__('Posted On', 'wp-stats')." $post_date\">".__('Protected', 'wp-stats').": $post_title</a></strong></p>";
                         $temp_stats .= '<blockquote>'.__('Comments Protected', 'wp-stats').'</blockquote>';
                     }
                 } else {
                     // If New Title, Print It Out
-                    if($post_title != $cache_post_title) {
+                    if($post_title !== $cache_post_title) {
                         $temp_stats .= "<p><strong><a href=\"".get_permalink()."\" title=\"".__('Posted On', 'wp-stats')." $post_date\">$post_title</a></strong></p>";
                     }
                     $temp_stats .= "<blockquote>$comment_content<p><a href=\"".get_permalink()."#comment-$comment_id\" title=\"".sprintf(__('View the comment posted by %s', 'wp-stats'), $comment_author2)."\">&raquo;</a> ".__('Posted By', 'wp-stats')." <strong>$comment_author2</strong> ".__('On', 'wp-stats')." $comment_date</p></blockquote>";
@@ -645,7 +616,7 @@ function stats_page() {
                 $temp_stats .= '<a href="'.stats_page_link($comment_author_link, ($page-1)).'" title="'.__('&laquo;', 'wp-stats').'">&#8201;'.__('&laquo;', 'wp-stats').'&#8201;</a>';
             }
             for($i = $start_page; $i  <= $end_page; $i++) {
-                if($i == $page) {
+                if($i === $page) {
                     $temp_stats .= '<span class="current">&#8201;'.number_format_i18n($i).'&#8201;</span>';
                 } else {
                     $temp_stats .= '<a href="'.stats_page_link($comment_author_link, $i).'" title="'.number_format_i18n($i).'">&#8201;'.number_format_i18n($i).'&#8201;</a>';
@@ -675,28 +646,28 @@ function stats_page() {
 ### Class: WP-Stats Widget
  class WP_Widget_Stats extends WP_Widget {
     // Constructor
-    function __construct() {
+    public function __construct() {
         $widget_ops = array('description' => __('WP-Stats statistics', 'wp-stats'));
         parent::__construct('stats', __('Stats', 'wp-stats'), $widget_ops);
     }
 
     // Display Widget
-    function widget($args, $instance) {
-        $title = apply_filters('widget_title', esc_attr($instance['title']));
-        $limit = intval($instance['limit']);
-        $chars = intval($instance['chars']);
-        $show_link = intval($instance['show_link']);
-        $stats_total_authors = intval($instance['stats_total_authors']);
-        $stats_total_posts = intval($instance['stats_total_posts']);
-        $stats_total_pages = intval($instance['stats_total_pages']);
-        $stats_total_tags = intval($instance['stats_total_tags']);
-        $stats_total_comments = intval($instance['stats_total_comments']);
-        $stats_total_commenters = intval($instance['stats_total_commenters']);
-        $stats_total_links = intval($instance['stats_total_links']);
-        $stats_total_post_cat = intval($instance['stats_total_post_cat']);
-        $stats_total_link_cat = intval($instance['stats_total_link_cat']);
-        $stats_total_spam = intval($instance['stats_total_spam']);
-        $stats_most_commented_post = intval($instance['stats_most_commented_post']);
+    public function widget( $args, $instance ) {
+        $title = isset( $instance['title'] ) ? apply_filters( 'widget_title', esc_attr( $instance['title'] ) ) : '';
+        $limit = isset( $instance['limit'] ) ? (int) $instance['limit'] : 10;
+        $chars = isset( $instance['chars'] ) ? (int) $instance['chars'] : 200;
+        $show_link = isset( $instance['show_link'] ) ? (int) $instance['show_link'] : 1;
+        $stats_total_authors = isset( $instance['stats_total_authors'] ) ? (int) $instance['stats_total_authors'] : 1;
+        $stats_total_posts = isset( $instance['stats_total_posts'] ) ? (int) $instance['stats_total_posts'] : 1;
+        $stats_total_pages = isset( $instance['stats_total_pages'] ) ? (int) $instance['stats_total_pages'] : 1;
+        $stats_total_tags = isset( $instance['stats_total_tags'] ) ? (int) $instance['stats_total_tags'] : 1;
+        $stats_total_comments = isset( $instance['stats_total_comments'] ) ? (int) $instance['stats_total_comments'] : 1;
+        $stats_total_commenters = isset( $instance['stats_total_commenters'] ) ? (int) $instance['stats_total_commenters'] : 1;
+        $stats_total_links = isset( $instance['stats_total_links'] ) ? (int) $instance['stats_total_links'] : 1;
+        $stats_total_post_cat = isset( $instance['stats_total_post_cat'] ) ? (int) $instance['stats_total_post_cat'] : 1;
+        $stats_total_link_cat = isset( $instance['stats_total_link_cat'] ) ? (int) $instance['stats_total_link_cat'] : 1;
+        $stats_total_spam = isset( $instance['stats_total_spam'] ) ? (int) $instance['stats_total_spam'] : 1;
+        $stats_most_commented_post = isset( $instance['stats_most_commented_post'] ) ? (int) $instance['stats_most_commented_post'] : 1;
         echo $args['before_widget'] . $args['before_title'] . $title . $args['after_title'];
         echo '<ul>'."\n";
         echo '<li><strong>'.__('Total Stats', 'wp-stats').'</strong>'."\n";
@@ -711,7 +682,7 @@ function stats_page() {
         }
         // Total Pages
         if($stats_total_pages) {
-            '<li>'.sprintf(_n('<strong>%s</strong> Page', '<strong>%s</strong> Pages', get_totalpages(false), 'wp-stats'), number_format_i18n(get_totalpages(false))).'</li>'."\n";
+            echo '<li>'.sprintf(_n('<strong>%s</strong> Page', '<strong>%s</strong> Pages', get_totalpages(false), 'wp-stats'), number_format_i18n(get_totalpages(false))).'</li>'."\n";
         }
         // Total Tags
         if($stats_total_tags) {
@@ -764,48 +735,37 @@ function stats_page() {
     }
 
     // When Widget Control Form Is Posted
-    function update($new_instance, $old_instance) {
-        if (!isset($new_instance['submit'])) {
+    public function update( $new_instance, $old_instance ) {
+        if ( ! isset( $new_instance['submit'] ) ) {
             return false;
         }
         $instance = $old_instance;
-        $instance['title'] = strip_tags($new_instance['title']);;
-        $instance['limit'] = intval($new_instance['limit']);
-        $instance['chars'] = intval($new_instance['chars']);
-        $instance['show_link'] = intval($new_instance['show_link']);
-        $instance['stats_total_authors'] = intval($new_instance['stats_total_authors']);
-        $instance['stats_total_posts'] = intval($new_instance['stats_total_posts']);
-        $instance['stats_total_pages'] = intval($new_instance['stats_total_pages']);
-        $instance['stats_total_tags'] = intval($new_instance['stats_total_tags']);
-        $instance['stats_total_comments'] = intval($new_instance['stats_total_comments']);
-        $instance['stats_total_commenters'] = intval($new_instance['stats_total_commenters']);
-        $instance['stats_total_links'] = intval($new_instance['stats_total_links']);
-        $instance['stats_total_post_cat'] = intval($new_instance['stats_total_post_cat']);
-        $instance['stats_total_link_cat'] = intval($new_instance['stats_total_link_cat']);
-        $instance['stats_total_spam'] = intval($new_instance['stats_total_spam']);
-        $instance['stats_most_commented_post'] = intval($new_instance['stats_most_commented_post']);
+        $instance['title'] = isset( $new_instance['title'] ) ? strip_tags( $new_instance['title'] ) : '';
+        $instance['limit'] = isset( $new_instance['limit'] ) ? (int) $new_instance['limit'] : 10;
+        $instance['chars'] = isset( $new_instance['chars'] ) ? (int) $new_instance['chars'] : 200;
+        $instance['show_link'] = isset( $new_instance['show_link'] ) ? (int) $new_instance['show_link'] : 1;
+        $instance['stats_total_authors'] = isset( $new_instance['stats_total_authors'])  ? (int) $new_instance['stats_total_authors'] : 1;
+        $instance['stats_total_posts'] = isset( $new_instance['stats_total_posts'] ) ? (int) $new_instance['stats_total_posts'] : 1;
+        $instance['stats_total_pages'] = isset( $new_instance['stats_total_pages'] ) ? (int) $new_instance['stats_total_pages'] : 1;
+        $instance['stats_total_tags'] = isset( $new_instance['stats_total_tags'] ) ? (int) $new_instance['stats_total_tags'] : 1;
+        $instance['stats_total_comments'] = isset( $new_instance['stats_total_comments'] ) ? (int) $new_instance['stats_total_comments'] : 1;
+        $instance['stats_total_commenters'] = isset( $new_instance['stats_total_commenters'] ) ? (int) $new_instance['stats_total_commenters'] : 1;
+        $instance['stats_total_links'] = isset( $new_instance['stats_total_links'] ) ? (int) $new_instance['stats_total_links'] : 1;
+        $instance['stats_total_post_cat'] = isset( $new_instance['stats_total_post_cat'] ) ? (int) $new_instance['stats_total_post_cat'] : 1;
+        $instance['stats_total_link_cat'] = isset( $new_instance['stats_total_link_cat'] ) ? (int) $new_instance['stats_total_link_cat'] : 1;
+        $instance['stats_total_spam'] = isset( $new_instance['stats_total_spam'] ) ? (int) $new_instance['stats_total_spam'] : 1;
+        $instance['stats_most_commented_post'] = isset( $new_instance['stats_most_commented_post'] ) ? (int) $new_instance['stats_most_commented_post'] : 1;
         return $instance;
     }
 
     // DIsplay Widget Control Form
-    function form($instance) {
-        global $wpdb;
+    public function form( $instance ) {
         $instance = wp_parse_args((array) $instance, array('title' => __('Stats', 'wp-stats'), 'limit' => 10, 'chars' => 200, 'show_link' => 1, 'stats_total_authors' => 1, 'stats_total_posts' => 1, 'stats_total_pages' => 1, 'stats_total_tags' => 1, 'stats_total_comments' => 1, 'stats_total_commenters' => 1, 'stats_total_links' => 1, 'stats_total_post_cat' => 1, 'stats_total_link_cat' => 1, 'stats_total_spam' => 1, 'stats_most_commented_post' => 1));
-        $title = esc_attr($instance['title']);
-        $limit = intval($instance['limit']);
-        $chars = intval($instance['chars']);
-        $show_link = intval($instance['show_link']);
-        $stats_total_authors = intval($instance['stats_total_authors']);
-        $stats_total_posts = intval($instance['stats_total_posts']);
-        $stats_total_pages = intval($instance['stats_total_pages']);
-        $stats_total_tags = intval($instance['stats_total_tags']);
-        $stats_total_comments = intval($instance['stats_total_comments']);
-        $stats_total_commenters = intval($instance['stats_total_commenters']);
-        $stats_total_links = intval($instance['stats_total_links']);
-        $stats_total_post_cat = intval($instance['stats_total_post_cat']);
-        $stats_total_link_cat = intval($instance['stats_total_link_cat']);
-        $stats_total_spam = intval($instance['stats_total_spam']);
-        $stats_most_commented_post = intval($instance['stats_most_commented_post']);
+        $title = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
+        $limit = isset( $instance['limit'] ) ? (int) $instance['limit'] : 10;
+        $chars = isset( $instance['chars'] ) ? (int) $instance['chars'] : 200;
+        $show_link = isset( $instance['show_link'] ) ? (int) $instance['show_link'] : 1;
+        $most_limit = get_option('stats_mostlimit');
 ?>
         <p>
             <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'wp-stats'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label>
@@ -835,7 +795,7 @@ function stats_page() {
                 <br />
             <?php endif; ?>
             <br />
-            <input type="checkbox" id="<?php echo $this->get_field_id('stats_most_commented_post'); ?>" name="<?php echo $this->get_field_name('stats_most_commented_post'); ?>" value="1" <?php checked(1, $instance['stats_most_commented_post']); ?> />&nbsp;&nbsp;<label for="<?php echo $this->get_field_id('stats_most_commented_post'); ?>"><?php printf(_n('%s Most Commented Post', '%s Most Commented Posts', $options['most_limit'], 'wp-stats'), $options['most_limit']); ?></label>
+            <input type="checkbox" id="<?php echo $this->get_field_id('stats_most_commented_post'); ?>" name="<?php echo $this->get_field_name('stats_most_commented_post'); ?>" value="1" <?php checked(1, $instance['stats_most_commented_post']); ?> />&nbsp;&nbsp;<label for="<?php echo $this->get_field_id('stats_most_commented_post'); ?>"><?php printf(_n('%s Most Commented Post', '%s Most Commented Posts', $most_limit, 'wp-stats'), $most_limit); ?></label>
         </p>
         <p>
             <label for="<?php echo $this->get_field_id('limit'); ?>"><?php _e('No. Of Records To Show:', 'wp-stats'); ?> <span style="color: red;">*</span> <input class="widefat" id="<?php echo $this->get_field_id('limit'); ?>" name="<?php echo $this->get_field_name('limit'); ?>" type="text" value="<?php echo $limit; ?>" /></label>
@@ -872,24 +832,25 @@ function widget_stats_init() {
 ### Function: Activate Plugin
 register_activation_hook( __FILE__, 'stats_activation' );
 function stats_activation( $network_wide ) {
-    if ( is_multisite() && $network_wide ) {
-        $ms_sites = wp_get_sites();
+	if ( is_multisite() && $network_wide ) {
+		$ms_sites = function_exists( 'get_sites' ) ? get_sites() : wp_get_sites();
 
-        if( 0 < sizeof( $ms_sites ) ) {
-            foreach ( $ms_sites as $ms_site ) {
-                switch_to_blog( $ms_site['blog_id'] );
-                stats_activate();
-            }
-        }
-
-        restore_current_blog();
-    } else {
-        stats_activate();
-    }
+		if( 0 < count( $ms_sites ) ) {
+			foreach ( $ms_sites as $ms_site ) {
+				$blog_id = class_exists( 'WP_Site' ) ? $ms_site->blog_id : $ms_site['blog_id'];
+				switch_to_blog( $blog_id );
+				stats_activate();
+				restore_current_blog();
+			}
+		}
+	} else {
+		stats_activate();
+	}
 }
+
 function stats_activate() {
     $stats_display = array( 'total_stats'  => 1, 'email'  => 1, 'polls' => 1, 'ratings' => 1, 'views' => 1, 'useronline' => 1, 'recent_posts' => 1, 'recent_comments' => 1, 'commented_post' => 1, 'commented_page' => 0, 'emailed_most_post' => 1, 'emailed_most_page' => 0, 'rated_highest_post' => 1, 'rated_highest_page' => 0, 'rated_most_post' => 1, 'rated_most_page' => 0, 'viewed_most_post' => 1, 'viewed_most_page' => 0, 'authors' => 1, 'comment_members' => 1, 'post_cats' => 1, 'link_cats' => 1 );
-    add_option( 'stats_mostlimit', '10', 'Stats Most Limit' );
+    add_option( 'stats_mostlimit', 10, 'Stats Most Limit' );
     add_option( 'stats_display', $stats_display, 'Stats To Display' );
     add_option( 'stats_url', esc_url( get_option( 'siteurl' ) ) .'/stats/', 'Stats URL' );
 }
