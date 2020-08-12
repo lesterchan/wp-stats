@@ -11,7 +11,7 @@ Text Domain: wp-stats
 
 
 /*
-    Copyright 2018  Lester Chan  (email : lesterchan@gmail.com)
+    Copyright 2020  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -117,7 +117,7 @@ function get_totalcomments($display = true) {
 ### Function: Get Total Comments Poster
 function get_totalcommentposters($display = true) {
     global $wpdb;
-    $totalcommentposters = (int) $wpdb->get_var("SELECT COUNT(DISTINCT comment_author) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type = ''");
+    $totalcommentposters = (int) $wpdb->get_var("SELECT COUNT(DISTINCT comment_author) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type = 'comment'");
     if($display) {
         echo $totalcommentposters;
     } else {
@@ -175,7 +175,7 @@ function get_recentcomments($mode = '', $limit = 10, $display = true) {
     } else {
         $where = '1=1';
     }
-    $recentcomments = $wpdb->get_results("SELECT * FROM $wpdb->posts INNER JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND comment_type = '' AND post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND post_password = '' ORDER  BY comment_date DESC LIMIT $limit");
+    $recentcomments = $wpdb->get_results("SELECT * FROM $wpdb->posts INNER JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND post_password = '' ORDER  BY comment_date DESC LIMIT $limit");
     if($recentcomments) {
         foreach ($recentcomments as $post) {
             $post_title = get_the_title();
@@ -274,7 +274,7 @@ function get_commentmembersstats($threshhold = -1, $limit = 0, $display = true) 
     if($limit > 0) {
         $limit_sql = "LIMIT $limit";
     }
-    $comments = $wpdb->get_results("SELECT comment_author, COUNT(comment_ID) AS 'comment_total' FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_approved = '1' AND comment_type = '' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = '' GROUP BY comment_author ORDER BY comment_total DESC $limit_sql");
+    $comments = $wpdb->get_results("SELECT comment_author, COUNT(comment_ID) AS 'comment_total' FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = '' GROUP BY comment_author ORDER BY comment_total DESC $limit_sql");
     if($comments) {
         foreach ($comments as $comment) {
                 $comment_total = (int) $comment->comment_total;
@@ -528,7 +528,7 @@ function stats_page() {
         // Comment Author SQL
         $comment_author_sql = $wpdb->escape($comment_author);
         // Total Comments Posted By User
-        $totalcomments = $wpdb->get_var("SELECT COUNT(comment_ID) FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = '$comment_author_sql' AND comment_approved = '1' AND comment_type = '' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = ''");
+        $totalcomments = $wpdb->get_var("SELECT COUNT(comment_ID) FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = '$comment_author_sql' AND comment_approved = '1' AND comment_type = 'commment' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = ''");
         // Calculate Paging
         $numposts = $totalcomments;
         $max_page = ceil($numposts/$perpage);

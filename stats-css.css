@@ -1,21 +1,3 @@
-/*
-+----------------------------------------------------------------------+
-|																									|
-|	WordPress 2.8 Plugin: WP-Stats 2.50												|
-|	Copyright (c) 2009 Lester "GaMerZ" Chan											|
-|																									|
-|	File Written By:																			|
-|	- Lester "GaMerZ" Chan																	|
-|	- http://lesterchan.net																	|
-|																									|
-|	File Information:																			|
-|	- Stats CSS Style																			|
-|	- wp-content/plugins/wp-stats/stats-css.css									|
-|																									|
-+----------------------------------------------------------------------+
-*/
-
-
 /* Stats Page Paging */
 .wp-pagenavi a, .wp-pagenavi a:link {
 	padding: 2px 4px 2px 4px; 

@@ -1,9 +1,9 @@
 # WP-Stats
 Contributors: GamerZ  
-Donate link: http://leterchan.net/site/donation/  
+Donate link: https://leterchan.net/site/donation/  
 Tags: stat, stats, statistics, wp-stats, wp-stat, top, most, widget, popular, information  
-Requires at least: 4.0
-Tested up to: 5.4  
+Requires at least: 5.5  
+Tested up to: 5.5  
 Stable tag: trunk  
 
 Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
