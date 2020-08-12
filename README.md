@@ -4,7 +4,7 @@ Donate link: https://leterchan.net/site/donation/
 Tags: stat, stats, statistics, wp-stats, wp-stat, top, most, widget, popular, information  
 Requires at least: 5.5  
 Tested up to: 5.5  
-Stable tag: trunk  
+Stable tag: 2.56  
 
 Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
 
@@ -39,6 +39,9 @@ Display your WordPress blog statistics. Ranging from general total statistics, s
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 2.56
+* NEW: WordPress 5.5 only because of comment_type changes
+
 ### Version 2.55
 * FIXED: Notices
 

@@ -3,7 +3,7 @@
 Plugin Name: WP-Stats
 Plugin URI: https://lesterchan.net/portfolio/programming/php/
 Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
-Version: 2.55
+Version: 2.56
 Author: Lester 'GaMerZ' Chan
 Author URI: https://lesterchan.net
 Text Domain: wp-stats
