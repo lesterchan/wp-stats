@@ -3,7 +3,7 @@
 Plugin Name: WP-Stats
 Plugin URI: https://lesterchan.net/portfolio/programming/php/
 Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
-Version: 2.56
+Version: 2.56.1
 Author: Lester 'GaMerZ' Chan
 Author URI: https://lesterchan.net
 Text Domain: wp-stats
@@ -11,7 +11,7 @@ Text Domain: wp-stats
 
 
 /*
-    Copyright 2020  Lester Chan  (email : lesterchan@gmail.com)
+    Copyright 2026  Lester Chan  (email : lesterchan@gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -153,7 +153,7 @@ function get_recentposts($mode = '', $limit = 10, $display = true) {
             $post_title = get_the_title();
             $post_date = get_the_time(sprintf(__('%s @ %s', 'wp-stats'), get_option('date_format'), get_option('time_format')));
             $display_name = stripslashes($post->display_name);
-            $temp .= "<li>$post_date - <a href=\"".get_permalink()."\" title=\"".sprintf(__('View post %s', 'wp-stats'), $post_title)."\">$post_title</a> ($display_name)</li>\n";
+            $temp .= "<li>$post_date - <a href=\"".esc_url(get_permalink())."\" title=\"".esc_attr(sprintf(__('View post %s', 'wp-stats'), $post_title))."\">".esc_html($post_title)."</a> (".esc_html($display_name).")</li>\n";
         }
     } else {
         $temp = '<li>'.__('N/A', 'wp-stats').'</li>';
@@ -181,7 +181,7 @@ function get_recentcomments($mode = '', $limit = 10, $display = true) {
             $post_title = get_the_title();
             $comment_author = htmlspecialchars(stripslashes($post->comment_author));
             $comment_date = mysql2date(sprintf(__('%s @ %s', 'wp-stats'), get_option('date_format'), get_option('time_format')), $post->comment_date);
-            $temp .= "<li>$comment_date - $comment_author (<a href=\"".get_permalink()."#comment-".$post->comment_ID."\" title=\"".sprintf(__('View comments in post %s', 'wp-stats'), $post_title)."\">$post_title</a>)</li>\n";
+            $temp .= "<li>$comment_date - $comment_author (<a href=\"".esc_url(get_permalink()."#comment-".$post->comment_ID)."\" title=\"".esc_attr(sprintf(__('View comments in post %s', 'wp-stats'), $post_title))."\">".esc_html($post_title)."</a>)</li>\n";
         }
     } else {
         $temp = '<li>'.__('N/A', 'wp-stats').'</li>';
@@ -209,13 +209,13 @@ function get_mostcommented($mode = '', $limit = 10, $chars = 0, $display = true)
             foreach ($mostcommenteds as $post) {
                 $post_title = get_the_title();
                 $comment_total = $post->comment_total;
-                $temp .= "<li><a href=\"".get_permalink()."\" title=\"".sprintf(__('View comments in post %s', 'wp-stats'), $post_title)."\">".snippet_text($post_title, $chars)."</a> - ".sprintf(_n('%s comment', '%s comments', $comment_total, 'wp-stats'), number_format_i18n($comment_total))."</li>";
+                $temp .= "<li><a href=\"".esc_url(get_permalink())."\" title=\"".esc_attr(sprintf(__('View comments in post %s', 'wp-stats'), $post_title))."\">".esc_html(snippet_text($post_title, $chars))."</a> - ".sprintf(_n('%s comment', '%s comments', $comment_total, 'wp-stats'), number_format_i18n($comment_total))."</li>";
             }
         } else {
             foreach ($mostcommenteds as $post) {
                 $post_title = get_the_title();
                 $comment_total = $post->comment_total;
-                $temp .= "<li><a href=\"".get_permalink()."\" title=\"".sprintf(__('View comments in post %s', 'wp-stats'), $post_title)."\">$post_title</a> - ".sprintf(_n('%s comment', '%s comments', $comment_total, 'wp-stats'), number_format_i18n($comment_total))."</li>";
+                $temp .= "<li><a href=\"".esc_url(get_permalink())."\" title=\"".esc_attr(sprintf(__('View comments in post %s', 'wp-stats'), $post_title))."\">".esc_html($post_title)."</a> - ".sprintf(_n('%s comment', '%s comments', $comment_total, 'wp-stats'), number_format_i18n($comment_total))."</li>";
             }
         }
     } else {
@@ -248,9 +248,9 @@ function get_authorsstats($mode = '', $display = true) {
                 $display_name = strip_tags(stripslashes($post->display_name));
                 $posts_total = number_format_i18n($post->posts_total);
                 if($using_permalink) {
-                    $temp .= "<li><a href=\"".get_option('home').$author_link."\" title=\"".sprintf(__('View posts posted by %s', 'wp-stats'), $display_name)."\">$display_name</a> ($posts_total)</li>\n";
+                    $temp .= "<li><a href=\"".esc_url(get_option('home').$author_link)."\" title=\"".esc_attr(sprintf(__('View posts posted by %s', 'wp-stats'), $display_name))."\">".esc_html($display_name)."</a> ($posts_total)</li>\n";
                 } else {
-                    $temp .= "<li><a href=\"".get_option('siteurl')."/?author_name=$post_author\" title=\"".sprintf(__('View posts posted by %s', 'wp-stats'), $display_name)."\">$display_name</a> ($posts_total)</li>\n";
+                    $temp .= "<li><a href=\"".esc_url(get_option('siteurl')."/?author_name=".$post_author)."\" title=\"".esc_attr(sprintf(__('View posts posted by %s', 'wp-stats'), $display_name))."\">".esc_html($display_name)."</a> ($posts_total)</li>\n";
                 }
         }
     } else {
@@ -282,7 +282,7 @@ function get_commentmembersstats($threshhold = -1, $limit = 0, $display = true) 
                 if($comment_total >= $threshhold) {
                     $comment_author = strip_tags(stripslashes($comment->comment_author));
                     $comment_author_link = urlencode($comment_author);
-                    $temp .= "<li><a href=\"".stats_page_link($comment_author_link)."\" title=\"".sprintf(__('View all comments posted by %s', 'wp-stats'), $comment_author)."\">$comment_author</a> (".number_format_i18n($comment_total).")</li>\n";
+                    $temp .= "<li><a href=\"".stats_page_link($comment_author_link)."\" title=\"".esc_attr(sprintf(__('View all comments posted by %s', 'wp-stats'), $comment_author))."\">".esc_html($comment_author)."</a> (".number_format_i18n($comment_total).")</li>\n";
                 }
         }
     } else {
@@ -376,7 +376,7 @@ function stats_page_link($author, $page = 0) {
 function stats_page() {
     global $wpdb, $post;
     // Variables Variables Variables
-    $comment_author = isset( $_GET['stats_author'] ) ? urldecode(strip_tags(stripslashes(trim($_GET['stats_author'])))) : '';
+    $comment_author = isset( $_GET['stats_author'] ) ? sanitize_text_field( wp_unslash( $_GET['stats_author'] ) ) : '';
     $page = isset( $_GET['stats_page'] ) ? (int) $_GET['stats_page'] : 1;
     $temp_stats = '';
     $temp_post = $post;
@@ -525,10 +525,8 @@ function stats_page() {
         $perpage = 30;
         // Comment Author Link
         $comment_author_link = urlencode($comment_author);
-        // Comment Author SQL
-        $comment_author_sql = $wpdb->escape($comment_author);
         // Total Comments Posted By User
-        $totalcomments = $wpdb->get_var("SELECT COUNT(comment_ID) FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = '$comment_author_sql' AND comment_approved = '1' AND comment_type = 'commment' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = ''");
+        $totalcomments = $wpdb->get_var($wpdb->prepare("SELECT COUNT(comment_ID) FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = %s AND comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND post_status = 'publish' AND post_password = ''", $comment_author, current_time('mysql')));
         // Calculate Paging
         $numposts = $totalcomments;
         $max_page = ceil($numposts/$perpage);
@@ -567,8 +565,8 @@ function stats_page() {
         }
 
         // Getting The Comments
-        $gmz_comments =  $wpdb->get_results("SELECT $wpdb->posts.*, $wpdb->comments.* FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = '$comment_author_sql' AND comment_approved = '1' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = '' ORDER  BY comment_post_ID DESC, comment_date DESC  LIMIT $offset, $perpage");
-        $temp_stats .= '<h2>'.__('Comments Posted By', 'wp-stats').' '.$comment_author.'</h2>';
+        $gmz_comments =  $wpdb->get_results($wpdb->prepare("SELECT $wpdb->posts.*, $wpdb->comments.* FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = %s AND comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND post_status = 'publish' AND post_password = '' ORDER  BY comment_post_ID DESC, comment_date DESC  LIMIT %d, %d", $comment_author, current_time('mysql'), $offset, $perpage));
+        $temp_stats .= '<h2>'.__('Comments Posted By', 'wp-stats').' '.esc_html($comment_author).'</h2>';
         $temp_stats .= '<p>'.sprintf(__('Displaying <strong>%s</strong> To <strong>%s</strong> Of <strong>%s</strong> Comments', 'wp-stats'), number_format_i18n($display_on_page), number_format_i18n($max_on_page), number_format_i18n($numposts)).'</p>';
 
 
@@ -587,20 +585,20 @@ function stats_page() {
                 if(!empty($post->post_password) && stripslashes($_COOKIE['wp-postpass_'.COOKIEHASH]) !== $post->post_password) {
                     // If New Title, Print It Out
                     if($post_title !== $cache_post_title) {
-                        $temp_stats .= '<p><strong><a href="'.get_permalink().'" title="'.__('Posted On', 'wp-stats')." $post_date\">".__('Protected', 'wp-stats').": $post_title</a></strong></p>";
+                        $temp_stats .= '<p><strong><a href="'.esc_url(get_permalink()).'" title="'.esc_attr(__('Posted On', 'wp-stats')." $post_date").'">'.__('Protected', 'wp-stats').": ".esc_html($post_title)."</a></strong></p>";
                         $temp_stats .= '<blockquote>'.__('Comments Protected', 'wp-stats').'</blockquote>';
                     }
                 } else {
                     // If New Title, Print It Out
                     if($post_title !== $cache_post_title) {
-                        $temp_stats .= "<p><strong><a href=\"".get_permalink()."\" title=\"".__('Posted On', 'wp-stats')." $post_date\">$post_title</a></strong></p>";
+                        $temp_stats .= "<p><strong><a href=\"".esc_url(get_permalink())."\" title=\"".esc_attr(__('Posted On', 'wp-stats')." $post_date")."\">".esc_html($post_title)."</a></strong></p>";
                     }
                     $temp_stats .= "<blockquote>$comment_content<p><a href=\"".get_permalink()."#comment-$comment_id\" title=\"".sprintf(__('View the comment posted by %s', 'wp-stats'), $comment_author2)."\">&raquo;</a> ".__('Posted By', 'wp-stats')." <strong>$comment_author2</strong> ".__('On', 'wp-stats')." $comment_date</p></blockquote>";
                 }
                 $cache_post_title = $post_title;
             }
         } else {
-                $temp_stats .= "<p>$comment_author ".__('has not made any comments yet.', 'wp-stats')."</p>";
+                $temp_stats .= "<p>".esc_html($comment_author)." ".__('has not made any comments yet.', 'wp-stats')."</p>";
         }
 
         // Comments Paging

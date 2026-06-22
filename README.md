@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: https://leterchan.net/site/donation/  
 Tags: stat, stats, statistics, wp-stats, wp-stat, top, most, widget, popular, information  
 Requires at least: 5.5  
-Tested up to: 6.3  
-Stable tag: 2.56  
+Tested up to: 7.0  
+Stable tag: 2.56.1
 
 Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
 
@@ -23,9 +23,6 @@ Display your WordPress blog statistics. Ranging from general total statistics, s
 1. Go to `WP-Admin -> Appearance -> Widgets`
 2. The widget name is `Stats`.
 
-### Build Status
-[![Build Status](https://travis-ci.org/lesterchan/wp-stats.svg?branch=master)](https://travis-ci.org/lesterchan/wp-stats)
-
 ### Development
 [https://github.com/lesterchan/wp-stats](https://github.com/lesterchan/wp-stats "https://github.com/lesterchan/wp-stats")
 
@@ -39,6 +36,11 @@ Display your WordPress blog statistics. Ranging from general total statistics, s
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
 ## Changelog
+### Version 2.56.1
+* FIXED: Reflected XSS via double-encoded `stats_author` parameter (sanitize input, escape output)
+* FIXED: Stored XSS via comment author names, display names and post titles (escape all output)
+* CHANGED: Use `$wpdb->prepare()` for comment author queries
+
 ### Version 2.56
 * NEW: WordPress 5.5 only because of comment_type changes
 
