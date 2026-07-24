@@ -386,7 +386,7 @@ function stats_page() {
     // Default wp-stats.php Page
     if(empty($comment_author)) {
         // General Stats
-        if($stats_display['total_stats'] === 1) {
+        if((int) ($stats_display['total_stats'] ?? 0) === 1) {
             $temp_stats .= '<h2 id="GeneralStats">'.__('General Stats', 'wp-stats').'</h2>'."\n";
             $temp_stats .= '<p><strong>'.__('Total Stats', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
@@ -420,7 +420,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="TopRecentStats">'.sprintf(_n('Top %s Recent Stat', 'Top %s Recent Stats', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</h2>'."\n";
 
         // Recent Posts
-        if($stats_display['recent_posts'] === 1) {
+        if((int) ($stats_display['recent_posts'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Recent Post', '%s Recent Posts', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_recentposts('post', $stats_mostlimit, false);
@@ -428,7 +428,7 @@ function stats_page() {
         }
 
         // Recent Comments
-        if($stats_display['recent_comments'] === 1) {
+        if((int) ($stats_display['recent_comments'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Recent Comment', '%s Recent Comments', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_recentcomments('both', $stats_mostlimit, false);
@@ -442,7 +442,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="TopMostHighestStats">'.sprintf(_n('%s Most/Highest Stat', '%s Most/Highest Stats', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</h2>'."\n";
 
         // Most Commented Posts
-        if($stats_display['commented_post'] === 1) {
+        if((int) ($stats_display['commented_post'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Most Commented Post', '%s Most Commented Posts', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_mostcommented('post', $stats_mostlimit, 0, false);
@@ -450,7 +450,7 @@ function stats_page() {
         }
 
         // Most Commented Pages
-        if($stats_display['commented_page'] === 1) {
+        if((int) ($stats_display['commented_page'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.sprintf(_n('%s Most Commented Page', '%s Most Commented Pages', $stats_mostlimit, 'wp-stats'), number_format_i18n($stats_mostlimit)).'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_mostcommented('page', $stats_mostlimit, 0, false);
@@ -464,7 +464,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="AuthorsStats">'.__('Authors Stats', 'wp-stats').'</h2>'."\n";
 
         // Authors
-        if($stats_display['authors'] === 1) {
+        if((int) ($stats_display['authors'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.__('Authors', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ol>'."\n";
             $temp_stats .= get_authorsstats('post', false);
@@ -478,7 +478,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="CommentsMembersStats">'.__('Comments\' Members Stats', 'wp-stats').'</h2>'."\n";
 
         // Comments' Member
-        if($stats_display['comment_members'] === 1) {
+        if((int) ($stats_display['comment_members'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.__('Comment Members', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ol>'."\n";
             $temp_stats .= get_commentmembersstats(5, 0, false);
@@ -492,7 +492,7 @@ function stats_page() {
         $temp_stats .= '<h2 id="MiscStats">'.__('Misc Stats', 'wp-stats').'</h2>'."\n";
 
         // Post Categories
-        if($stats_display['post_cats'] === 1) {
+        if((int) ($stats_display['post_cats'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.__('Post Categories', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_postcats(false);
@@ -500,14 +500,14 @@ function stats_page() {
         }
 
         // Link Categories
-        if($stats_display['link_cats'] === 1) {
+        if((int) ($stats_display['link_cats'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.__('Link Categories', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_linkcats(false);
             $temp_stats .= '</ul>'."\n";
         }
 
-        if($stats_display['tags_list'] === 1) {
+        if((int) ($stats_display['tags_list'] ?? 0) === 1) {
             $temp_stats .= '<p><strong>'.__('Tags List', 'wp-stats').'</strong></p>'."\n";
             $temp_stats .= '<ul>'."\n";
             $temp_stats .= get_tags_list(false);
