@@ -846,9 +846,25 @@ function stats_activation( $network_wide ) {
 	}
 }
 
+### Function: Default Stats To Display
+# Single source of truth for the stats_display keys. Companion plugins that add
+# their own checkbox should register its key via the filter.
+function stats_display_defaults() {
+    return apply_filters( 'wp_stats_display_defaults', array(
+        'total_stats' => 1, 'email' => 1, 'polls' => 1, 'ratings' => 1,
+        'views' => 1, 'useronline' => 1, 'recent_posts' => 1,
+        'recent_comments' => 1, 'commented_post' => 1, 'commented_page' => 0,
+        'emailed_most_post' => 1, 'emailed_most_page' => 0,
+        'rated_highest_post' => 1, 'rated_highest_page' => 0,
+        'rated_most_post' => 1, 'rated_most_page' => 0,
+        'viewed_most_post' => 1, 'viewed_most_page' => 0,
+        'authors' => 1, 'comment_members' => 1, 'post_cats' => 1,
+        'link_cats' => 1, 'tags_list' => 0,
+    ) );
+}
+
 function stats_activate() {
-    $stats_display = array( 'total_stats'  => 1, 'email'  => 1, 'polls' => 1, 'ratings' => 1, 'views' => 1, 'useronline' => 1, 'recent_posts' => 1, 'recent_comments' => 1, 'commented_post' => 1, 'commented_page' => 0, 'emailed_most_post' => 1, 'emailed_most_page' => 0, 'rated_highest_post' => 1, 'rated_highest_page' => 0, 'rated_most_post' => 1, 'rated_most_page' => 0, 'viewed_most_post' => 1, 'viewed_most_page' => 0, 'authors' => 1, 'comment_members' => 1, 'post_cats' => 1, 'link_cats' => 1 );
     add_option( 'stats_mostlimit', 10, 'Stats Most Limit' );
-    add_option( 'stats_display', $stats_display, 'Stats To Display' );
+    add_option( 'stats_display', stats_display_defaults(), 'Stats To Display' );
     add_option( 'stats_url', esc_url( get_option( 'siteurl' ) ) .'/stats/', 'Stats URL' );
 }

@@ -8,11 +8,18 @@ if ( ! empty( $_POST['Submit'] ) ) {
     check_admin_referer( 'wp-stats_options' );
     $stats_url = ! empty( $_POST['stats_url'] ) ? esc_url_raw( $_POST['stats_url'] ) : '';
     $stats_mostlimit = ! empty( $_POST['stats_mostlimit'] ) ? (int) trim( $_POST['stats_mostlimit'] ) : 10;
-    $stats_display = ! empty( $_POST['stats_display'] ) ? $_POST['stats_display'] : array();
-    $stats_display_array = array();
-    if ( ! empty( $stats_display ) ) {
-        foreach ( $stats_display as $stat_display ) {
-            $stat_display = addslashes( $stat_display );
+    $stats_display = ! empty( $_POST['stats_display'] ) ? (array) $_POST['stats_display'] : array();
+    // Only checked boxes are posted, so start every known option at 0 and switch
+    // on the ones that came back, keeping unchecked options stored as 0.
+    $stats_display_stored = get_option( 'stats_display' );
+    $stats_display_stored = is_array( $stats_display_stored ) ? $stats_display_stored : array();
+    $stats_display_array = array_fill_keys(
+        array_keys( array_merge( stats_display_defaults(), $stats_display_stored ) ),
+        0
+    );
+    foreach ( $stats_display as $stat_display ) {
+        $stat_display = sanitize_key( $stat_display );
+        if ( '' !== $stat_display ) {
             $stats_display_array[ $stat_display ] = 1;
         }
     }
@@ -40,16 +47,13 @@ if ( ! empty( $_POST['Submit'] ) ) {
 
 $stats_mostlimit = (int) get_option( 'stats_mostlimit' );
 $stats_display = get_option( 'stats_display' );
-$stats_display['total_stats'] = isset( $stats_display['total_stats'] ) ? (int) $stats_display['total_stats'] : 0;
-$stats_display['recent_posts'] = isset( $stats_display['recent_posts'] ) ? (int) $stats_display['recent_posts'] : 0;
-$stats_display['recent_comments'] = isset( $stats_display['recent_comments'] ) ? (int) $stats_display['recent_comments'] : 0;
-$stats_display['commented_post'] = isset( $stats_display['commented_post'] ) ? (int) $stats_display['commented_post'] : 0;
-$stats_display['commented_page'] = isset( $stats_display['commented_page'] ) ? (int) $stats_display['commented_page'] : 0;
-$stats_display['authors'] = isset( $stats_display['authors'] ) ? (int) $stats_display['authors'] : 0;
-$stats_display['comment_members'] = isset( $stats_display['comment_members'] ) ? (int) $stats_display['comment_members'] : 0;
-$stats_display['post_cats'] = isset( $stats_display['post_cats'] ) ? (int) $stats_display['post_cats'] : 0;
-$stats_display['link_cats'] = isset( $stats_display['link_cats'] ) ? (int) $stats_display['link_cats'] : 0;
-$stats_display['tags_list'] = isset( $stats_display['tags_list'] ) ? (int) $stats_display['tags_list'] : 0;
+$stats_display = array_map(
+    'intval',
+    array_merge(
+        array_fill_keys( array_keys( stats_display_defaults() ), 0 ),
+        is_array( $stats_display ) ? $stats_display : array()
+    )
+);
 
 $page_admin_general_stats = '';
 $page_admin_plugins_stats = '';
