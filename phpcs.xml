@@ -92,4 +92,12 @@
 	<rule ref="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
+
+	<!-- The test case installs an error handler to collect the diagnostics the
+	     code under test raises. Asserting that list is empty is what makes the
+	     render tests more than smoke tests, so this is the point, not debug
+	     code left behind. -->
+	<rule ref="WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
 </ruleset>
