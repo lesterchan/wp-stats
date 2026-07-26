@@ -1,9 +1,12 @@
 <?php
-/*
- * Uninstall plugin
+/**
+ * WP-Stats uninstall.php
+ *
+ * @package WP-Stats
  */
+
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit();
+	exit;
 }
 
 /**
@@ -13,9 +16,15 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  */
 function stats_uninstall_site() {
 	$option_names = array(
+		// The consolidated option and its schema version.
+		'stats_options',
+		'stats_db_version',
+		// Pre-3.0.0 rows. Still removed here so an install that never ran the
+		// migration - deactivated before it fired - does not leave them behind.
 		'stats_mostlimit',
 		'stats_display',
 		'stats_url',
+		// Widget instances.
 		'widget_stats',
 	);
 
@@ -25,8 +34,8 @@ function stats_uninstall_site() {
 }
 
 if ( is_multisite() ) {
-	// 'number' => 0 lifts WP_Site_Query's default cap of 100. wp_get_sites(),
-	// which this used before, was deprecated in WP 4.6 and is capped the same way.
+	// 'number' => 0 lifts WP_Site_Query's default cap of 100, which silently
+	// left every site past the hundredth untouched.
 	$site_ids = get_sites(
 		array(
 			'fields' => 'ids',

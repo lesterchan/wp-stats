@@ -16,7 +16,13 @@
 
 	<config name="minimum_wp_version" value="6.0"/>
 
-	<rule ref="WordPress"/>
+	<rule ref="WordPress">
+		<!-- Counting users by user_level meta, comments by approval state and
+		     rows in the links table has no core API equivalent, and there is
+		     nothing sensible to invalidate a cache of them against. -->
+		<exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/>
+		<exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/>
+	</rule>
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>
@@ -24,5 +30,66 @@
 				<element value="wp-stats"/>
 			</property>
 		</properties>
+	</rule>
+
+	<!-- The listing blocks assign the $post global inside their loops so the
+	     template tags they call - get_the_title(), get_permalink() - resolve
+	     against the current row. Every one of them stashes and restores it. -->
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
+		<exclude-pattern>/includes/class-stats-display.php</exclude-pattern>
+		<exclude-pattern>/includes/class-stats-page.php</exclude-pattern>
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- strip_tags(), not wp_strip_all_tags(): the latter also removes the
+	     *contents* of script and style elements, so an author named
+	     "<script>Bob</script>" would render as an empty link rather than "Bob".
+	     The values are escaped at the sink regardless. -->
+	<rule ref="WordPress.WP.AlternativeFunctions.strip_tags_strip_tags">
+		<exclude-pattern>/includes/class-stats-display.php</exclude-pattern>
+	</rule>
+
+	<!-- urlencode(), not rawurlencode(): these are query-string values, and
+	     switching would change the encoding of spaces in every existing link. -->
+	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode">
+		<exclude-pattern>/includes/class-stats-display.php</exclude-pattern>
+		<exclude-pattern>/includes/class-stats-page.php</exclude-pattern>
+	</rule>
+
+	<!-- The listing queries build their WHERE fragment in a local variable so
+	     the post-type filter is optional. The fragment is a literal holding only
+	     placeholders, and the values still go through prepare(), but the sniff
+	     cannot see through the variable to count them. author_post_counts()
+	     additionally has to skip prepare() entirely when the mode contributes no
+	     argument, because prepare() warns when handed none. -->
+	<rule ref="WordPress.DB.PreparedSQL">
+		<exclude-pattern>/includes/class-stats-query.php</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.PreparedSQLPlaceholders">
+		<exclude-pattern>/includes/class-stats-query.php</exclude-pattern>
+	</rule>
+
+	<!-- The stats page reads the request to choose which view to render and
+	     writes nothing. -->
+	<rule ref="WordPress.Security.NonceVerification">
+		<exclude-pattern>/includes/class-stats-page.php</exclude-pattern>
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- The class-{name}.php convention explicitly excepts test classes, which
+	     PHPUnit discovers by Test_* naming instead. -->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- Tests assemble their own markup and assert on it. -->
+	<rule ref="WordPress.Security.EscapeOutput">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- The uninstall test reads a local source file to assert against it.
+	     wp_remote_get() is for URLs and is not a substitute. -->
+	<rule ref="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents">
+		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 </ruleset>
