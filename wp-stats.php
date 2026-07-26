@@ -29,6 +29,12 @@ Text Domain: wp-stats
 */
 
 
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
+
 ### Create Text Domain For Translations
 add_action( 'plugins_loaded', 'stats_textdomain' );
 function stats_textdomain() {
@@ -45,13 +51,16 @@ function stats_menu() {
 
 
 ### Function: Enqueue Stats Stylesheets
-add_action('wp_enqueue_script', 'stats_stylesheets');
+# 'wp_enqueue_script' is not an action, so this never ran and the stylesheet has
+# never loaded on the front end. The theme override was broken too:
+# plugins_url() was being handed an absolute theme URL to use as a relative path.
+add_action('wp_enqueue_scripts', 'stats_stylesheets');
 function stats_stylesheets() {
     if(!function_exists('pagenavi_stylesheets')) {
-        if(@file_exists(TEMPLATEPATH.'/stats-css.css')) {
-            wp_enqueue_style('wp-stats', plugins_url(get_stylesheet_directory_uri().'/stats-css.css'), false, '2.50', 'all');
+        if(file_exists(get_stylesheet_directory().'/stats-css.css')) {
+            wp_enqueue_style('wp-stats', get_stylesheet_directory_uri().'/stats-css.css', array(), '2.56.1', 'all');
         } else {
-            wp_enqueue_style('wp-stats', plugins_url('wp-stats/stats-css.css'), false, '2.50', 'all');
+            wp_enqueue_style('wp-stats', plugins_url('stats-css.css', __FILE__), array(), '2.56.1', 'all');
         }
     }
 }
@@ -69,7 +78,7 @@ function display_stats() {
 ### Function: Get Total Authors
 function get_totalauthors($display = true) {
     global $wpdb;
-    $totalauthors = (int) $wpdb->get_var("SELECT COUNT(ID) FROM $wpdb->users LEFT JOIN $wpdb->usermeta ON $wpdb->usermeta.user_id = $wpdb->users.ID WHERE $wpdb->users.user_activation_key = '' AND $wpdb->usermeta.meta_key = '".$wpdb->prefix."user_level' AND (meta_value+0.00) > 1");
+    $totalauthors = (int) $wpdb->get_var($wpdb->prepare("SELECT COUNT(ID) FROM $wpdb->users LEFT JOIN $wpdb->usermeta ON $wpdb->usermeta.user_id = $wpdb->users.ID WHERE $wpdb->users.user_activation_key = '' AND $wpdb->usermeta.meta_key = %s AND (meta_value+0.00) > 1", $wpdb->prefix.'user_level'));
     if($display) {
         echo $totalauthors;
     } else {
@@ -142,12 +151,16 @@ function get_totallinks($display = true) {
 function get_recentposts($mode = '', $limit = 10, $display = true) {
     global $wpdb, $post;
     $temp = '';
+    $limit = max(0, (int) $limit);
+    $args = array(current_time('mysql'));
     if(!empty($mode) && $mode !== 'both') {
-        $where = "post_type = '$mode'";
+        $where = 'post_type = %s';
+        $args[] = $mode;
     } else {
         $where = '1=1';
     }
-    $recentposts = $wpdb->get_results("SELECT $wpdb->users.*, $wpdb->posts.* FROM $wpdb->posts LEFT JOIN $wpdb->users ON $wpdb->users.ID = $wpdb->posts.post_author WHERE user_activation_key = '' AND post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND post_password = '' ORDER  BY post_date DESC LIMIT $limit");
+    $args[] = $limit;
+    $recentposts = $wpdb->get_results($wpdb->prepare("SELECT $wpdb->users.*, $wpdb->posts.* FROM $wpdb->posts LEFT JOIN $wpdb->users ON $wpdb->users.ID = $wpdb->posts.post_author WHERE user_activation_key = '' AND post_date < %s AND $where AND post_status = 'publish' AND post_password = '' ORDER  BY post_date DESC LIMIT %d", $args));
     if($recentposts) {
         foreach ($recentposts as $post) {
             $post_title = get_the_title();
@@ -170,12 +183,16 @@ function get_recentposts($mode = '', $limit = 10, $display = true) {
 function get_recentcomments($mode = '', $limit = 10, $display = true) {
     global $wpdb, $post;
     $temp = '';
+    $limit = max(0, (int) $limit);
+    $args = array(current_time('mysql'));
     if(!empty($mode) && $mode !== 'both') {
-        $where = "post_type = '$mode'";
+        $where = 'post_type = %s';
+        $args[] = $mode;
     } else {
         $where = '1=1';
     }
-    $recentcomments = $wpdb->get_results("SELECT * FROM $wpdb->posts INNER JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND post_password = '' ORDER  BY comment_date DESC LIMIT $limit");
+    $args[] = $limit;
+    $recentcomments = $wpdb->get_results($wpdb->prepare("SELECT * FROM $wpdb->posts INNER JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND $where AND post_status = 'publish' AND post_password = '' ORDER  BY comment_date DESC LIMIT %d", $args));
     if($recentcomments) {
         foreach ($recentcomments as $post) {
             $post_title = get_the_title();
@@ -198,12 +215,16 @@ function get_recentcomments($mode = '', $limit = 10, $display = true) {
 function get_mostcommented($mode = '', $limit = 10, $chars = 0, $display = true) {
     global $wpdb, $post;
     $temp = '';
+    $limit = max(0, (int) $limit);
+    $args = array(current_time('mysql'));
     if(!empty($mode) && $mode !== 'both') {
-        $where = "post_type = '$mode'";
+        $where = 'post_type = %s';
+        $args[] = $mode;
     } else {
         $where = '1=1';
     }
-    $mostcommenteds = $wpdb->get_results("SELECT $wpdb->posts.*, COUNT($wpdb->comments.comment_post_ID) AS 'comment_total' FROM $wpdb->posts LEFT JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND post_date < '".current_time('mysql')."' AND $where AND post_status = 'publish' AND post_password = '' GROUP BY $wpdb->comments.comment_post_ID ORDER  BY comment_total DESC LIMIT $limit");
+    $args[] = $limit;
+    $mostcommenteds = $wpdb->get_results($wpdb->prepare("SELECT $wpdb->posts.*, COUNT($wpdb->comments.comment_post_ID) AS 'comment_total' FROM $wpdb->posts LEFT JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND post_date < %s AND $where AND post_status = 'publish' AND post_password = '' GROUP BY $wpdb->comments.comment_post_ID ORDER  BY comment_total DESC LIMIT %d", $args));
     if($mostcommenteds) {
         if($chars > 0) {
             foreach ($mostcommenteds as $post) {
@@ -233,12 +254,15 @@ function get_mostcommented($mode = '', $limit = 10, $chars = 0, $display = true)
 function get_authorsstats($mode = '', $display = true) {
     global $wpdb, $wp_rewrite;
     $temp = '';
+    $args = array();
     if(!empty($mode) && $mode !== 'both') {
-        $where = "post_type = '$mode'";
+        $where = 'post_type = %s';
+        $args[] = $mode;
     } else {
         $where = '1=1';
     }
-    $posts = $wpdb->get_results("SELECT COUNT($wpdb->posts.ID) AS 'posts_total', $wpdb->users.display_name, $wpdb->users.user_nicename FROM $wpdb->posts LEFT JOIN $wpdb->users ON $wpdb->users.ID = $wpdb->posts.post_author WHERE user_activation_key = '' AND $where AND post_status = 'publish' GROUP BY $wpdb->posts.post_author");
+    $sql = "SELECT COUNT($wpdb->posts.ID) AS 'posts_total', $wpdb->users.display_name, $wpdb->users.user_nicename FROM $wpdb->posts LEFT JOIN $wpdb->users ON $wpdb->users.ID = $wpdb->posts.post_author WHERE user_activation_key = '' AND $where AND post_status = 'publish' GROUP BY $wpdb->posts.post_author";
+    $posts = $wpdb->get_results($args ? $wpdb->prepare($sql, $args) : $sql);
     if($posts) {
         $using_permalink = get_option('permalink_structure');
         $permalink = $wp_rewrite->get_author_permastruct();
@@ -270,11 +294,14 @@ function get_authorsstats($mode = '', $display = true) {
 function get_commentmembersstats($threshhold = -1, $limit = 0, $display = true) {
     global $wpdb;
     $temp = '';
+    $limit = max(0, (int) $limit);
+    $args = array(current_time('mysql'));
     $limit_sql = '';
     if($limit > 0) {
-        $limit_sql = "LIMIT $limit";
+        $limit_sql = 'LIMIT %d';
+        $args[] = $limit;
     }
-    $comments = $wpdb->get_results("SELECT comment_author, COUNT(comment_ID) AS 'comment_total' FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < '".current_time('mysql')."' AND post_status = 'publish' AND post_password = '' GROUP BY comment_author ORDER BY comment_total DESC $limit_sql");
+    $comments = $wpdb->get_results($wpdb->prepare("SELECT comment_author, COUNT(comment_ID) AS 'comment_total' FROM $wpdb->comments INNER  JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND post_status = 'publish' AND post_password = '' GROUP BY comment_author ORDER BY comment_total DESC $limit_sql", $args));
     if($comments) {
         foreach ($comments as $comment) {
                 $comment_total = (int) $comment->comment_total;
@@ -305,10 +332,12 @@ function get_postcats($display = true) {
 ### Function: Get Links Categories Stats
 function get_linkcats($display = true) {
     $temp = '';
-    $cats = get_categories('type=link');
-    if ($cats) {
+    // get_categories( 'type=link' ) still works, but only via a deprecated
+    // argument shim that has emitted a notice since WP 3.0.
+    $cats = get_terms(array('taxonomy' => 'link_category'));
+    if ($cats && !is_wp_error($cats)) {
         foreach ($cats as $cat) {
-            $temp .= '<li>'.$cat->cat_name.' ('.number_format_i18n($cat->count).")</li>\n";
+            $temp .= '<li>'.esc_html($cat->name).' ('.number_format_i18n($cat->count).")</li>\n";
         }
     }
     if($display) {
@@ -325,7 +354,8 @@ function get_tags_list($display = true) {
     $tags = get_tags('orderby=count&order=DESC');
     if ($tags) {
         foreach ($tags as $tag) {
-            $temp .= '<li><a href="'.clean_url(get_tag_link($tag->term_id)).'" title="'.sprintf(_n('%s topic', '%s topics', $tag->count, 'wp-stats'), number_format_i18n($tag->count)).'">'.$tag->name.'</a> ('.number_format_i18n($tag->count).")</li>\n";
+            // clean_url() has been deprecated in favour of esc_url() since WP 3.0.
+            $temp .= '<li><a href="'.esc_url(get_tag_link($tag->term_id)).'" title="'.esc_attr(sprintf(_n('%s topic', '%s topics', $tag->count, 'wp-stats'), number_format_i18n($tag->count))).'">'.esc_html($tag->name).'</a> ('.number_format_i18n($tag->count).")</li>\n";
         }
     }
     if($display) {
@@ -377,7 +407,8 @@ function stats_page() {
     global $wpdb, $post;
     // Variables Variables Variables
     $comment_author = isset( $_GET['stats_author'] ) ? sanitize_text_field( wp_unslash( $_GET['stats_author'] ) ) : '';
-    $page = isset( $_GET['stats_page'] ) ? (int) $_GET['stats_page'] : 1;
+    // Clamped: a negative page produced a negative LIMIT offset and a SQL error.
+    $page = isset( $_GET['stats_page'] ) ? max( 1, (int) $_GET['stats_page'] ) : 1;
     $temp_stats = '';
     $temp_post = $post;
     $stats_mostlimit = (int) get_option('stats_mostlimit');
@@ -582,7 +613,8 @@ function stats_page() {
                 $post_title = get_the_title();
 
                 // Check For Password Protected Post
-                if(!empty($post->post_password) && stripslashes($_COOKIE['wp-postpass_'.COOKIEHASH]) !== $post->post_password) {
+                $postpass_cookie = isset($_COOKIE['wp-postpass_'.COOKIEHASH]) ? wp_unslash($_COOKIE['wp-postpass_'.COOKIEHASH]) : '';
+                if(!empty($post->post_password) && $postpass_cookie !== $post->post_password) {
                     // If New Title, Print It Out
                     if($post_title !== $cache_post_title) {
                         $temp_stats .= '<p><strong><a href="'.esc_url(get_permalink()).'" title="'.esc_attr(__('Posted On', 'wp-stats')." $post_date").'">'.__('Protected', 'wp-stats').": ".esc_html($post_title)."</a></strong></p>";
@@ -593,7 +625,7 @@ function stats_page() {
                     if($post_title !== $cache_post_title) {
                         $temp_stats .= "<p><strong><a href=\"".esc_url(get_permalink())."\" title=\"".esc_attr(__('Posted On', 'wp-stats')." $post_date")."\">".esc_html($post_title)."</a></strong></p>";
                     }
-                    $temp_stats .= "<blockquote>$comment_content<p><a href=\"".get_permalink()."#comment-$comment_id\" title=\"".sprintf(__('View the comment posted by %s', 'wp-stats'), $comment_author2)."\">&raquo;</a> ".__('Posted By', 'wp-stats')." <strong>$comment_author2</strong> ".__('On', 'wp-stats')." $comment_date</p></blockquote>";
+                    $temp_stats .= "<blockquote>$comment_content<p><a href=\"".esc_url(get_permalink()."#comment-$comment_id")."\" title=\"".esc_attr(sprintf(__('View the comment posted by %s', 'wp-stats'), $comment_author2))."\">&raquo;</a> ".__('Posted By', 'wp-stats')." <strong>$comment_author2</strong> ".__('On', 'wp-stats')." $comment_date</p></blockquote>";
                 }
                 $cache_post_title = $post_title;
             }
@@ -769,7 +801,7 @@ function stats_page() {
             <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:', 'wp-stats'); ?> <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" /></label>
         </p>
         <p>
-            <?php _e('Statistics To Display:', 'wp-postviews'); ?><br />
+            <?php _e('Statistics To Display:', 'wp-stats'); ?><br />
             <input type="checkbox" id="<?php echo $this->get_field_id('stats_total_authors'); ?>" name="<?php echo $this->get_field_name('stats_total_authors'); ?>" value="1" <?php checked(1, $instance['stats_total_authors']); ?> />&nbsp;&nbsp;<label for="<?php echo $this->get_field_id('stats_total_authors'); ?>"><?php _e('Total Authors', 'wp-stats'); ?></label>
             <br />
             <input type="checkbox" id="<?php echo $this->get_field_id('stats_total_posts'); ?>" name="<?php echo $this->get_field_name('stats_total_posts'); ?>" value="1" <?php checked(1, $instance['stats_total_posts']); ?> />&nbsp;&nbsp;<label for="<?php echo $this->get_field_id('stats_total_posts'); ?>"><?php _e('Total Posts', 'wp-stats'); ?></label>
@@ -831,15 +863,14 @@ function widget_stats_init() {
 register_activation_hook( __FILE__, 'stats_activation' );
 function stats_activation( $network_wide ) {
 	if ( is_multisite() && $network_wide ) {
-		$ms_sites = function_exists( 'get_sites' ) ? get_sites() : wp_get_sites();
+		// 'number' => 0 lifts WP_Site_Query's default cap of 100, which silently
+		// skipped every site past the hundredth.
+		$site_ids = get_sites( array( 'fields' => 'ids', 'number' => 0 ) );
 
-		if( 0 < count( $ms_sites ) ) {
-			foreach ( $ms_sites as $ms_site ) {
-				$blog_id = class_exists( 'WP_Site' ) ? $ms_site->blog_id : $ms_site['blog_id'];
-				switch_to_blog( $blog_id );
-				stats_activate();
-				restore_current_blog();
-			}
+		foreach ( $site_ids as $site_id ) {
+			switch_to_blog( (int) $site_id );
+			stats_activate();
+			restore_current_blog();
 		}
 	} else {
 		stats_activate();

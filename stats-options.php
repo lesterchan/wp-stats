@@ -1,4 +1,9 @@
 <?php
+// Exit if accessed directly.
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+
 ### Variables Variables Variables
 $base_name = plugin_basename( 'wp-stats/stats-options.php' );
 $base_page = 'admin.php?page=' . $base_name;
@@ -6,9 +11,9 @@ $base_page = 'admin.php?page=' . $base_name;
 ### Form Processing
 if ( ! empty( $_POST['Submit'] ) ) {
     check_admin_referer( 'wp-stats_options' );
-    $stats_url = ! empty( $_POST['stats_url'] ) ? esc_url_raw( $_POST['stats_url'] ) : '';
-    $stats_mostlimit = ! empty( $_POST['stats_mostlimit'] ) ? (int) trim( $_POST['stats_mostlimit'] ) : 10;
-    $stats_display = ! empty( $_POST['stats_display'] ) ? (array) $_POST['stats_display'] : array();
+    $stats_url = ! empty( $_POST['stats_url'] ) ? esc_url_raw( wp_unslash( $_POST['stats_url'] ) ) : '';
+    $stats_mostlimit = ! empty( $_POST['stats_mostlimit'] ) ? (int) trim( wp_unslash( $_POST['stats_mostlimit'] ) ) : 10;
+    $stats_display = ! empty( $_POST['stats_display'] ) ? (array) wp_unslash( $_POST['stats_display'] ) : array();
     // Only checked boxes are posted, so start every known option at 0 and switch
     // on the ones that came back, keeping unchecked options stored as 0.
     $stats_display_stored = get_option( 'stats_display' );
