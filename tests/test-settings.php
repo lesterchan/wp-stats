@@ -25,6 +25,11 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		// The screen renders whatever is registered against its page, and in the
+		// admin that registration happens on admin_init. Nothing fires admin_init
+		// here, so do what it would have done.
+		Stats_Settings::register();
 	}
 
 	/**
@@ -37,6 +42,80 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 		$this->assertStringContainsString( 'option_page', $html, 'settings_fields() must be present or nothing saves.' );
 		$this->assertStringContainsString( '_wpnonce', $html );
 		$this->assertMarkupIsClean( $html );
+	}
+
+	/**
+	 * The screen is assembled from registered sections and fields.
+	 */
+	public function test_the_screen_registers_sections_and_fields() {
+		global $wp_settings_sections, $wp_settings_fields;
+
+		$sections = $wp_settings_sections[ Stats_Settings::SLUG ];
+		$fields   = $wp_settings_fields[ Stats_Settings::SLUG ];
+
+		$this->assertArrayHasKey( Stats_Settings::SECTION_GENERAL, $sections );
+		$this->assertArrayHasKey( Stats_Settings::SECTION_DISPLAY, $sections );
+
+		$this->assertArrayHasKey( 'stats_url', $fields[ Stats_Settings::SECTION_GENERAL ] );
+		$this->assertArrayHasKey( 'stats_mostlimit', $fields[ Stats_Settings::SECTION_GENERAL ] );
+
+		// One row per admin filter, registered in the order they fire.
+		$this->assertSame(
+			array_map(
+				static function ( $slug ) {
+					return 'wp_stats_display_' . $slug;
+				},
+				$this->admin_filters
+			),
+			array_keys( $fields[ Stats_Settings::SECTION_DISPLAY ] )
+		);
+	}
+
+	/**
+	 * The body is whatever the Settings API holds for this page.
+	 *
+	 * A field registered against the screen from outside has to appear, which
+	 * only holds if do_settings_sections() is what draws the body.
+	 */
+	public function test_the_screen_renders_whatever_is_registered() {
+		global $wp_settings_fields;
+
+		add_settings_field(
+			'wp_stats_third_party_field',
+			'A Third Party Field',
+			static function () {
+				echo '<p>drawn-by-the-settings-api</p>';
+			},
+			Stats_Settings::SLUG,
+			Stats_Settings::SECTION_DISPLAY
+		);
+
+		try {
+			$html = $this->render_screen();
+		} finally {
+			unset( $wp_settings_fields[ Stats_Settings::SLUG ][ Stats_Settings::SECTION_DISPLAY ]['wp_stats_third_party_field'] );
+		}
+
+		$this->assertStringContainsString( 'A Third Party Field', $html );
+		$this->assertStringContainsString( 'drawn-by-the-settings-api', $html );
+
+		// The section heading and form table are core's, not hand-written.
+		$this->assertStringContainsString( 'Type Of Stats To Display', $html );
+		$this->assertStringContainsString( 'class="form-table"', $html );
+	}
+
+	/**
+	 * Labels that count in the limit follow it.
+	 */
+	public function test_the_row_labels_track_the_limit() {
+		$this->set_limit( 7 );
+		Stats_Settings::register();
+
+		$html = $this->render_screen();
+
+		$this->assertStringContainsString( 'Top 7 Recent Stats', $html );
+		$this->assertStringContainsString( '7 Most Recent Posts', $html );
+		$this->assertStringContainsString( 'Top 7 Most/Highest Stats', $html );
 	}
 
 	/**
@@ -298,6 +377,52 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 		);
 
 		$this->assertSame( 1, (int) $saved['display']['a_plugin_we_have_never_seen'] );
+	}
+
+	/**
+	 * The stored shape survives a round trip through the sanitizer.
+	 *
+	 * The callback is hung on sanitize_option_stats_options by
+	 * register_setting(), so every write to the option on an admin request is
+	 * handed the stored name => 0|1 map rather than the list of ticked names
+	 * the screen posts. Read as a list, its values are the literal 0s and 1s
+	 * and every real toggle would be zeroed.
+	 */
+	public function test_sanitize_reads_the_stored_shape() {
+		$saved = Stats_Settings::sanitize(
+			array(
+				'url'        => '',
+				'most_limit' => 10,
+				'display'    => array(
+					'total_stats' => 1,
+					'tags_list'   => 0,
+					'a_companion' => 1,
+				),
+			)
+		);
+
+		$this->assertSame( 1, (int) $saved['display']['total_stats'] );
+		$this->assertSame( 0, (int) $saved['display']['tags_list'] );
+		$this->assertSame( 1, (int) $saved['display']['a_companion'], 'A companion key must survive a direct write.' );
+		$this->assertArrayNotHasKey( '1', $saved['display'], 'The map was read as a list of ticked names.' );
+	}
+
+	/**
+	 * Writing the option directly still stores what was asked for.
+	 *
+	 * The setting is registered in set_up here, exactly as admin_init registers
+	 * it in the admin, so the sanitize filter is live for this write.
+	 */
+	public function test_the_option_can_be_written_while_the_setting_is_registered() {
+		$this->set_display(
+			array(
+				'tags_list'   => 1,
+				'total_stats' => 0,
+			)
+		);
+
+		$this->assertTrue( Stats_Options::display( 'tags_list' ) );
+		$this->assertFalse( Stats_Options::display( 'total_stats' ) );
 	}
 
 	/**

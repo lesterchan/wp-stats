@@ -47,6 +47,8 @@ add_filter( 'wp_stats_page_plugins', function ( $content ) {
 } );
 ~~~
 
+The options screen is built with the Settings API, and each `wp_stats_page_admin_*` filter fills one registered field row: `general`, `plugins`, `recent`, `most`, `authors`, `comments_members` and `misc`. Return checkbox markup from `wp_stats_checkbox()` and it lands in that row.
+
 `wp_stats_most_limit()` returns how many entries the "top X" blocks are configured to show.
 
 Use these helpers rather than reading WP-Stats' options directly: 3.0.0 consolidated the settings into a single row, and the helpers are what insulate you from that.

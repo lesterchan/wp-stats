@@ -12,10 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * The Settings -> Stats screen.
  *
- * Uses the Settings API for storage and the nonce/capability handling, but
- * keeps hand-written markup for the body: companion plugins inject raw checkbox
- * HTML through the wp_stats_page_admin_* filters, which a registered settings
- * section could not reproduce.
+ * Built entirely on the Settings API: register_setting() for storage and the
+ * nonce/capability handling, add_settings_section()/add_settings_field() for
+ * the body, do_settings_sections() to render it. The screen itself writes no
+ * table markup.
+ *
+ * Companion plugins still contribute raw checkbox HTML through the
+ * wp_stats_page_admin_* filters; each of those now fires inside the field
+ * callback for the section it belongs to.
  *
  * @since 3.0.0
  */
@@ -27,9 +31,19 @@ class Stats_Settings {
 	const GROUP = 'wp-stats';
 
 	/**
-	 * Menu slug.
+	 * Menu slug, and the page name the sections are registered against.
 	 */
 	const SLUG = 'wp-stats-options';
+
+	/**
+	 * Section holding the scalar settings.
+	 */
+	const SECTION_GENERAL = 'wp_stats_general';
+
+	/**
+	 * Section holding the display toggles.
+	 */
+	const SECTION_DISPLAY = 'wp_stats_display';
 
 	/**
 	 * Upper bound on stored display toggles.
@@ -65,7 +79,10 @@ class Stats_Settings {
 	}
 
 	/**
-	 * Register the single option.
+	 * Register the single option, and the sections and fields that edit it.
+	 *
+	 * Idempotent: every call registers the same ids, so re-running only
+	 * refreshes the labels that depend on the stored limit.
 	 *
 	 * @return void
 	 */
@@ -79,12 +96,132 @@ class Stats_Settings {
 				'default'           => Stats_Options::defaults(),
 			)
 		);
+
+		// An untitled section renders no heading of its own, so the two scalar
+		// settings open the screen as a plain form table.
+		add_settings_section(
+			self::SECTION_GENERAL,
+			'',
+			'__return_false',
+			self::SLUG
+		);
+
+		add_settings_field(
+			'stats_url',
+			__( 'Stats URL', 'wp-stats' ),
+			array( __CLASS__, 'render_url_field' ),
+			self::SLUG,
+			self::SECTION_GENERAL,
+			array( 'label_for' => 'stats_url' )
+		);
+
+		add_settings_field(
+			'stats_mostlimit',
+			__( 'Stats Most Limit', 'wp-stats' ),
+			array( __CLASS__, 'render_most_limit_field' ),
+			self::SLUG,
+			self::SECTION_GENERAL,
+			array( 'label_for' => 'stats_mostlimit' )
+		);
+
+		add_settings_section(
+			self::SECTION_DISPLAY,
+			__( 'Type Of Stats To Display', 'wp-stats' ),
+			'__return_false',
+			self::SLUG
+		);
+
+		// Registration order is document order, which is the order the
+		// wp_stats_page_admin_* filters have always fired in.
+		foreach ( self::display_groups() as $group => $config ) {
+			add_settings_field(
+				'wp_stats_display_' . $group,
+				$config['title'],
+				array( __CLASS__, 'render_display_field' ),
+				self::SLUG,
+				self::SECTION_DISPLAY,
+				array( 'group' => $group )
+			);
+		}
+	}
+
+	/**
+	 * The display toggles, grouped into the screen's rows.
+	 *
+	 * The array key is both the row's identity and the suffix of the filter a
+	 * companion plugin hooks to add its own checkbox to that row, so the group
+	 * list is the whole contract in one place.
+	 *
+	 * Rebuilt on each call because half the labels count in the stored limit.
+	 *
+	 * @return array<string,array{title:string,checkboxes:array<string,string>}>
+	 */
+	protected static function display_groups() {
+		$limit = Stats_Options::most_limit();
+		$count = number_format_i18n( $limit );
+
+		return array(
+			'general'          => array(
+				'title'      => __( 'General Stats', 'wp-stats' ),
+				'checkboxes' => array(
+					'total_stats' => __( 'Total', 'wp-stats' ),
+				),
+			),
+			'plugins'          => array(
+				'title'      => __( 'Plugin Stats', 'wp-stats' ),
+				'checkboxes' => array(),
+			),
+			'recent'           => array(
+				/* translators: %s: Number of stats. */
+				'title'      => sprintf( _n( 'Top %s Recent Stat', 'Top %s Recent Stats', $limit, 'wp-stats' ), $count ),
+				'checkboxes' => array(
+					/* translators: %s: Number of posts. */
+					'recent_posts'    => sprintf( _n( '%s Most Recent Post', '%s Most Recent Posts', $limit, 'wp-stats' ), $count ),
+					/* translators: %s: Number of comments. */
+					'recent_comments' => sprintf( _n( '%s Most Recent Comment', '%s Most Recent Comments', $limit, 'wp-stats' ), $count ),
+				),
+			),
+			'most'             => array(
+				/* translators: %s: Number of stats. */
+				'title'      => sprintf( _n( 'Top %s Most/Highest Stat', 'Top %s Most/Highest Stats', $limit, 'wp-stats' ), $count ),
+				'checkboxes' => array(
+					/* translators: %s: Number of posts. */
+					'commented_post' => sprintf( _n( '%s Most Commented Post', '%s Most Commented Posts', $limit, 'wp-stats' ), $count ),
+					/* translators: %s: Number of pages. */
+					'commented_page' => sprintf( _n( '%s Most Commented Page', '%s Most Commented Pages', $limit, 'wp-stats' ), $count ),
+				),
+			),
+			'authors'          => array(
+				'title'      => __( 'Authors Stats', 'wp-stats' ),
+				'checkboxes' => array(
+					'authors' => __( 'Authors', 'wp-stats' ),
+				),
+			),
+			'comments_members' => array(
+				'title'      => __( 'Comments\' Members Stats', 'wp-stats' ),
+				'checkboxes' => array(
+					'comment_members' => __( 'Comment Members', 'wp-stats' ),
+				),
+			),
+			'misc'             => array(
+				'title'      => __( 'Misc Stats', 'wp-stats' ),
+				'checkboxes' => array(
+					'post_cats' => __( 'Post Categories', 'wp-stats' ),
+					'link_cats' => __( 'Link Categories', 'wp-stats' ),
+					'tags_list' => __( 'Tags List', 'wp-stats' ),
+				),
+			),
+		);
 	}
 
 	/**
 	 * Validate the submitted settings.
 	 *
-	 * @param mixed $input Raw value from the form.
+	 * Reached two ways: options.php calls it with what the screen posted, and
+	 * register_setting() hangs it on sanitize_option_stats_options, so it also
+	 * sees whatever any code writes to the option once admin_init has run.
+	 *
+	 * @param mixed $input Raw value from the form, or the stored option.
 	 * @return array
 	 */
 	public static function sanitize( $input ) {
@@ -118,7 +255,36 @@ class Stats_Settings {
 			}
 		}
 
-		$posted = isset( $input['display'] ) && is_array( $input['display'] ) ? $input['display'] : array();
+		$display = isset( $input['display'] ) && is_array( $input['display'] ) ? $input['display'] : array();
+		$posted  = array();
+
+		// The screen posts a list of the ticked names. register_setting() also
+		// wires this callback in as a sanitize_option_ filter, though, so an
+		// option write on an admin request lands here as well - in the stored
+		// shape, a name => 0|1 map. Read both, or such a write would store one
+		// entry per literal 0 and 1 and zero every real toggle.
+		foreach ( $display as $key => $value ) {
+			if ( ! is_string( $key ) ) {
+				$posted[] = $value;
+				continue;
+			}
+
+			$name = sanitize_key( $key );
+
+			if ( '' === $name || ( ! isset( $known[ $name ] ) && count( $known ) >= self::MAX_DISPLAY_KEYS ) ) {
+				continue;
+			}
+
+			// A name the map switches off is still a name we now know about, so
+			// it is stored as 0 rather than dropped and left to re-inherit its
+			// default on the next read.
+			$known[ $name ] = 0;
+
+			if ( (int) $value ) {
+				$posted[] = $name;
+			}
+		}
+
 		$posted = array_merge( $posted, self::legacy_posted_keys() );
 
 		foreach ( $posted as $key ) {
@@ -185,7 +351,6 @@ class Stats_Settings {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-stats' ) );
 		}
 
-		$limit = Stats_Options::most_limit();
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Stats Options', 'wp-stats' ); ?></h1>
@@ -199,154 +364,86 @@ class Stats_Settings {
 			?>
 
 			<form method="post" action="options.php">
-				<?php settings_fields( self::GROUP ); ?>
-
-				<table class="form-table" role="presentation">
-					<tr>
-						<th scope="row"><label for="stats_url"><?php esc_html_e( 'Stats URL', 'wp-stats' ); ?></label></th>
-						<td>
-							<input type="text" id="stats_url" name="<?php echo esc_attr( Stats_Options::OPTION ); ?>[url]" value="<?php echo esc_url( Stats_Options::url() ); ?>" size="50" dir="ltr" class="regular-text" />
-							<p class="description">
-								<?php esc_html_e( 'URL to the page holding the [page_stats] shortcode.', 'wp-stats' ); ?><br />
-								<?php esc_html_e( 'Example: https://www.yoursite.com/blog/stats/', 'wp-stats' ); ?><br />
-								<?php esc_html_e( 'Example: https://www.yoursite.com/blog/?page_id=2', 'wp-stats' ); ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="stats_mostlimit"><?php esc_html_e( 'Stats Most Limit', 'wp-stats' ); ?></label></th>
-						<td>
-							<input type="number" min="1" id="stats_mostlimit" name="<?php echo esc_attr( Stats_Options::OPTION ); ?>[most_limit]" value="<?php echo esc_attr( $limit ); ?>" size="2" class="small-text" />
-							<p class="description"><?php esc_html_e( 'Top X Stats, where X is the most limit.', 'wp-stats' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Type Of Stats To Display', 'wp-stats' ); ?></th>
-						<td>
-							<p><strong><?php esc_html_e( 'General Stats', 'wp-stats' ); ?></strong></p>
-							<?php
-							echo wp_kses( wp_stats_checkbox( 'total_stats', __( 'Total', 'wp-stats' ) ), self::allowed_html() );
-
-							/**
-							 * Filter the General Stats checkboxes on the options screen.
-							 *
-							 * @param string $content Accumulated markup.
-							 */
-							echo wp_kses( apply_filters( 'wp_stats_page_admin_general', '' ), self::allowed_html() );
-							?>
-
-							<p><strong><?php esc_html_e( 'Plugin Stats', 'wp-stats' ); ?></strong></p>
-							<?php
-							/** This filter is documented in includes/class-stats-settings.php */
-							echo wp_kses( apply_filters( 'wp_stats_page_admin_plugins', '' ), self::allowed_html() );
-							?>
-
-							<p><strong>
-							<?php
-							printf(
-								/* translators: %s: Number of stats. */
-								esc_html( _n( 'Top %s Recent Stat', 'Top %s Recent Stats', $limit, 'wp-stats' ) ),
-								esc_html( number_format_i18n( $limit ) )
-							);
-							?>
-							</strong></p>
-							<?php
-							echo wp_kses(
-								wp_stats_checkbox(
-									'recent_posts',
-									sprintf(
-										/* translators: %s: Number of posts. */
-										_n( '%s Most Recent Post', '%s Most Recent Posts', $limit, 'wp-stats' ),
-										number_format_i18n( $limit )
-									)
-								),
-								self::allowed_html()
-							);
-							echo wp_kses(
-								wp_stats_checkbox(
-									'recent_comments',
-									sprintf(
-										/* translators: %s: Number of comments. */
-										_n( '%s Most Recent Comment', '%s Most Recent Comments', $limit, 'wp-stats' ),
-										number_format_i18n( $limit )
-									)
-								),
-								self::allowed_html()
-							);
-
-							/** This filter is documented in includes/class-stats-settings.php */
-							echo wp_kses( apply_filters( 'wp_stats_page_admin_recent', '' ), self::allowed_html() );
-							?>
-
-							<p><strong>
-							<?php
-							printf(
-								/* translators: %s: Number of stats. */
-								esc_html( _n( 'Top %s Most/Highest Stat', 'Top %s Most/Highest Stats', $limit, 'wp-stats' ) ),
-								esc_html( number_format_i18n( $limit ) )
-							);
-							?>
-							</strong></p>
-							<?php
-							echo wp_kses(
-								wp_stats_checkbox(
-									'commented_post',
-									sprintf(
-										/* translators: %s: Number of posts. */
-										_n( '%s Most Commented Post', '%s Most Commented Posts', $limit, 'wp-stats' ),
-										number_format_i18n( $limit )
-									)
-								),
-								self::allowed_html()
-							);
-							echo wp_kses(
-								wp_stats_checkbox(
-									'commented_page',
-									sprintf(
-										/* translators: %s: Number of pages. */
-										_n( '%s Most Commented Page', '%s Most Commented Pages', $limit, 'wp-stats' ),
-										number_format_i18n( $limit )
-									)
-								),
-								self::allowed_html()
-							);
-
-							/** This filter is documented in includes/class-stats-settings.php */
-							echo wp_kses( apply_filters( 'wp_stats_page_admin_most', '' ), self::allowed_html() );
-							?>
-
-							<p><strong><?php esc_html_e( 'Authors Stats', 'wp-stats' ); ?></strong></p>
-							<?php
-							echo wp_kses( wp_stats_checkbox( 'authors', __( 'Authors', 'wp-stats' ) ), self::allowed_html() );
-
-							/** This filter is documented in includes/class-stats-settings.php */
-							echo wp_kses( apply_filters( 'wp_stats_page_admin_authors', '' ), self::allowed_html() );
-							?>
-
-							<p><strong><?php esc_html_e( 'Comments\' Members Stats', 'wp-stats' ); ?></strong></p>
-							<?php
-							echo wp_kses( wp_stats_checkbox( 'comment_members', __( 'Comment Members', 'wp-stats' ) ), self::allowed_html() );
-
-							/** This filter is documented in includes/class-stats-settings.php */
-							echo wp_kses( apply_filters( 'wp_stats_page_admin_comments_members', '' ), self::allowed_html() );
-							?>
-
-							<p><strong><?php esc_html_e( 'Misc Stats', 'wp-stats' ); ?></strong></p>
-							<?php
-							echo wp_kses( wp_stats_checkbox( 'post_cats', __( 'Post Categories', 'wp-stats' ) ), self::allowed_html() );
-							echo wp_kses( wp_stats_checkbox( 'link_cats', __( 'Link Categories', 'wp-stats' ) ), self::allowed_html() );
-							echo wp_kses( wp_stats_checkbox( 'tags_list', __( 'Tags List', 'wp-stats' ) ), self::allowed_html() );
-
-							/** This filter is documented in includes/class-stats-settings.php */
-							echo wp_kses( apply_filters( 'wp_stats_page_admin_misc', '' ), self::allowed_html() );
-							?>
-						</td>
-					</tr>
-				</table>
-
-				<?php submit_button(); ?>
+				<?php
+				settings_fields( self::GROUP );
+				do_settings_sections( self::SLUG );
+				submit_button();
+				?>
 			</form>
 		</div>
+		<?php
+	}
+
+	/**
+	 * The Stats URL field.
+	 *
+	 * @return void
+	 */
+	public static function render_url_field() {
+		?>
+		<input type="text" id="stats_url" name="<?php echo esc_attr( Stats_Options::OPTION ); ?>[url]" value="<?php echo esc_url( Stats_Options::url() ); ?>" size="50" dir="ltr" class="regular-text" />
+		<p class="description">
+			<?php esc_html_e( 'URL to the page holding the [page_stats] shortcode.', 'wp-stats' ); ?><br />
+			<?php esc_html_e( 'Example: https://www.yoursite.com/blog/stats/', 'wp-stats' ); ?><br />
+			<?php esc_html_e( 'Example: https://www.yoursite.com/blog/?page_id=2', 'wp-stats' ); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * The Stats Most Limit field.
+	 *
+	 * @return void
+	 */
+	public static function render_most_limit_field() {
+		?>
+		<input type="number" min="1" id="stats_mostlimit" name="<?php echo esc_attr( Stats_Options::OPTION ); ?>[most_limit]" value="<?php echo esc_attr( Stats_Options::most_limit() ); ?>" size="2" class="small-text" />
+		<p class="description"><?php esc_html_e( 'Top X Stats, where X is the most limit.', 'wp-stats' ); ?></p>
+		<?php
+	}
+
+	/**
+	 * One row of display toggles: this plugin's checkboxes, then anything a
+	 * companion plugin hooks on.
+	 *
+	 * @param array $args Field arguments; 'group' names the row.
+	 * @return void
+	 */
+	public static function render_display_field( $args ) {
+		$groups = self::display_groups();
+		$group  = isset( $args['group'] ) ? $args['group'] : '';
+
+		if ( ! isset( $groups[ $group ] ) ) {
+			return;
+		}
+
+		// A group of checkboxes gets a fieldset, and the row's <th> is not a
+		// <label> for any one of them, so the legend carries the group name for
+		// screen readers.
+		?>
+		<fieldset>
+			<legend class="screen-reader-text"><span><?php echo esc_html( $groups[ $group ]['title'] ); ?></span></legend>
+			<?php
+			foreach ( $groups[ $group ]['checkboxes'] as $key => $label ) {
+				echo wp_kses( wp_stats_checkbox( $key, $label ), self::allowed_html() );
+			}
+
+			/**
+			 * Filter the checkboxes in one row of the options screen.
+			 *
+			 * The dynamic portion of the hook name, `$group`, is the row:
+			 * `general`, `plugins`, `recent`, `most`, `authors`,
+			 * `comments_members` or `misc`.
+			 *
+			 * A companion plugin should build its markup with
+			 * wp_stats_checkbox() rather than by hand, so the field names stay
+			 * an implementation detail of WP-Stats.
+			 *
+			 * @param string $content Accumulated markup.
+			 */
+			echo wp_kses( apply_filters( "wp_stats_page_admin_{$group}", '' ), self::allowed_html() );
+			?>
+		</fieldset>
 		<?php
 	}
 
