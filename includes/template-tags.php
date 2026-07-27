@@ -80,7 +80,13 @@ function wp_stats_most_limit() {
  * @return string
  */
 function wp_stats_checkbox( $value, $label ) {
+	// The hidden field is what makes unticking work. Only ticked boxes are
+	// posted, so the save has to know which toggles were on the screen in order
+	// to store the rest as 0 - and it cannot work that out from the registered
+	// defaults, because whether a companion plugin has registered its keys by
+	// then depends on hook timing it does not control.
 	return sprintf(
+		'<input type="hidden" name="%1$s[known][]" value="%2$s" />' .
 		'<input type="checkbox" name="%1$s[display][]" id="wpstats_%2$s" value="%2$s"%3$s />&nbsp;&nbsp;<label for="wpstats_%2$s">%4$s</label><br />' . "\n",
 		esc_attr( Stats_Options::OPTION ),
 		esc_attr( $value ),

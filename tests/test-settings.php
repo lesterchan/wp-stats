@@ -116,6 +116,75 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	}
 
 	/**
+	 * The checkbox carries a hidden field naming itself.
+	 *
+	 * Only ticked boxes are posted, so the save needs to be told which toggles
+	 * were on the screen in order to store the rest as 0.
+	 */
+	public function test_the_checkbox_helper_declares_its_key() {
+		$html = wp_stats_checkbox( 'tags_list', 'Tags List' );
+
+		$this->assertStringContainsString( 'name="stats_options[known][]" value="tags_list"', $html );
+	}
+
+	/**
+	 * Every rendered checkbox declares itself, so nothing can be stuck on.
+	 */
+	public function test_every_checkbox_on_the_screen_declares_its_key() {
+		$html = $this->render_screen();
+
+		$this->assertSame(
+			substr_count( $html, 'name="stats_options[display][]"' ),
+			substr_count( $html, 'name="stats_options[known][]"' ),
+			'Each checkbox needs a matching hidden field.'
+		);
+	}
+
+	/**
+	 * A toggle that is on by default can actually be switched off.
+	 *
+	 * This is the bug the hidden field exists for. A companion plugin's toggle
+	 * defaults to 1, so if the save does not know the key was on the screen it
+	 * writes nothing for it, and the next read merges the default straight back
+	 * in - the box ticks itself again and the setting looks unsaveable. Relying
+	 * on the registered defaults instead is not enough, because whether a
+	 * companion has registered by the time the sanitizer runs depends on hook
+	 * timing WP-Stats does not control.
+	 */
+	public function test_a_default_on_toggle_can_be_switched_off() {
+		// A key nothing has registered and nothing has stored, exactly like a
+		// companion whose filter has not run in this request.
+		$saved = Stats_Settings::sanitize(
+			array(
+				'url'        => '',
+				'most_limit' => '10',
+				'known'      => array( 'total_stats', 'unregistered_companion_key' ),
+				'display'    => array( 'total_stats' ),
+			)
+		);
+
+		$this->assertSame( 1, (int) $saved['display']['total_stats'] );
+		$this->assertArrayHasKey( 'unregistered_companion_key', $saved['display'] );
+		$this->assertSame( 0, (int) $saved['display']['unregistered_companion_key'] );
+	}
+
+	/**
+	 * The bookkeeping field is not stored alongside the settings.
+	 */
+	public function test_the_known_list_is_not_persisted() {
+		$saved = Stats_Settings::sanitize(
+			array(
+				'url'        => '',
+				'most_limit' => '10',
+				'known'      => array( 'total_stats' ),
+				'display'    => array(),
+			)
+		);
+
+		$this->assertArrayNotHasKey( 'known', $saved );
+	}
+
+	/**
 	 * A key WP-Stats has never heard of must still save.
 	 *
 	 * A companion plugin renders its own checkbox, so rejecting unrecognised
@@ -176,6 +245,23 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 			'empty array'      => array( array() ),
 			'display a string' => array( array( 'display' => 'nope' ) ),
 		);
+	}
+
+	/**
+	 * Saving reports back.
+	 *
+	 * Core renders settings notices from wp-admin/options-head.php, which only
+	 * runs for its own screens; a plugin page goes through admin.php and gets
+	 * nothing. Without an explicit settings_errors() the save is silent, which
+	 * reads exactly like a save that did not work.
+	 */
+	public function test_the_screen_reports_a_save() {
+		add_settings_error( 'general', 'settings_updated', 'Settings saved.', 'updated' );
+
+		$html = $this->render_screen();
+
+		$this->assertStringContainsString( 'settings_updated', $html );
+		$this->assertStringContainsString( 'Settings saved.', $html );
 	}
 
 	/**

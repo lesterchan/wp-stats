@@ -98,10 +98,25 @@ class Stats_Settings {
 
 		// Only ticked boxes are posted, so start from every key we know about at
 		// 0 and switch on the ones that came back.
-		$known = array_fill_keys(
-			array_keys( array_merge( Stats_Options::display_defaults(), $current['display'] ) ),
-			0
-		);
+		//
+		// The universe of keys is the union of three sources. The form's own
+		// hidden `known` list is the authoritative one: it is exactly what was
+		// rendered, so a toggle can be switched off even if the plugin that owns
+		// it had not registered its default by the time this callback ran. The
+		// other two keep already-stored keys alive when an older companion
+		// plugin renders a checkbox without the hidden field.
+		$universe = array_merge( Stats_Options::display_defaults(), $current['display'] );
+		$known    = array_fill_keys( array_keys( $universe ), 0 );
+
+		if ( isset( $input['known'] ) && is_array( $input['known'] ) ) {
+			foreach ( $input['known'] as $key ) {
+				$key = sanitize_key( $key );
+
+				if ( '' !== $key && count( $known ) < self::MAX_DISPLAY_KEYS ) {
+					$known[ $key ] = 0;
+				}
+			}
+		}
 
 		$posted = isset( $input['display'] ) && is_array( $input['display'] ) ? $input['display'] : array();
 
@@ -145,6 +160,14 @@ class Stats_Settings {
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'Stats Options', 'wp-stats' ); ?></h1>
+
+			<?php
+			// Core only calls this from wp-admin/options-head.php, which runs for
+			// its own settings screens. A plugin page is dispatched by admin.php
+			// instead, so without this the save redirect lands back here with no
+			// confirmation at all.
+			settings_errors();
+			?>
 
 			<form method="post" action="options.php">
 				<?php settings_fields( self::GROUP ); ?>
