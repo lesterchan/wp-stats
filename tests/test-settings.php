@@ -185,6 +185,104 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	}
 
 	/**
+	 * A 2.x-style checkbox still saves.
+	 *
+	 * Companions built before 3.0.0 render name="stats_display[]", and
+	 * options.php only saves the option names registered to the settings group,
+	 * so that field never reaches the sanitizer as part of $input.
+	 */
+	public function test_a_legacy_checkbox_still_ticks() {
+		$_POST['stats_display'] = array( 'legacy_companion' );
+
+		try {
+			$saved = Stats_Settings::sanitize(
+				array(
+					'url'        => '',
+					'most_limit' => '10',
+					'display'    => array( 'total_stats' ),
+				)
+			);
+		} finally {
+			unset( $_POST['stats_display'] );
+		}
+
+		$this->assertSame( 1, (int) $saved['display']['total_stats'], 'The 3.0.0 field still works.' );
+		$this->assertSame( 1, (int) $saved['display']['legacy_companion'], 'The 2.x field is honoured too.' );
+	}
+
+	/**
+	 * A stale companion's panel is not forced off by the first save.
+	 *
+	 * This is the failure the legacy fallback exists for, and it is worse than
+	 * the checkbox being ignored: the key is already in the stored row, so the
+	 * sanitizer starts it at 0, and nothing the user can do from the screen
+	 * would ever set it back to 1.
+	 */
+	public function test_a_stale_companions_toggle_is_not_forced_off() {
+		// The companion's toggle is on, as a previous save left it.
+		$this->set_display( array( 'legacy_companion' => 1 ) );
+
+		// The user saves the screen without changing that plugin's checkbox,
+		// which still posts under the old field name.
+		$_POST['stats_display'] = array( 'legacy_companion' );
+
+		try {
+			$saved = Stats_Settings::sanitize(
+				array(
+					'url'        => '',
+					'most_limit' => '10',
+					'known'      => array( 'total_stats' ),
+					'display'    => array( 'total_stats' ),
+				)
+			);
+		} finally {
+			unset( $_POST['stats_display'] );
+		}
+
+		$this->assertSame( 1, (int) $saved['display']['legacy_companion'], 'The panel must survive an unrelated save.' );
+	}
+
+	/**
+	 * Unticking a 2.x-style checkbox still turns it off.
+	 */
+	public function test_a_legacy_checkbox_still_unticks() {
+		$this->set_display( array( 'legacy_companion' => 1 ) );
+
+		// Unticked boxes are not posted, and this time nothing arrives under the
+		// old field name either.
+		$saved = Stats_Settings::sanitize(
+			array(
+				'url'        => '',
+				'most_limit' => '10',
+				'display'    => array( 'total_stats' ),
+			)
+		);
+
+		$this->assertSame( 0, (int) $saved['display']['legacy_companion'] );
+	}
+
+	/**
+	 * Junk in the legacy field must not fatal.
+	 */
+	public function test_a_malformed_legacy_field_is_ignored() {
+		$_POST['stats_display'] = 'not-an-array';
+
+		try {
+			$saved = Stats_Settings::sanitize(
+				array(
+					'url'        => '',
+					'most_limit' => '10',
+					'display'    => array( 'total_stats' ),
+				)
+			);
+		} finally {
+			unset( $_POST['stats_display'] );
+		}
+
+		$this->assertSame( 1, (int) $saved['display']['total_stats'] );
+	}
+
+	/**
 	 * A key WP-Stats has never heard of must still save.
 	 *
 	 * A companion plugin renders its own checkbox, so rejecting unrecognised

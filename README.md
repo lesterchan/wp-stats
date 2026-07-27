@@ -67,7 +67,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 * NEW: Settings screen rebuilt on the WordPress Settings API
 * NEW: `wp_stats_display_enabled()`, `wp_stats_most_limit()` and `wp_stats_checkbox()` for plugins that add their own panels
 * NEW: PHPUnit test suite and GitHub Actions CI
-* CHANGED: The `stats_url`, `stats_mostlimit` and `stats_display` options are consolidated into a single `stats_options` row, migrated automatically on upgrade. The old option names still answer `get_option()` so older versions of my other plugins keep working
+* CHANGED: The `stats_url`, `stats_mostlimit` and `stats_display` options are consolidated into a single `stats_options` row, migrated automatically on upgrade. The old option names still answer `get_option()`, and the options screen still accepts the old `stats_display[]` checkbox field, so a plugin written against WP-Stats 2.x keeps working unchanged
 * CHANGED: The admin pages moved from `wp-stats/wp-stats.php` and `wp-stats/stats-options.php` to `wp-stats` and `wp-stats-options`, so any bookmarks to them need updating
 * CHANGED: The widget class is now `Stats_Widget`; placed widgets and their settings are unaffected
 * FIXED: The stylesheet never loaded, because it was hooked to `wp_enqueue_script`, which is not an action. It now loads on pages that render the stats paging

@@ -119,6 +119,7 @@ class Stats_Settings {
 		}
 
 		$posted = isset( $input['display'] ) && is_array( $input['display'] ) ? $input['display'] : array();
+		$posted = array_merge( $posted, self::legacy_posted_keys() );
 
 		foreach ( $posted as $key ) {
 			$key = sanitize_key( $key );
@@ -144,6 +145,34 @@ class Stats_Settings {
 		Stats_Options::flush();
 
 		return $output;
+	}
+
+	/**
+	 * Toggles ticked on a checkbox built against WP-Stats 2.x.
+	 *
+	 * Before 3.0.0 every companion plugin rendered its own checkbox as
+	 * `name="stats_display[]"`. options.php saves only the option names
+	 * registered to the settings group - here that is `stats_options` and
+	 * nothing else - so that field reaches this callback through no other route.
+	 *
+	 * Without this the consequence is worse than the checkbox being ignored.
+	 * The sanitizer starts every key it knows about at 0, and a stale
+	 * companion's key is already in the stored row, so the first save would
+	 * force its panel off and leave no way to switch it back on.
+	 *
+	 * @return string[] Ticked toggle names.
+	 */
+	protected static function legacy_posted_keys() {
+		// options.php verifies the nonce and the capability for this settings
+		// group before it calls the sanitize callback, so there is nothing left
+		// to check here; the sniff cannot see across that boundary.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		if ( ! isset( $_POST['stats_display'] ) || ! is_array( $_POST['stats_display'] ) ) {
+			return array();
+		}
+
+		return array_map( 'sanitize_key', wp_unslash( $_POST['stats_display'] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 	}
 
 	/**
