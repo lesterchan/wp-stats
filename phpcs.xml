@@ -4,100 +4,95 @@
 
 	<file>.</file>
 
+	<!-- WPCS has no JavaScript sniffs; never let PHPCS touch .js. -->
+	<arg name="extensions" value="php"/>
+	<arg name="basepath" value="."/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
 	<!-- Scanning these makes the CI runner run out of memory. -->
 	<exclude-pattern>/vendor/*</exclude-pattern>
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 
-	<!-- Pinned to php so phpcs never wanders into .js or .css, which WPCS dropped
-	     sniffs for in 3.0 and which PHP_CodeSniffer 4.0 cannot scan at all. -->
-	<arg name="extensions" value="php"/>
-	<arg name="colors"/>
-	<arg value="ps"/>
+	<rule ref="WordPress"/>
 
-	<config name="minimum_wp_version" value="6.0"/>
+	<config name="text_domain" value="wp-stats"/>
+	<config name="minimum_wp_version" value="6.8"/>
 
-	<rule ref="WordPress">
-		<!-- Counting users by user_level meta, comments by approval state and
-		     rows in the links table has no core API equivalent, and there is
-		     nothing sensible to invalidate a cache of them against. -->
-		<exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/>
-		<exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/>
-	</rule>
+	<!--
+		Everything below relaxes a sniff for the test suite only, and this list
+		is closed: it is identical in all nineteen plugins. A sniff firing in
+		includes/ is a bug in the code, not a missing exclusion - fix the code.
+	-->
 
-	<rule ref="WordPress.WP.I18n">
-		<properties>
-			<property name="text_domain" type="array">
-				<element value="wp-stats"/>
-			</property>
-		</properties>
-	</rule>
-
-	<!-- The listing blocks assign the $post global inside their loops so the
-	     template tags they call - get_the_title(), get_permalink() - resolve
-	     against the current row. Every one of them stashes and restores it. -->
-	<rule ref="WordPress.WP.GlobalVariablesOverride">
-		<exclude-pattern>/includes/class-stats-display.php</exclude-pattern>
-		<exclude-pattern>/includes/class-stats-page.php</exclude-pattern>
-		<exclude-pattern>/tests/*</exclude-pattern>
-	</rule>
-
-	<!-- strip_tags(), not wp_strip_all_tags(): the latter also removes the
-	     *contents* of script and style elements, so an author named
-	     "<script>Bob</script>" would render as an empty link rather than "Bob".
-	     The values are escaped at the sink regardless. -->
-	<rule ref="WordPress.WP.AlternativeFunctions.strip_tags_strip_tags">
-		<exclude-pattern>/includes/class-stats-display.php</exclude-pattern>
-	</rule>
-
-	<!-- urlencode(), not rawurlencode(): these are query-string values, and
-	     switching would change the encoding of spaces in every existing link. -->
-	<rule ref="WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode">
-		<exclude-pattern>/includes/class-stats-display.php</exclude-pattern>
-		<exclude-pattern>/includes/class-stats-page.php</exclude-pattern>
-	</rule>
-
-	<!-- The listing queries build their WHERE fragment in a local variable so
-	     the post-type filter is optional. The fragment is a literal holding only
-	     placeholders, and the values still go through prepare(), but the sniff
-	     cannot see through the variable to count them. author_post_counts()
-	     additionally has to skip prepare() entirely when the mode contributes no
-	     argument, because prepare() warns when handed none. -->
-	<rule ref="WordPress.DB.PreparedSQL">
-		<exclude-pattern>/includes/class-stats-query.php</exclude-pattern>
-	</rule>
-	<rule ref="WordPress.DB.PreparedSQLPlaceholders">
-		<exclude-pattern>/includes/class-stats-query.php</exclude-pattern>
-	</rule>
-
-	<!-- The stats page reads the request to choose which view to render and
-	     writes nothing. -->
-	<rule ref="WordPress.Security.NonceVerification">
-		<exclude-pattern>/includes/class-stats-page.php</exclude-pattern>
-		<exclude-pattern>/tests/*</exclude-pattern>
-	</rule>
-
-	<!-- The class-{name}.php convention explicitly excepts test classes, which
-	     PHPUnit discovers by Test_* naming instead. -->
-	<rule ref="WordPress.Files.FileName">
-		<exclude-pattern>/tests/*</exclude-pattern>
-	</rule>
-
-	<!-- Tests assemble their own markup and assert on it. -->
+	<!-- The tests assert on the plugin's own markup, so they must not escape it. -->
 	<rule ref="WordPress.Security.EscapeOutput">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 
-	<!-- The uninstall test reads a local source file to assert against it.
-	     wp_remote_get() is for URLs and is not a substitute. -->
+	<!--
+		A test method's name is its documentation - test_a_malformed_range_does_
+		not_ban_everyone() gains nothing from a docblock repeating it. Required
+		everywhere else.
+	-->
+	<rule ref="Squiz.Commenting.FunctionComment.Missing">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Commenting.DocComment.MissingShort">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!--
+		Test files are named test-*.php by WordPress convention rather than
+		class-*.php; the coding standard excepts test classes from that rule.
+	-->
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!--
+		The tests read wp_options directly to assert which rows the migration
+		left behind. There is no API for "which rows exist".
+	-->
+	<rule ref="WordPress.DB.DirectDatabaseQuery">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!--
+		The tests drive superglobals to simulate proxy headers and form posts;
+		that is the behaviour under test, not unvalidated input.
+	-->
+	<rule ref="WordPress.Security.ValidatedSanitizedInput">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Security.NonceVerification">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!-- The tests read the plugin's own source; WP_Filesystem is not appropriate. -->
 	<rule ref="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 
-	<!-- The test case installs an error handler to collect the diagnostics the
-	     code under test raises. Asserting that list is empty is what makes the
-	     render tests more than smoke tests, so this is the point, not debug
-	     code left behind. -->
+	<!--
+		The admin-screen tests install an error handler on purpose: collecting
+		the diagnostics is what makes them more than smoke tests.
+	-->
 	<rule ref="WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
+	<!--
+		The settings tests set $hook_suffix, which wp-admin would have set before
+		any page callback ran. WP_List_Table's constructor reaches
+		WP_Screen::get(), which reads that global, so the test bootstrap has to
+		stand in for admin.php.
+
+		Worth re-checking now the floor is WordPress 6.8: this exclusion was
+		added for a much older core, and if current WP guards the read, the
+		tests can drop the assignment and this rule can go.
+	-->
+	<rule ref="WordPress.WP.GlobalVariablesOverride">
 		<exclude-pattern>/tests/*</exclude-pattern>
 	</rule>
 </ruleset>
