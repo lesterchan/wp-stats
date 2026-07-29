@@ -109,14 +109,7 @@ class Stats {
 			return;
 		}
 
-		// A theme may drop its own stats-css.css in to override this one.
-		if ( file_exists( get_stylesheet_directory() . '/stats-css.css' ) ) {
-			$src = get_stylesheet_directory_uri() . '/stats-css.css';
-		} else {
-			$src = plugins_url( 'stats-css.css', WP_STATS_MAIN_FILE );
-		}
-
-		wp_enqueue_style( 'wp-stats', $src, array(), WP_STATS_VERSION, 'all' );
+		wp_enqueue_style( 'wp-stats', plugins_url( 'css/wp-stats.css', WP_STATS_MAIN_FILE ), array(), WP_STATS_VERSION );
 	}
 
 	/**
