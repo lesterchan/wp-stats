@@ -2,11 +2,12 @@
 /**
  * The plugin's two stored rows.
  *
- * wp_stats_options holds every setting a site owner can change and nothing
- * else. wp_stats_version holds the pair of upgrade markers, in its own row: the
- * settings form never posts them, so a marker kept inside the settings array
- * would have to be rescued from the stored value on every single save, and the
- * one save that forgot would make the upgrade run again on every request.
+ * The settings row, wp_stats_options, holds every setting a site owner can
+ * change and nothing else. The markers row, wp_stats_version, holds the pair of
+ * upgrade markers on its own: the settings form never posts them, so a marker
+ * kept inside the settings array would have to be rescued from the stored value
+ * on every single save, and the one save that forgot would make the upgrade run
+ * again on every request.
  *
  * Before 3.0.0 the settings were three unprefixed rows - stats_url,
  * stats_mostlimit and stats_display - two of which six other plugins read

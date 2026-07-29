@@ -1,41 +1,55 @@
 <?php
 /**
- * WP-Stats class-wp-stats-query.php
- *
- * @package WP-Stats
- */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
-/**
  * Every database read the plugin makes.
  *
  * Kept apart from the markup so the counts can be tested without rendering
  * anything, and so there is one place to look when a query needs changing.
+ *
+ * Before 3.0.0 every method here was hand-written SQL against $wpdb. It is all
+ * core query APIs now - WP_User_Query, get_posts(), get_comments(),
+ * get_bookmarks() - which means the results go through the same object caches
+ * as the rest of WordPress, the filters a site already uses to hide content
+ * still apply, and the plugin stops maintaining its own dialect of "a published
+ * post".
+ *
+ * Three of these group or count-distinct on comment_author, which
+ * WP_Comment_Query has no argument for. Those add a clause to the query it
+ * builds rather than writing one from scratch, so the joins, the status
+ * handling and the caching are still core's.
+ *
+ * @package WP-Stats
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * The plugin's read queries.
  *
  * @since 3.0.0
  */
 class WP_Stats_Query {
 
 	/**
-	 * Number of users who can author content.
+	 * Number of users who can publish content.
 	 *
-	 * Counts users whose `{$prefix}user_level` meta is above 1, i.e. author and
-	 * above. WordPress still maintains that meta for backwards compatibility.
+	 * Before 3.0.0 this counted users whose legacy `user_level` meta was above
+	 * 1 and whose user_activation_key was empty. The first is a capability
+	 * question with a capability answer, and the second excluded anyone with a
+	 * password reset in flight, which has nothing to do with authorship.
 	 *
 	 * @return int
 	 */
 	public static function total_authors() {
-		global $wpdb;
-
-		return (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(ID) FROM $wpdb->users LEFT JOIN $wpdb->usermeta ON $wpdb->usermeta.user_id = $wpdb->users.ID WHERE $wpdb->users.user_activation_key = '' AND $wpdb->usermeta.meta_key = %s AND (meta_value+0.00) > 1",
-				$wpdb->prefix . 'user_level'
+		$query = new WP_User_Query(
+			array(
+				'capability'  => 'publish_posts',
+				'fields'      => 'ID',
+				'number'      => 1,
+				'count_total' => true,
 			)
 		);
+
+		return (int) $query->get_total();
 	}
 
 	/**
@@ -62,9 +76,7 @@ class WP_Stats_Query {
 	 * @return int
 	 */
 	public static function total_comments() {
-		global $wpdb;
-
-		return (int) $wpdb->get_var( "SELECT COUNT(comment_ID) FROM $wpdb->comments WHERE comment_approved = '1'" );
+		return (int) wp_count_comments()->approved;
 	}
 
 	/**
@@ -73,20 +85,30 @@ class WP_Stats_Query {
 	 * @return int
 	 */
 	public static function total_comment_posters() {
-		global $wpdb;
-
-		return (int) $wpdb->get_var( "SELECT COUNT(DISTINCT comment_author) FROM $wpdb->comments WHERE comment_approved = '1' AND comment_type = 'comment'" );
+		return (int) self::comment_query(
+			array(
+				'status' => 'approve',
+				'type'   => 'comment',
+				'count'  => true,
+			),
+			array( 'fields' => 'COUNT( DISTINCT comment_author )' )
+		);
 	}
 
 	/**
-	 * Number of rows in the links table.
+	 * Number of links.
 	 *
 	 * @return int
 	 */
 	public static function total_links() {
-		global $wpdb;
-
-		return (int) $wpdb->get_var( "SELECT COUNT(link_id) FROM $wpdb->links" );
+		return count(
+			(array) get_bookmarks(
+				array(
+					'hide_invisible' => 0,
+					'limit'          => -1,
+				)
+			)
+		);
 	}
 
 	/**
@@ -102,41 +124,21 @@ class WP_Stats_Query {
 	}
 
 	/**
-	 * Turn a post-type mode into a WHERE fragment and its prepare arguments.
-	 *
-	 * 'both' and '' mean "do not filter by type".
-	 *
-	 * @param string $mode Post type, 'both', or ''.
-	 * @return array{0:string,1:array} Fragment and arguments.
-	 */
-	protected static function mode_where( $mode ) {
-		if ( ! empty( $mode ) && 'both' !== $mode ) {
-			return array( 'post_type = %s', array( $mode ) );
-		}
-
-		return array( '1=1', array() );
-	}
-
-	/**
 	 * Most recently published posts.
 	 *
 	 * @param string $mode  Post type, 'both', or ''.
 	 * @param int    $limit Maximum rows.
-	 * @return array
+	 * @return WP_Post[]
 	 */
 	public static function recent_posts( $mode = '', $limit = 10 ) {
-		global $wpdb;
-
-		$limit                = max( 0, (int) $limit );
-		list( $where, $args ) = self::mode_where( $mode );
-
-		$args = array_merge( array( current_time( 'mysql' ) ), $args, array( $limit ) );
-
-		return $wpdb->get_results(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $where is a literal fragment built above, holding only placeholders.
-				"SELECT $wpdb->users.*, $wpdb->posts.* FROM $wpdb->posts LEFT JOIN $wpdb->users ON $wpdb->users.ID = $wpdb->posts.post_author WHERE user_activation_key = '' AND post_date < %s AND $where AND post_status = 'publish' AND post_password = '' ORDER BY post_date DESC LIMIT %d",
-				$args
+		return get_posts(
+			array(
+				'post_type'    => self::post_types( $mode ),
+				'post_status'  => 'publish',
+				'has_password' => false,
+				'numberposts'  => max( 0, (int) $limit ),
+				'orderby'      => 'date',
+				'order'        => 'DESC',
 			)
 		);
 	}
@@ -146,45 +148,44 @@ class WP_Stats_Query {
 	 *
 	 * @param string $mode  Post type, 'both', or ''.
 	 * @param int    $limit Maximum rows.
-	 * @return array
+	 * @return WP_Comment[]
 	 */
 	public static function recent_comments( $mode = '', $limit = 10 ) {
-		global $wpdb;
-
-		$limit                = max( 0, (int) $limit );
-		list( $where, $args ) = self::mode_where( $mode );
-
-		$args = array_merge( array( current_time( 'mysql' ) ), $args, array( $limit ) );
-
-		return $wpdb->get_results(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $where is a literal fragment built above, holding only placeholders.
-				"SELECT * FROM $wpdb->posts INNER JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND $where AND post_status = 'publish' AND post_password = '' ORDER BY comment_date DESC LIMIT %d",
-				$args
-			)
+		return (array) self::comment_query(
+			array(
+				'status'      => 'approve',
+				'type'        => 'comment',
+				'post_type'   => self::post_types( $mode ),
+				'post_status' => 'publish',
+				'number'      => self::number( $limit ),
+				'orderby'     => 'comment_date',
+				'order'       => 'DESC',
+			),
+			array( 'where' => self::unprotected_posts_clause() )
 		);
 	}
 
 	/**
 	 * Posts ordered by approved comment count.
 	 *
+	 * The count comes from the posts table's own comment_count column, which
+	 * WordPress maintains and which counts approved comments - so this no
+	 * longer joins and groups the comments table to work out what core already
+	 * knows.
+	 *
 	 * @param string $mode  Post type, 'both', or ''.
 	 * @param int    $limit Maximum rows.
-	 * @return array
+	 * @return WP_Post[]
 	 */
 	public static function most_commented( $mode = '', $limit = 10 ) {
-		global $wpdb;
-
-		$limit                = max( 0, (int) $limit );
-		list( $where, $args ) = self::mode_where( $mode );
-
-		$args = array_merge( array( current_time( 'mysql' ) ), $args, array( $limit ) );
-
-		return $wpdb->get_results(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $where is a literal fragment built above, holding only placeholders.
-				"SELECT $wpdb->posts.*, COUNT($wpdb->comments.comment_post_ID) AS 'comment_total' FROM $wpdb->posts LEFT JOIN $wpdb->comments ON $wpdb->posts.ID = $wpdb->comments.comment_post_ID WHERE comment_approved = '1' AND post_date < %s AND $where AND post_status = 'publish' AND post_password = '' GROUP BY $wpdb->comments.comment_post_ID ORDER BY comment_total DESC LIMIT %d",
-				$args
+		return get_posts(
+			array(
+				'post_type'    => self::post_types( $mode ),
+				'post_status'  => 'publish',
+				'has_password' => false,
+				'numberposts'  => max( 0, (int) $limit ),
+				'orderby'      => 'comment_count',
+				'order'        => 'DESC',
 			)
 		);
 	}
@@ -192,47 +193,95 @@ class WP_Stats_Query {
 	/**
 	 * Published post counts per author.
 	 *
+	 * Walks the users who can publish rather than grouping the posts table by
+	 * post_author, so "Authors" means the people who write for the site rather
+	 * than every account that ever had a row attributed to it. Anyone with
+	 * nothing published is dropped, exactly as the GROUP BY used to drop them.
+	 *
 	 * @param string $mode Post type, 'both', or ''.
-	 * @return array
+	 * @return object[] Each with user_nicename, display_name and posts_total.
 	 */
 	public static function author_post_counts( $mode = '' ) {
-		global $wpdb;
+		$users = get_users(
+			array(
+				'capability' => 'publish_posts',
+				'fields'     => array( 'ID', 'display_name', 'user_nicename' ),
+				'orderby'    => 'display_name',
+			)
+		);
 
-		list( $where, $args ) = self::mode_where( $mode );
+		$post_types = self::post_types( $mode );
+		$post_types = 'any' === $post_types ? array( 'post', 'page' ) : $post_types;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $where is a literal fragment built above, holding only placeholders.
-		$sql = "SELECT COUNT($wpdb->posts.ID) AS 'posts_total', $wpdb->users.display_name, $wpdb->users.user_nicename FROM $wpdb->posts LEFT JOIN $wpdb->users ON $wpdb->users.ID = $wpdb->posts.post_author WHERE user_activation_key = '' AND $where AND post_status = 'publish' GROUP BY $wpdb->posts.post_author";
+		$rows = array();
 
-		// prepare() warns when handed no arguments, so only call it when the
-		// mode actually contributed a placeholder.
-		return $wpdb->get_results( $args ? $wpdb->prepare( $sql, $args ) : $sql );
+		foreach ( $users as $user ) {
+			$total = (int) count_user_posts( (int) $user->ID, $post_types, true );
+
+			if ( $total < 1 ) {
+				continue;
+			}
+
+			$user->posts_total = $total;
+			$rows[]            = $user;
+		}
+
+		return $rows;
 	}
 
 	/**
 	 * Approved comment counts per comment author name.
 	 *
+	 * WP_Comment_Query has no "group by author" argument and hands back comment
+	 * ids, so the names and the counts come from two runs of the same grouped
+	 * query. The sort is fully determined - count descending, then the name -
+	 * so the two lists line up row for row.
+	 *
 	 * @param int $limit Maximum rows, 0 for all.
-	 * @return array
+	 * @return object[] Each with comment_author and comment_total.
 	 */
 	public static function comment_author_counts( $limit = 0 ) {
-		global $wpdb;
+		$args = array(
+			'status'      => 'approve',
+			'type'        => 'comment',
+			'post_status' => 'publish',
+			'number'      => self::number( $limit ),
+		);
 
-		$limit     = max( 0, (int) $limit );
-		$args      = array( current_time( 'mysql' ) );
-		$limit_sql = '';
+		$shared = array(
+			'where'   => self::unprotected_posts_clause(),
+			'groupby' => 'comment_author',
+			'orderby' => 'COUNT( comment_ID ) DESC, comment_author ASC',
+		);
 
-		if ( $limit > 0 ) {
-			$limit_sql = 'LIMIT %d';
-			$args[]    = $limit;
-		}
+		// One representative comment per author, so the names can be read off
+		// hydrated WP_Comment objects rather than parsed out of a raw column.
+		$comments = array_values( (array) self::comment_query( $args, $shared ) );
 
-		return $wpdb->get_results(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- $limit_sql is a literal fragment built above, holding only a placeholder.
-				"SELECT comment_author, COUNT(comment_ID) AS 'comment_total' FROM $wpdb->comments INNER JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND post_status = 'publish' AND post_password = '' GROUP BY comment_author ORDER BY comment_total DESC $limit_sql",
-				$args
+		// The same grouping again, selecting the count instead. 'ids' is what
+		// stops WP_Comment_Query treating those counts as comment ids and
+		// trying to load posts with them.
+		$totals = array_values(
+			(array) self::comment_query(
+				array_merge( $args, array( 'fields' => 'ids' ) ),
+				array_merge( $shared, array( 'fields' => 'COUNT( comment_ID )' ) )
 			)
 		);
+
+		$rows = array();
+
+		foreach ( $comments as $index => $comment ) {
+			if ( ! isset( $totals[ $index ] ) ) {
+				break;
+			}
+
+			$rows[] = (object) array(
+				'comment_author' => $comment->comment_author,
+				'comment_total'  => (int) $totals[ $index ],
+			);
+		}
+
+		return $rows;
 	}
 
 	/**
@@ -242,43 +291,49 @@ class WP_Stats_Query {
 	 * @return int
 	 */
 	public static function count_comments_by_author( $author ) {
-		global $wpdb;
-
-		return (int) $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(comment_ID) FROM $wpdb->comments INNER JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = %s AND comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND post_status = 'publish' AND post_password = ''",
-				$author,
-				current_time( 'mysql' )
-			)
+		return (int) self::comment_query(
+			array(
+				'status'      => 'approve',
+				'type'        => 'comment',
+				'post_status' => 'publish',
+				'count'       => true,
+			),
+			array( 'where' => self::author_clause( $author ) )
 		);
 	}
 
 	/**
 	 * One page of a named author's approved comments.
 	 *
+	 * Ordered by post first, so the view can group consecutive comments on the
+	 * same post under one heading.
+	 *
 	 * @param string $author  Comment author name.
 	 * @param int    $offset  Row offset.
 	 * @param int    $perpage Rows per page.
-	 * @return array
+	 * @return WP_Comment[]
 	 */
 	public static function comments_by_author( $author, $offset, $perpage ) {
-		global $wpdb;
-
-		return $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT $wpdb->posts.*, $wpdb->comments.* FROM $wpdb->comments INNER JOIN $wpdb->posts ON $wpdb->comments.comment_post_ID = $wpdb->posts.ID WHERE comment_author = %s AND comment_approved = '1' AND comment_type = 'comment' AND post_date < %s AND post_status = 'publish' AND post_password = '' ORDER BY comment_post_ID DESC, comment_date DESC LIMIT %d, %d",
-				$author,
-				current_time( 'mysql' ),
-				max( 0, (int) $offset ),
-				max( 1, (int) $perpage )
-			)
+		return (array) self::comment_query(
+			array(
+				'status'      => 'approve',
+				'type'        => 'comment',
+				'post_status' => 'publish',
+				'number'      => max( 1, (int) $perpage ),
+				'offset'      => max( 0, (int) $offset ),
+				'orderby'     => array(
+					'comment_post_ID' => 'DESC',
+					'comment_date'    => 'DESC',
+				),
+			),
+			array( 'where' => self::author_clause( $author ) )
 		);
 	}
 
 	/**
 	 * Link categories that have at least one link.
 	 *
-	 * @return array
+	 * @return WP_Term[]
 	 */
 	public static function link_categories() {
 		$terms = get_terms( array( 'taxonomy' => 'link_category' ) );
@@ -289,7 +344,7 @@ class WP_Stats_Query {
 	/**
 	 * Post tags, most used first.
 	 *
-	 * @return array
+	 * @return WP_Term[]
 	 */
 	public static function tags() {
 		$tags = get_tags(
@@ -305,6 +360,10 @@ class WP_Stats_Query {
 	/**
 	 * Akismet's spam count, when Akismet is active.
 	 *
+	 * Akismet publishes no filter for this and is not one of the plugins the
+	 * wp_stats_sections contract covers, so asking whether its class is loaded
+	 * is the only way to offer the line at all.
+	 *
 	 * @return int|null Null when Akismet is not available.
 	 */
 	public static function spam_count() {
@@ -313,5 +372,114 @@ class WP_Stats_Query {
 		}
 
 		return (int) Akismet_Admin::get_spam_count();
+	}
+
+	/**
+	 * Turn a row limit into what WP_Comment_Query means by "no limit".
+	 *
+	 * Zero is an empty string there, not a number: 'number' => 0 becomes
+	 * LIMIT 0 and the query returns nothing at all.
+	 *
+	 * @param int $limit Maximum rows, 0 for all.
+	 * @return int|string
+	 */
+	protected static function number( $limit ) {
+		$limit = max( 0, (int) $limit );
+
+		return $limit > 0 ? $limit : '';
+	}
+
+	/**
+	 * Turn a post-type mode into something the query APIs understand.
+	 *
+	 * 'both' and '' mean "do not filter by type".
+	 *
+	 * @param string $mode Post type, 'both', or ''.
+	 * @return string
+	 */
+	protected static function post_types( $mode ) {
+		if ( ! empty( $mode ) && 'both' !== $mode ) {
+			return $mode;
+		}
+
+		return 'any';
+	}
+
+	/**
+	 * Run a comment query with extra SQL clauses merged in.
+	 *
+	 * WP_Comment_Query builds the joins, the status handling, the caching and
+	 * the escaping; this only adds the fragment it has no argument for, and
+	 * removes the filter again immediately so no other comment query on the
+	 * request sees it.
+	 *
+	 * @param array $args    Arguments for get_comments().
+	 * @param array $clauses Clause fragments to merge over the built ones.
+	 * @return mixed Whatever get_comments() returns for those arguments.
+	 */
+	protected static function comment_query( array $args, array $clauses = array() ) {
+		if ( ! $clauses ) {
+			return get_comments( $args );
+		}
+
+		/*
+		 * WP_Comment_Query keys its result cache on its own arguments and knows
+		 * nothing about a clause added from outside, so two calls differing
+		 * only in the clause - one comment author's count and the next one's -
+		 * would collide and the second would be handed the first one's rows.
+		 * cache_domain is part of that key and part of nothing else, which is
+		 * exactly what is needed to tell them apart.
+		 */
+		$args['cache_domain'] = 'wp-stats-' . md5( (string) wp_json_encode( $clauses ) );
+
+		$filter = static function ( $pieces ) use ( $clauses ) {
+			foreach ( $clauses as $piece => $fragment ) {
+				if ( 'where' === $piece ) {
+					$pieces['where'] .= $fragment;
+					continue;
+				}
+
+				$pieces[ $piece ] = $fragment;
+			}
+
+			return $pieces;
+		};
+
+		add_filter( 'comments_clauses', $filter );
+
+		try {
+			return get_comments( $args );
+		} finally {
+			remove_filter( 'comments_clauses', $filter );
+		}
+	}
+
+	/**
+	 * WHERE fragment restricting a comment query to one author name.
+	 *
+	 * @param string $author Comment author name.
+	 * @return string
+	 */
+	protected static function author_clause( $author ) {
+		global $wpdb;
+
+		return $wpdb->prepare( ' AND comment_author = %s', (string) $author ) . self::unprotected_posts_clause();
+	}
+
+	/**
+	 * WHERE fragment excluding comments on password-protected posts.
+	 *
+	 * Every listing on the statistics page excludes them, which is why the old
+	 * "Comments Protected" branch in the author view could never run.
+	 * WP_Comment_Query joins the posts table whenever a post_* argument is
+	 * given and every caller of this passes post_status, so the column is in
+	 * scope. There is no placeholder in it, so it needs no prepare().
+	 *
+	 * @return string
+	 */
+	protected static function unprotected_posts_clause() {
+		global $wpdb;
+
+		return " AND {$wpdb->posts}.post_password = ''";
 	}
 }

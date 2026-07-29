@@ -1,20 +1,23 @@
 <?php
 /**
- * WP-Stats class-wp-stats-display.php
+ * Builds the list markup for each stat block.
+ *
+ * The markup is reproduced as it was before 3.0.0, down to the trailing
+ * newlines, because themes style these lists.
+ *
+ * What has gone is the $post juggling. Every block used to assign the global
+ * $post inside its loop so that get_the_title() and get_permalink() would
+ * resolve against the current row, and every block had to remember to put it
+ * back afterwards. They pass the post id instead, which is an argument both
+ * those functions have always taken.
  *
  * @package WP-Stats
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
- * Builds the list markup for each stat block.
- *
- * The markup is reproduced exactly as it was before 3.0.0, down to the trailing
- * newlines, because themes style these lists and some of them are assembled by
- * companion plugins into the same <ul>.
+ * Renders one list per stat block.
  *
  * @since 3.0.0
  */
@@ -26,7 +29,7 @@ class WP_Stats_Display {
 	 * @return string
 	 */
 	protected static function none() {
-		return '<li>' . __( 'N/A', 'wp-stats' ) . '</li>';
+		return '<li>' . esc_html__( 'N/A', 'wp-stats' ) . '</li>';
 	}
 
 	/**
@@ -69,23 +72,21 @@ class WP_Stats_Display {
 	 * @return string
 	 */
 	public static function recent_posts( $mode = '', $limit = 10 ) {
-		global $post;
+		$posts = WP_Stats_Query::recent_posts( $mode, $limit );
 
-		$rows = WP_Stats_Query::recent_posts( $mode, $limit );
-
-		if ( ! $rows ) {
+		if ( ! $posts ) {
 			return self::none();
 		}
 
 		$temp   = '';
 		$format = self::datetime_format();
 
-		foreach ( $rows as $post ) {
-			$post_title   = get_the_title();
-			$post_date    = get_the_time( $format );
-			$display_name = stripslashes( $post->display_name );
+		foreach ( $posts as $post ) {
+			$post_title   = get_the_title( $post );
+			$post_date    = get_the_time( $format, $post );
+			$display_name = (string) get_the_author_meta( 'display_name', (int) $post->post_author );
 
-			$temp .= '<li>' . esc_html( $post_date ) . ' - <a href="' . esc_url( get_permalink() ) . '" title="' . esc_attr(
+			$temp .= '<li>' . esc_html( $post_date ) . ' - <a href="' . esc_url( (string) get_permalink( $post ) ) . '" title="' . esc_attr(
 				sprintf(
 					/* translators: %s: Post title. */
 					__( 'View post %s', 'wp-stats' ),
@@ -105,29 +106,28 @@ class WP_Stats_Display {
 	 * @return string
 	 */
 	public static function recent_comments( $mode = '', $limit = 10 ) {
-		global $post;
+		$comments = WP_Stats_Query::recent_comments( $mode, $limit );
 
-		$rows = WP_Stats_Query::recent_comments( $mode, $limit );
-
-		if ( ! $rows ) {
+		if ( ! $comments ) {
 			return self::none();
 		}
 
 		$temp   = '';
 		$format = self::datetime_format();
 
-		foreach ( $rows as $post ) {
-			$post_title     = get_the_title();
-			$comment_author = stripslashes( $post->comment_author );
-			$comment_date   = mysql2date( $format, $post->comment_date );
+		foreach ( $comments as $comment ) {
+			$post_id      = (int) $comment->comment_post_ID;
+			$post_title   = get_the_title( $post_id );
+			$comment_date = mysql2date( $format, $comment->comment_date );
 
-			$temp .= '<li>' . esc_html( $comment_date ) . ' - ' . esc_html( $comment_author ) . ' (<a href="' . esc_url( get_permalink() . '#comment-' . $post->comment_ID ) . '" title="' . esc_attr(
-				sprintf(
-					/* translators: %s: Post title. */
-					__( 'View comments in post %s', 'wp-stats' ),
-					$post_title
-				)
-			) . '">' . esc_html( $post_title ) . "</a>)</li>\n";
+			$temp .= '<li>' . esc_html( $comment_date ) . ' - ' . esc_html( $comment->comment_author ) . ' (<a href="'
+				. esc_url( (string) get_permalink( $post_id ) . '#comment-' . (int) $comment->comment_ID ) . '" title="' . esc_attr(
+					sprintf(
+						/* translators: %s: Post title. */
+						__( 'View comments in post %s', 'wp-stats' ),
+						$post_title
+					)
+				) . '">' . esc_html( $post_title ) . "</a>)</li>\n";
 		}
 
 		return $temp;
@@ -142,23 +142,21 @@ class WP_Stats_Display {
 	 * @return string
 	 */
 	public static function most_commented( $mode = '', $limit = 10, $chars = 0 ) {
-		global $post;
+		$posts = WP_Stats_Query::most_commented( $mode, $limit );
 
-		$rows = WP_Stats_Query::most_commented( $mode, $limit );
-
-		if ( ! $rows ) {
+		if ( ! $posts ) {
 			return self::none();
 		}
 
 		$temp  = '';
 		$chars = (int) $chars;
 
-		foreach ( $rows as $post ) {
-			$post_title    = get_the_title();
-			$comment_total = (int) $post->comment_total;
+		foreach ( $posts as $post ) {
+			$post_title    = get_the_title( $post );
+			$comment_total = (int) $post->comment_count;
 			$link_text     = $chars > 0 ? self::snippet_text( $post_title, $chars ) : $post_title;
 
-			$temp .= '<li><a href="' . esc_url( get_permalink() ) . '" title="' . esc_attr(
+			$temp .= '<li><a href="' . esc_url( (string) get_permalink( $post ) ) . '" title="' . esc_attr(
 				sprintf(
 					/* translators: %s: Post title. */
 					__( 'View comments in post %s', 'wp-stats' ),
@@ -183,34 +181,23 @@ class WP_Stats_Display {
 	 * @return string
 	 */
 	public static function authors( $mode = '' ) {
-		global $wp_rewrite;
-
 		$rows = WP_Stats_Query::author_post_counts( $mode );
 
 		if ( ! $rows ) {
 			return self::none();
 		}
 
-		$temp            = '';
-		$using_permalink = get_option( 'permalink_structure' );
-		$permalink       = $wp_rewrite->get_author_permastruct();
+		$temp = '';
 
 		foreach ( $rows as $row ) {
-			// strip_tags(), not wp_strip_all_tags(): the latter also removes the
-			// *contents* of script and style elements, so a name written as
-			// "<script>Bob</script>" would render as an empty, unclickable link
-			// instead of "Bob". Everything here is escaped at the sink anyway.
-			$post_author  = strip_tags( stripslashes( $row->user_nicename ) );
-			$display_name = strip_tags( stripslashes( $row->display_name ) );
+			// wp_kses() with nothing allowed, not wp_strip_all_tags(): the
+			// latter also removes the *contents* of script and style elements,
+			// so a name written as "<script>Bob</script>" would render as an
+			// empty, unclickable link instead of "Bob".
+			$display_name = wp_kses( $row->display_name, array() );
 			$posts_total  = number_format_i18n( $row->posts_total );
 
-			if ( $using_permalink ) {
-				$url = get_option( 'home' ) . str_replace( '%author%', $post_author, $permalink );
-			} else {
-				$url = get_option( 'siteurl' ) . '/?author_name=' . $post_author;
-			}
-
-			$temp .= '<li><a href="' . esc_url( $url ) . '" title="' . esc_attr(
+			$temp .= '<li><a href="' . esc_url( get_author_posts_url( (int) $row->ID, $row->user_nicename ) ) . '" title="' . esc_attr(
 				sprintf(
 					/* translators: %s: Author name. */
 					__( 'View posts posted by %s', 'wp-stats' ),
@@ -246,11 +233,9 @@ class WP_Stats_Display {
 			}
 
 			// See the note in authors() on why this is not wp_strip_all_tags().
-			$comment_author = strip_tags( stripslashes( $row->comment_author ) );
+			$comment_author = wp_kses( $row->comment_author, array() );
 
-			// urlencode(), not rawurlencode(): this is a query-string value, and
-			// switching would change every existing link's spaces from + to %20.
-			$temp .= '<li><a href="' . esc_url( WP_Stats_Page::author_link( urlencode( $comment_author ) ) ) . '" title="' . esc_attr(
+			$temp .= '<li><a href="' . esc_url( WP_Stats_Page::author_link( rawurlencode( $comment_author ) ) ) . '" title="' . esc_attr(
 				sprintf(
 					/* translators: %s: Comment author name. */
 					__( 'View all comments posted by %s', 'wp-stats' ),

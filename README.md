@@ -120,7 +120,7 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 * NEW: PHPUnit test suite and GitHub Actions CI.
 * CHANGED: The statistics page is wrapped in `<div class="wp-stats">` and the stylesheet is scoped to it, so it no longer restyles WP-PageNavi's paging and no longer refuses to load when that plugin is active.
 * CHANGED: The stylesheet moved to `css/wp-stats.css` and inherits the theme's colours instead of hardcoding blue on white. A theme's own copy of `stats-css.css` is no longer looked for; dequeue the `wp-stats` handle instead.
-* CHANGED: Every listing is built from core APIs rather than hand-written SQL, so the results are cached the way the rest of WordPress caches them.
+* CHANGED: Every listing is built from core query APIs rather than hand-written SQL, so the results are cached the way the rest of WordPress caches them and any filter a site already uses to hide content still applies.
 * CHANGED: The "Authors" counts are the users who can publish posts, rather than users with a legacy `user_level` above 1.
 * CHANGED: `stats_author` and `stats_page` are registered query variables now.
 * FIXED: The stylesheet never loaded, because it was hooked to `wp_enqueue_script`, which is not an action. It now loads on pages that render the paging.
@@ -131,6 +131,7 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 * FIXED: A negative `stats_page` query argument caused a SQL error.
 * FIXED: Undefined index warning reading the post-password cookie.
 * FIXED: The widget's "Statistics To Display" label used the wrong text domain and could not be translated.
+* FIXED: The widget's spam line read "Spam Blockeds" in the plural.
 
 ### 2.56.1
 * FIXED: Reflected XSS via double-encoded `stats_author` parameter (sanitize input, escape output)

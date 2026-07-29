@@ -59,6 +59,11 @@ class WP_Stats_Widget extends WP_Widget {
 	/**
 	 * Render the widget.
 	 *
+	 * Assembled into one string and printed through wp_kses_post() at the end.
+	 * The sidebar's own before_widget and after_widget are markup this widget
+	 * did not write and cannot escape piecemeal - before_widget opens tags that
+	 * after_widget closes - so they are balanced first and filtered together.
+	 *
 	 * @param array $args     Sidebar arguments.
 	 * @param array $instance Saved settings.
 	 * @return void
@@ -72,8 +77,7 @@ class WP_Stats_Widget extends WP_Widget {
 		$limit = (int) $instance['limit'];
 		$chars = (int) $instance['chars'];
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sidebar markup from the theme; $title escaped above.
-		echo $args['before_widget'] . $args['before_title'] . $title . $args['after_title'];
+		$output = $args['before_widget'] . $args['before_title'] . $title . $args['after_title'];
 
 		$lines = array(
 			'stats_total_authors'    => array(
@@ -123,9 +127,9 @@ class WP_Stats_Widget extends WP_Widget {
 			),
 		);
 
-		echo '<ul>' . "\n";
-		echo '<li><strong>' . esc_html__( 'Total Stats', 'wp-stats' ) . '</strong>' . "\n";
-		echo '<ul>' . "\n";
+		$output .= '<ul>' . "\n";
+		$output .= '<li><strong>' . esc_html__( 'Total Stats', 'wp-stats' ) . '</strong>' . "\n";
+		$output .= '<ul>' . "\n";
 
 		foreach ( $lines as $key => $line ) {
 			if ( empty( $instance[ $key ] ) ) {
@@ -135,48 +139,45 @@ class WP_Stats_Widget extends WP_Widget {
 			list( $number, $strings ) = $line;
 
 			// The translated strings carry their own <strong> markup.
-			echo '<li>' . wp_kses_post(
-				sprintf(
-					translate_nooped_plural( $strings, $number, 'wp-stats' ),
-					number_format_i18n( $number )
-				)
+			$output .= '<li>' . sprintf(
+				translate_nooped_plural( $strings, $number, 'wp-stats' ),
+				number_format_i18n( $number )
 			) . '</li>' . "\n";
 		}
 
 		$spam = WP_Stats_Query::spam_count();
 
 		if ( ! empty( $instance['stats_total_spam'] ) && null !== $spam ) {
-			echo '<li>' . wp_kses_post(
-				sprintf(
-					/* translators: %s: Number of blocked spam comments. */
-					_n( '<strong>%s</strong> Spam Blocked', '<strong>%s</strong> Spam Blockeds', $spam, 'wp-stats' ),
-					number_format_i18n( $spam )
-				)
+			$output .= '<li>' . sprintf(
+				/* translators: %s: Number of blocked spam comments. */
+				_n( '<strong>%s</strong> Spam Blocked', '<strong>%s</strong> Spam Blocked', $spam, 'wp-stats' ),
+				number_format_i18n( $spam )
 			) . '</li>' . "\n";
 		}
 
-		echo '</ul>' . "\n";
-		echo '</li>' . "\n";
-		echo '</ul>' . "\n";
+		$output .= '</ul>' . "\n";
+		$output .= '</li>' . "\n";
+		$output .= '</ul>' . "\n";
 
 		if ( ! empty( $instance['stats_most_commented_post'] ) ) {
-			echo '<ul>' . "\n";
-			echo '<li><strong>' . esc_html( number_format_i18n( $limit ) ) . ' ' . esc_html__( 'Most Commented Posts', 'wp-stats' ) . '</strong>' . "\n";
-			echo '<ul>' . "\n";
-			echo wp_kses_post( WP_Stats_Display::most_commented( 'post', $limit, $chars ) );
-			echo '</ul>' . "\n";
-			echo '</li>' . "\n";
-			echo '</ul>' . "\n";
+			$output .= '<ul>' . "\n";
+			$output .= '<li><strong>' . esc_html( number_format_i18n( $limit ) ) . ' ' . esc_html__( 'Most Commented Posts', 'wp-stats' ) . '</strong>' . "\n";
+			$output .= '<ul>' . "\n";
+			$output .= WP_Stats_Display::most_commented( 'post', $limit, $chars );
+			$output .= '</ul>' . "\n";
+			$output .= '</li>' . "\n";
+			$output .= '</ul>' . "\n";
 		}
 
 		if ( ! empty( $instance['show_link'] ) ) {
-			echo '<ul>' . "\n";
-			echo '<li><a href="' . esc_url( WP_Stats_Options::url() ) . '">' . esc_html__( 'My Blog Statistics', 'wp-stats' ) . '</a></li>' . "\n";
-			echo '</ul>' . "\n";
+			$output .= '<ul>' . "\n";
+			$output .= '<li><a href="' . esc_url( WP_Stats_Options::url() ) . '">' . esc_html__( 'My Blog Statistics', 'wp-stats' ) . '</a></li>' . "\n";
+			$output .= '</ul>' . "\n";
 		}
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Sidebar markup from the theme.
-		echo $args['after_widget'];
+		$output .= $args['after_widget'];
+
+		echo wp_kses_post( $output );
 	}
 
 	/**

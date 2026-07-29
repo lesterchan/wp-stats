@@ -226,7 +226,7 @@ class WP_Stats_Metadata_Test extends WP_Stats_TestCase {
 	public function test_every_translation_call_uses_the_plugin_text_domain() {
 		$code = wp_stats_test_source_code();
 
-		preg_match_all( '/(?:__|_n|_n_noop|esc_html__|esc_attr__|esc_html_e|esc_attr_e)\((.*?)\);/s', $code, $calls );
+		preg_match_all( '/(?<![\w])(?:esc_html__|esc_attr__|esc_html_e|esc_attr_e|_n_noop|__|_n)\((.*?)\);/s', $code, $calls );
 
 		foreach ( $calls[1] as $arguments ) {
 			$this->assertStringContainsString(

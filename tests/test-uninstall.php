@@ -115,5 +115,4 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 
 		$this->assertLessThan( $m[0][1], $restore, 'restore_current_blog() must be inside the foreach.' );
 	}
-
 }

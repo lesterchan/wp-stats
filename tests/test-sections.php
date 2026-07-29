@@ -158,13 +158,13 @@ class WP_Stats_Sections_Test extends WP_Stats_TestCase {
 	 */
 	public function data_malformed_entries() {
 		return array(
-			'not an array'        => array( 'nope' ),
-			'no title'            => array(
+			'not an array'          => array( 'nope' ),
+			'no title'              => array(
 				array(
 					'render' => '__return_true',
 				),
 			),
-			'empty title'         => array(
+			'empty title'           => array(
 				array(
 					'title'  => '',
 					'render' => '__return_true',
@@ -176,12 +176,12 @@ class WP_Stats_Sections_Test extends WP_Stats_TestCase {
 					'render' => '__return_true',
 				),
 			),
-			'no render'           => array(
+			'no render'             => array(
 				array(
 					'title' => 'Broken',
 				),
 			),
-			'render not callable' => array(
+			'render not callable'   => array(
 				array(
 					'title'  => 'Broken',
 					'render' => 'wp_stats_no_such_function_exists',
