@@ -1,16 +1,21 @@
 <?php
 /**
- * WP-Stats class-wp-stats-admin.php
+ * The WP-Stats menu, and the statistics screen under it.
+ *
+ * One top-level menu with two entries: the statistics themselves, and Settings
+ * last. Until 3.0.0 the two screens lived in different menus entirely - the
+ * statistics under Dashboard, the settings under Settings - which is the
+ * scattering the house rule exists to stop. The statistics screen is the
+ * plugin's own surface rather than a settings page, so it is not a submenu of
+ * Settings either.
  *
  * @package WP-Stats
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
- * The Dashboard -> WP-Stats screen.
+ * Registers the menu and renders the statistics screen.
  *
  * @since 3.0.0
  */
@@ -29,7 +34,7 @@ class WP_Stats_Admin {
 	const CAPABILITY = 'manage_options';
 
 	/**
-	 * Hook the screen up.
+	 * Hook the screens up.
 	 *
 	 * @return void
 	 */
@@ -41,8 +46,8 @@ class WP_Stats_Admin {
 	 * The capability a screen requires, filtered.
 	 *
 	 * Every capability check in the plugin goes through here, so a site that
-	 * wants to hand the statistics screen to editors has one place to say so
-	 * and cannot accidentally open the settings screen at the same time.
+	 * wants to hand the read-only statistics screen to editors has one place to
+	 * say so and cannot open the settings screen by accident at the same time.
 	 *
 	 * @since 3.0.0
 	 *
@@ -62,23 +67,47 @@ class WP_Stats_Admin {
 	}
 
 	/**
-	 * Add the Dashboard submenu entry.
+	 * Add the menu and its two entries.
 	 *
 	 * @return void
 	 */
 	public static function add_page() {
-		add_submenu_page(
-			'index.php',
+		add_menu_page(
 			__( 'WP-Stats', 'wp-stats' ),
 			__( 'WP-Stats', 'wp-stats' ),
 			self::capability( 'statistics' ),
 			self::PAGE,
+			array( __CLASS__, 'render' ),
+			'dashicons-chart-bar'
+		);
+
+		// add_menu_page() creates a first submenu labelled after the menu, so
+		// this one only exists to call it what it is.
+		add_submenu_page(
+			self::PAGE,
+			__( 'Statistics', 'wp-stats' ),
+			__( 'Statistics', 'wp-stats' ),
+			self::capability( 'statistics' ),
+			self::PAGE,
 			array( __CLASS__, 'render' )
+		);
+
+		add_submenu_page(
+			self::PAGE,
+			__( 'Settings', 'wp-stats' ),
+			__( 'Settings', 'wp-stats' ),
+			self::capability( 'settings' ),
+			WP_Stats_Settings::PAGE,
+			array( 'WP_Stats_Settings', 'render' )
 		);
 	}
 
 	/**
-	 * Render the stats page inside the admin.
+	 * Render the statistics screen.
+	 *
+	 * The page is assembled as a string for the [page_stats] shortcode's sake,
+	 * and contributed sections are third-party markup, so it goes out through
+	 * wp_kses_post() rather than being trusted wholesale.
 	 *
 	 * @return void
 	 */
@@ -88,10 +117,8 @@ class WP_Stats_Admin {
 		}
 
 		echo '<div class="wrap">';
-		// WP_Stats_Page::render() assembles escaped markup, and third-party filters
-		// deliberately contribute HTML sections to it.
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-		echo WP_Stats_Page::render();
+		echo '<h1>' . esc_html__( 'WP-Stats', 'wp-stats' ) . '</h1>';
+		echo wp_kses_post( WP_Stats_Page::render() );
 		echo '</div>';
 	}
 }

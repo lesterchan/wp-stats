@@ -1,13 +1,11 @@
 <?php
 /**
- * WP-Stats class-wp-stats-widget.php
+ * The Stats sidebar widget.
  *
  * @package WP-Stats
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * The Stats sidebar widget.
@@ -259,15 +257,15 @@ class WP_Stats_Widget extends WP_Widget {
 			</label>
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'limit' ) ); ?>"><?php esc_html_e( 'No. Of Records To Show:', 'wp-stats' ); ?> <span style="color: red;">*</span>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'limit' ) ); ?>"><?php esc_html_e( 'No. Of Records To Show:', 'wp-stats' ); ?> *
 				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'limit' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'limit' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['limit'] ); ?>" />
 			</label>
 		</p>
 		<p>
-			<label for="<?php echo esc_attr( $this->get_field_id( 'chars' ) ); ?>"><?php esc_html_e( 'Maximum Post Title Length (Characters):', 'wp-stats' ); ?> <span style="color: red;">*</span>
+			<label for="<?php echo esc_attr( $this->get_field_id( 'chars' ) ); ?>"><?php esc_html_e( 'Maximum Post Title Length (Characters):', 'wp-stats' ); ?> *
 				<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'chars' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'chars' ) ); ?>" type="text" value="<?php echo esc_attr( $instance['chars'] ); ?>" />
 			</label><br />
-			<small><?php echo wp_kses_post( __( '<strong>0</strong> to disable.', 'wp-stats' ) ); ?></small>
+			<span class="description"><?php echo wp_kses_post( __( '<strong>0</strong> to disable.', 'wp-stats' ) ); ?></span>
 		</p>
 		<p>
 			<label for="<?php echo esc_attr( $this->get_field_id( 'show_link' ) ); ?>"><?php esc_html_e( 'Show Link To Statistics Page?', 'wp-stats' ); ?>
@@ -277,9 +275,7 @@ class WP_Stats_Widget extends WP_Widget {
 				</select>
 			</label>
 		</p>
-		<p style="color: red;">
-			<small><?php esc_html_e( '* Used only in most commented post.', 'wp-stats' ); ?></small>
-		</p>
+		<p class="description"><?php esc_html_e( '* Used only in most commented post.', 'wp-stats' ); ?></p>
 		<input type="hidden" id="<?php echo esc_attr( $this->get_field_id( 'submit' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'submit' ) ); ?>" value="1" />
 		<?php
 	}

@@ -194,6 +194,42 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	}
 
 	/**
+	 * The admin screen renders the same page inside a wrap.
+	 */
+	public function test_the_admin_screen_renders_the_page() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$html = $this->render( array( 'WP_Stats_Admin', 'render' ) );
+
+		$this->assertStringContainsString( 'class="wrap"', $html );
+		$this->assertStringContainsString( 'id="GeneralStats"', $html );
+		$this->assertMarkupIsClean( $html );
+	}
+
+	/**
+	 * Every capability check goes through one filter, so a site can hand the
+	 * read-only screen to editors without handing over the settings too.
+	 */
+	public function test_the_capability_filter_sees_the_context() {
+		$seen = array();
+
+		add_filter(
+			'wp_stats_capability',
+			static function ( $capability, $context ) use ( &$seen ) {
+				$seen[] = $context;
+
+				return 'statistics' === $context ? 'edit_posts' : $capability;
+			},
+			10,
+			2
+		);
+
+		$this->assertSame( 'edit_posts', WP_Stats_Admin::capability( 'statistics' ) );
+		$this->assertSame( 'manage_options', WP_Stats_Admin::capability( 'settings' ) );
+		$this->assertSame( array( 'statistics', 'settings' ), $seen );
+	}
+
+	/**
 	 * The shortcode renders the same page.
 	 */
 	public function test_the_shortcode_renders_the_page() {
