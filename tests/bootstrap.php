@@ -27,17 +27,18 @@ require_once $_tests_dir . '/includes/functions.php';
  *
  * @return void
  */
-function _stats_manually_load_plugin() {
+function wp_stats_manually_load_plugin() {
 	require dirname( __DIR__ ) . '/wp-stats.php';
 
 	// register_activation_hook() never fires in the test environment, so the
-	// option row has to be seeded by hand.
+	// settings row has to be seeded by hand.
 	WP_Stats_Options::activate();
 }
-tests_add_filter( 'muplugins_loaded', '_stats_manually_load_plugin' );
+tests_add_filter( 'muplugins_loaded', 'wp_stats_manually_load_plugin' );
 
 require $_tests_dir . '/includes/bootstrap.php';
 
 // After the WordPress bootstrap, which is what declares WP_UnitTestCase - the
 // base class extends it, so it cannot be loaded any earlier.
+require_once __DIR__ . '/helper-source.php';
 require_once __DIR__ . '/helper-testcase.php';

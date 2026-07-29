@@ -13,9 +13,12 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 	/**
 	 * The pre-3.0.0 rows, every one of which the migration folds in and deletes.
 	 *
+	 * Read from the class rather than restated, so a row added to the list
+	 * without a matching delete fails here.
+	 *
 	 * @var string[]
 	 */
-	private $legacy = array( 'stats_options', 'stats_db_version', 'stats_url', 'stats_mostlimit', 'stats_display' );
+	private $legacy = WP_Stats_Options::LEGACY_ROWS;
 
 	public function test_the_settings_and_the_markers_are_the_only_rows_the_plugin_owns() {
 		WP_Stats_Options::maybe_upgrade();

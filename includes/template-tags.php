@@ -1,20 +1,23 @@
 <?php
 /**
- * WP-Stats template-tags.php
- *
- * The plugin's public API: the functions themes call directly, plus the three
- * helpers companion plugins use to contribute panels to the stats page.
+ * The plugin's public API: the functions themes call directly.
  *
  * Everything here is a thin wrapper over the classes in this directory. The
  * names are unchanged from before 3.0.0 and are not deprecated - themes in the
  * wild call them and they are documented in the readme.
  *
+ * What is no longer here is the companion-plugin half of the old API.
+ * stats_display_defaults() let another plugin register a toggle in WP-Stats'
+ * own option row, and wp_stats_checkbox(), wp_stats_display_enabled() and
+ * wp_stats_most_limit() were the unreleased 3.0.0 helpers built on top of it.
+ * All four assumed one plugin's settings could live in another plugin's row. A
+ * contributor answers the wp_stats_sections filter instead, out of its own
+ * settings - see the readme.
+ *
  * @package WP-Stats
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Echo or return a value, matching the old $display argument convention.
@@ -28,81 +31,11 @@ function wp_stats_maybe_echo( $value, $display ) {
 		return $value;
 	}
 
-	// These builders assemble their own escaped markup.
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-	echo $value;
-}
-
-/*
- * ---------------------------------------------------------------------------
- * Companion plugin API
- *
- * WP-Stats owns the storage; other plugins should go through these rather than
- * reading its options. Before 3.0.0 there was no such API and six plugins each
- * hand-rolled a get_option( 'stats_display' ) read and their own checkbox
- * markup, which is why consolidating the option rows was a breaking change.
- * ---------------------------------------------------------------------------
- */
-
-/**
- * Whether a stats page block is switched on.
- *
- * @since 3.0.0
- *
- * @param string $key Display toggle name.
- * @return bool
- */
-function wp_stats_display_enabled( $key ) {
-	return WP_Stats_Options::display( $key );
+	echo wp_kses_post( (string) $value );
 }
 
 /**
- * How many entries the "top X" blocks show.
- *
- * @since 3.0.0
- *
- * @return int
- */
-function wp_stats_most_limit() {
-	return WP_Stats_Options::most_limit();
-}
-
-/**
- * Build one checkbox for the WP-Stats options screen.
- *
- * Companion plugins should use this rather than writing the markup themselves,
- * so the field name stays an implementation detail of WP-Stats.
- *
- * @since 3.0.0
- *
- * @param string $value Toggle name, also the checkbox value and id suffix.
- * @param string $label Visible label.
- * @return string
- */
-function wp_stats_checkbox( $value, $label ) {
-	// The hidden field is what makes unticking work. Only ticked boxes are
-	// posted, so the save has to know which toggles were on the screen in order
-	// to store the rest as 0 - and it cannot work that out from the registered
-	// defaults, because whether a companion plugin has registered its keys by
-	// then depends on hook timing it does not control.
-	return sprintf(
-		'<input type="hidden" name="%1$s[known][]" value="%2$s" />' .
-		'<input type="checkbox" name="%1$s[display][]" id="wpstats_%2$s" value="%2$s"%3$s />&nbsp;&nbsp;<label for="wpstats_%2$s">%4$s</label><br />' . "\n",
-		esc_attr( WP_Stats_Options::OPTION ),
-		esc_attr( $value ),
-		checked( wp_stats_display_enabled( $value ), true, false ),
-		esc_html( $label )
-	);
-}
-
-/*
- * ---------------------------------------------------------------------------
- * Theme template tags
- * ---------------------------------------------------------------------------
- */
-
-/**
- * Number of users who can author content.
+ * Number of users who can publish content.
  *
  * @param bool $display Echo when true, return when false.
  * @return int|void
@@ -269,15 +202,6 @@ function stats_page() {
  */
 function stats_page_link( $author, $page = 0 ) {
 	return WP_Stats_Page::author_link( $author, $page );
-}
-
-/**
- * The display toggles and their defaults.
- *
- * @return array<string,int>
- */
-function stats_display_defaults() {
-	return WP_Stats_Options::display_defaults();
 }
 
 // A very generic name, so it has always been guarded. WP-PostViews used to

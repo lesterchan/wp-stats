@@ -34,7 +34,7 @@ class WP_Stats_Display {
 	 *
 	 * @return string
 	 */
-	protected static function datetime_format() {
+	public static function datetime_format() {
 		return sprintf(
 			/* translators: 1: Date format, 2: Time format. */
 			__( '%1$s @ %2$s', 'wp-stats' ),

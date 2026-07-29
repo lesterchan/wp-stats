@@ -37,6 +37,16 @@ class WP_Stats_Options {
 	const VERSION = 'wp_stats_version';
 
 	/**
+	 * Every row the plugin used before 3.0.0, in one list.
+	 *
+	 * The migration reads these and then deletes them, and naming them once
+	 * means the two halves cannot fall out of step - a row read but not deleted
+	 * would be migrated again on the next schema bump, and one deleted but not
+	 * read would take its setting with it.
+	 */
+	const LEGACY_ROWS = array( 'stats_options', 'stats_db_version', 'stats_url', 'stats_mostlimit', 'stats_display' );
+
+	/**
 	 * Cached copy of the merged settings for this request.
 	 *
 	 * @var array|null
@@ -264,33 +274,34 @@ class WP_Stats_Options {
 	 * @return void
 	 */
 	protected static function migrate_legacy_rows() {
-		$legacy_options = get_option( 'stats_options', null );
-		$legacy_url     = get_option( 'stats_url', null );
-		$legacy_limit   = get_option( 'stats_mostlimit', null );
-		$legacy_display = get_option( 'stats_display', null );
+		$legacy = array();
+
+		foreach ( self::LEGACY_ROWS as $row ) {
+			$legacy[ $row ] = get_option( $row, null );
+		}
 
 		$options = self::defaults();
 		$found   = false;
 
-		if ( is_array( $legacy_options ) ) {
-			$options = wp_parse_args( $legacy_options, $options );
+		if ( is_array( $legacy['stats_options'] ) ) {
+			$options = wp_parse_args( $legacy['stats_options'], $options );
 			$found   = true;
 		}
 
-		if ( null !== $legacy_url ) {
-			$options['url'] = (string) $legacy_url;
+		if ( null !== $legacy['stats_url'] ) {
+			$options['url'] = (string) $legacy['stats_url'];
 			$found          = true;
 		}
 
-		if ( null !== $legacy_limit ) {
-			$options['most_limit'] = max( 1, (int) $legacy_limit );
+		if ( null !== $legacy['stats_mostlimit'] ) {
+			$options['most_limit'] = max( 1, (int) $legacy['stats_mostlimit'] );
 			$found                 = true;
 		}
 
 		$display = isset( $options['display'] ) && is_array( $options['display'] ) ? $options['display'] : array();
 
-		if ( is_array( $legacy_display ) ) {
-			$display = array_merge( $display, $legacy_display );
+		if ( is_array( $legacy['stats_display'] ) ) {
+			$display = array_merge( $display, $legacy['stats_display'] );
 			$found   = true;
 		}
 
@@ -311,8 +322,8 @@ class WP_Stats_Options {
 			update_option( self::OPTION, $options );
 		}
 
-		foreach ( array( 'stats_options', 'stats_db_version', 'stats_url', 'stats_mostlimit', 'stats_display' ) as $legacy ) {
-			delete_option( $legacy );
+		foreach ( self::LEGACY_ROWS as $row ) {
+			delete_option( $row );
 		}
 
 		self::$cache = null;

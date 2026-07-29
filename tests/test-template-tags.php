@@ -9,7 +9,7 @@
  */
 
 /**
- * Template tags.
+ * @coversNothing
  */
 class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 
@@ -33,7 +33,8 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	}
 
 	/**
-	 * Functions themes and companion plugins call.
+	 * Functions themes call. Every one of them shipped in 2.56.1 and keeps its
+	 * name, because a template tag rename is a theme that stops rendering.
 	 *
 	 * @return array
 	 */
@@ -60,10 +61,6 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 				'snippet_text',
 				'stats_page',
 				'stats_page_link',
-				'stats_display_defaults',
-				'wp_stats_display_enabled',
-				'wp_stats_most_limit',
-				'wp_stats_checkbox',
 			)
 		);
 	}
@@ -103,14 +100,13 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	}
 
 	/**
-	 * Authors are users whose user_level meta is above 1.
+	 * Authors are the users who can publish.
 	 */
-	public function test_author_count_matches_user_level() {
-		global $wpdb;
-
+	public function test_author_count_matches_the_users_who_can_publish() {
 		$expected = 0;
-		foreach ( get_users( array( 'fields' => array( 'ID' ) ) ) as $user ) {
-			if ( (int) get_user_meta( $user->ID, $wpdb->prefix . 'user_level', true ) > 1 ) {
+
+		foreach ( get_users() as $user ) {
+			if ( user_can( $user, 'publish_posts' ) ) {
 				++$expected;
 			}
 		}
@@ -185,10 +181,7 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	 * @param string $expected Resulting link.
 	 */
 	public function test_stats_page_link( $url, $page, $expected ) {
-		$options        = WP_Stats_Options::get();
-		$options['url'] = $url;
-		WP_Stats_Options::update( $options );
-		WP_Stats_Options::flush();
+		$this->set_url( $url );
 
 		$this->assertSame( $expected, stats_page_link( 'bob', $page ) );
 	}

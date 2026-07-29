@@ -1,13 +1,11 @@
 <?php
 /**
- * WP-Stats class-wp-stats.php
+ * Plugin bootstrap: everything WP-Stats hooks, in one place.
  *
  * @package WP-Stats
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Plugin bootstrap.
@@ -49,6 +47,7 @@ class WP_Stats {
 		WP_Stats_Settings::init();
 		WP_Stats_Admin::init();
 
+		add_filter( 'query_vars', array( __CLASS__, 'register_query_vars' ) );
 		add_action( 'widgets_init', array( __CLASS__, 'register_widget' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_styles' ) );
 		add_shortcode( 'page_stats', array( __CLASS__, 'shortcode' ) );
@@ -83,6 +82,23 @@ class WP_Stats {
 	}
 
 	/**
+	 * Declare the two query arguments the statistics page understands.
+	 *
+	 * Registering them is what lets the page read them with get_query_var()
+	 * instead of reaching into $_GET: WordPress parses and unslashes them, and
+	 * this list is the one place that says what the page accepts.
+	 *
+	 * @param string[] $vars Public query variables.
+	 * @return string[]
+	 */
+	public static function register_query_vars( $vars ) {
+		$vars[] = 'stats_author';
+		$vars[] = 'stats_page';
+
+		return $vars;
+	}
+
+	/**
 	 * Register the widget.
 	 *
 	 * @return void
@@ -95,16 +111,16 @@ class WP_Stats {
 	 * Enqueue the paging stylesheet.
 	 *
 	 * Only the [page_stats] shortcode and the widget render anything this
-	 * styles, so the front end does not carry it site-wide. WP-PageNavi styles
-	 * the same markup, so stand aside when it is active.
+	 * styles, so the front end does not carry it site-wide.
+	 *
+	 * Until 3.0.0 this stood aside entirely when WP-PageNavi was active, by
+	 * testing for a function of its that has not existed for years. The rules
+	 * are scoped under .wp-stats now, so both sheets can load and neither has
+	 * anything to say about the other's markup.
 	 *
 	 * @return void
 	 */
 	public static function enqueue_styles() {
-		if ( function_exists( 'pagenavi_stylesheets' ) ) {
-			return;
-		}
-
 		if ( ! self::needs_styles() ) {
 			return;
 		}

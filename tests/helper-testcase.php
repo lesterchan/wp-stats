@@ -34,6 +34,11 @@ abstract class WP_Stats_TestCase extends WP_UnitTestCase {
 		WP_Stats_Options::update( WP_Stats_Options::defaults() );
 		WP_Stats_Options::flush();
 
+		// A previous test may have left one behind, and get_query_var() has no
+		// notion of "not set for this request".
+		set_query_var( 'stats_author', '' );
+		set_query_var( 'stats_page', '' );
+
 		update_option( 'date_format', 'Y-m-d' );
 		update_option( 'time_format', 'H:i' );
 	}
@@ -169,6 +174,19 @@ abstract class WP_Stats_TestCase extends WP_UnitTestCase {
 	protected function set_display( array $display ) {
 		$options            = WP_Stats_Options::get();
 		$options['display'] = array_merge( WP_Stats_Options::display_defaults(), $display );
+		WP_Stats_Options::update( $options );
+		WP_Stats_Options::flush();
+	}
+
+	/**
+	 * Set the URL of the page holding the shortcode.
+	 *
+	 * @param string $url Stats page URL.
+	 * @return void
+	 */
+	protected function set_url( $url ) {
+		$options        = WP_Stats_Options::get();
+		$options['url'] = $url;
 		WP_Stats_Options::update( $options );
 		WP_Stats_Options::flush();
 	}

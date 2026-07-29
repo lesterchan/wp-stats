@@ -1,21 +1,16 @@
 <?php
 /**
- * The public stats page and the filter contract companion plugins hang off.
+ * The public statistics page and its two views.
+ *
+ * The contract companion plugins hang off lives in test-sections.php.
  *
  * @package WP-Stats
  */
 
 /**
- * WP_Stats_Page.
+ * @covers WP_Stats_Page
  */
 class WP_Stats_Page_Test extends WP_Stats_TestCase {
-
-	/**
-	 * Filters other plugins hook, in the order they fire.
-	 *
-	 * @var string[]
-	 */
-	private $page_filters = array( 'general', 'plugins', 'recent', 'most', 'authors', 'comments_members', 'misc' );
 
 	/**
 	 * Seed a small blog for every test in this file.
@@ -40,7 +35,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	}
 
 	/**
-	 * The section headings themes anchor on are all present.
+	 * The headings themes anchor on are all present.
 	 *
 	 * @dataProvider data_section_ids
 	 *
@@ -61,7 +56,6 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	public function data_section_ids() {
 		return array(
 			array( 'GeneralStats' ),
-			array( 'PluginsStats' ),
 			array( 'TopRecentStats' ),
 			array( 'TopMostHighestStats' ),
 			array( 'AuthorsStats' ),
@@ -103,34 +97,34 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	}
 
 	/**
-	 * Every filter fires, in document order, and its return value is kept.
+	 * The whole page goes through one filter, and it sees the wrapper.
 	 */
-	public function test_the_page_filters_fire_in_order() {
-		$fired = array();
-
-		foreach ( $this->page_filters as $slug ) {
-			add_filter(
-				"wp_stats_page_$slug",
-				static function ( $content ) use ( $slug, &$fired ) {
-					$fired[] = $slug;
-					return $content . "<!--HOOK:$slug-->";
-				}
-			);
-		}
+	public function test_the_page_filter_receives_the_finished_markup() {
 		add_filter(
-			'stats_page',
+			'wp_stats_page',
 			static function ( $content ) {
-				return $content . '<!--HOOK:stats_page-->';
+				return $content . '<!--filtered-->';
 			}
 		);
 
 		$html = $this->render( 'stats_page' );
 
-		$this->assertSame( $this->page_filters, $fired );
+		$this->assertStringContainsString( '<!--filtered-->', $html );
+		$this->assertStringContainsString( '<div class="wp-stats">', $html, 'The filter is handed the wrapper, not the bare blocks.' );
+	}
 
-		foreach ( array_merge( $this->page_filters, array( 'stats_page' ) ) as $slug ) {
-			$this->assertStringContainsString( "<!--HOOK:$slug-->", $html );
-		}
+	/**
+	 * The pre-3.0.0 name for that filter is gone rather than shimmed.
+	 */
+	public function test_the_unprefixed_stats_page_filter_is_no_longer_fired() {
+		add_filter(
+			'stats_page',
+			static function ( $content ) {
+				return $content . '<!--old-name-->';
+			}
+		);
+
+		$this->assertStringNotContainsString( '<!--old-name-->', $this->render( 'stats_page' ) );
 	}
 
 	/**
@@ -213,9 +207,13 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	}
 
 	/**
-	 * Both views loop over $post, and both must put it back.
+	 * Neither view touches the loop globals any more.
+	 *
+	 * Both used to assign $post to walk their result rows, and both had to
+	 * remember to put it back. The listings pass post ids to get_the_title()
+	 * and friends instead, so there is nothing left to restore.
 	 */
-	public function test_the_post_global_is_restored() {
+	public function test_the_post_global_is_left_alone() {
 		global $post;
 
 		$post   = get_post( $this->ids['p2'] );
@@ -223,22 +221,29 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 		stats_page();
 
-		$this->assertSame( $before, $post );
+		$this->assertSame( $before, $post, 'Rendering the page must not disturb the loop.' );
 	}
 
 	/**
-	 * Render the page with query arguments in place.
+	 * Render the page with the query arguments WordPress would have parsed.
 	 *
-	 * @param array $get Query arguments.
+	 * They are registered query variables now rather than raw $_GET reads, so
+	 * the fixture sets them where get_query_var() looks.
+	 *
+	 * @param array $vars Query variables.
 	 * @return string
 	 */
-	private function with_query( array $get ) {
-		$_GET = $get;
+	private function with_query( array $vars ) {
+		foreach ( $vars as $name => $value ) {
+			set_query_var( $name, $value );
+		}
 
 		try {
 			return $this->render( 'stats_page' );
 		} finally {
-			$_GET = array();
+			foreach ( array_keys( $vars ) as $name ) {
+				set_query_var( $name, '' );
+			}
 		}
 	}
 }
