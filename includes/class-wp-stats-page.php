@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-Stats class-stats-page.php
+ * WP-Stats class-wp-stats-page.php
  *
  * @package WP-Stats
  */
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.0.0
  */
-class Stats_Page {
+class WP_Stats_Page {
 
 	/**
 	 * Comments per page in the author view.
@@ -39,7 +39,7 @@ class Stats_Page {
 	 * @return string
 	 */
 	public static function author_link( $author, $page = 0 ) {
-		$stats_url   = esc_url( Stats_Options::url() );
+		$stats_url   = esc_url( WP_Stats_Options::url() );
 		$page_string = $page > 1 ? '&amp;stats_page=' . $page : '';
 		$separator   = ( false !== strpos( $stats_url, '?' ) ) ? '&amp;' : '?';
 
@@ -77,11 +77,11 @@ class Stats_Page {
 	 * @return string
 	 */
 	protected static function render_overview() {
-		$limit  = Stats_Options::most_limit();
+		$limit  = WP_Stats_Options::most_limit();
 		$output = '';
 
 		// --- General ---------------------------------------------------------
-		if ( Stats_Options::display( 'total_stats' ) ) {
+		if ( WP_Stats_Options::display( 'total_stats' ) ) {
 			$output .= '<h2 id="GeneralStats">' . __( 'General Stats', 'wp-stats' ) . '</h2>' . "\n";
 			$output .= '<p><strong>' . __( 'Total Stats', 'wp-stats' ) . '</strong></p>' . "\n";
 			$output .= '<ul>' . "\n";
@@ -111,25 +111,25 @@ class Stats_Page {
 			number_format_i18n( $limit )
 		) . '</h2>' . "\n";
 
-		if ( Stats_Options::display( 'recent_posts' ) ) {
+		if ( WP_Stats_Options::display( 'recent_posts' ) ) {
 			$output .= self::block(
 				sprintf(
 					/* translators: %s: Number of posts. */
 					_n( '%s Recent Post', '%s Recent Posts', $limit, 'wp-stats' ),
 					number_format_i18n( $limit )
 				),
-				Stats_Display::recent_posts( 'post', $limit )
+				WP_Stats_Display::recent_posts( 'post', $limit )
 			);
 		}
 
-		if ( Stats_Options::display( 'recent_comments' ) ) {
+		if ( WP_Stats_Options::display( 'recent_comments' ) ) {
 			$output .= self::block(
 				sprintf(
 					/* translators: %s: Number of comments. */
 					_n( '%s Recent Comment', '%s Recent Comments', $limit, 'wp-stats' ),
 					number_format_i18n( $limit )
 				),
-				Stats_Display::recent_comments( 'both', $limit )
+				WP_Stats_Display::recent_comments( 'both', $limit )
 			);
 		}
 
@@ -143,25 +143,25 @@ class Stats_Page {
 			number_format_i18n( $limit )
 		) . '</h2>' . "\n";
 
-		if ( Stats_Options::display( 'commented_post' ) ) {
+		if ( WP_Stats_Options::display( 'commented_post' ) ) {
 			$output .= self::block(
 				sprintf(
 					/* translators: %s: Number of posts. */
 					_n( '%s Most Commented Post', '%s Most Commented Posts', $limit, 'wp-stats' ),
 					number_format_i18n( $limit )
 				),
-				Stats_Display::most_commented( 'post', $limit, 0 )
+				WP_Stats_Display::most_commented( 'post', $limit, 0 )
 			);
 		}
 
-		if ( Stats_Options::display( 'commented_page' ) ) {
+		if ( WP_Stats_Options::display( 'commented_page' ) ) {
 			$output .= self::block(
 				sprintf(
 					/* translators: %s: Number of pages. */
 					_n( '%s Most Commented Page', '%s Most Commented Pages', $limit, 'wp-stats' ),
 					number_format_i18n( $limit )
 				),
-				Stats_Display::most_commented( 'page', $limit, 0 )
+				WP_Stats_Display::most_commented( 'page', $limit, 0 )
 			);
 		}
 
@@ -171,8 +171,8 @@ class Stats_Page {
 		// --- Authors ---------------------------------------------------------
 		$output .= '<h2 id="AuthorsStats">' . __( 'Authors Stats', 'wp-stats' ) . '</h2>' . "\n";
 
-		if ( Stats_Options::display( 'authors' ) ) {
-			$output .= self::block( __( 'Authors', 'wp-stats' ), Stats_Display::authors( 'post' ), 'ol' );
+		if ( WP_Stats_Options::display( 'authors' ) ) {
+			$output .= self::block( __( 'Authors', 'wp-stats' ), WP_Stats_Display::authors( 'post' ), 'ol' );
 		}
 
 		/** This filter is documented in includes/class-stats-page.php */
@@ -181,8 +181,8 @@ class Stats_Page {
 		// --- Comment members -------------------------------------------------
 		$output .= '<h2 id="CommentsMembersStats">' . __( 'Comments\' Members Stats', 'wp-stats' ) . '</h2>' . "\n";
 
-		if ( Stats_Options::display( 'comment_members' ) ) {
-			$output .= self::block( __( 'Comment Members', 'wp-stats' ), Stats_Display::comment_members( 5, 0 ), 'ol' );
+		if ( WP_Stats_Options::display( 'comment_members' ) ) {
+			$output .= self::block( __( 'Comment Members', 'wp-stats' ), WP_Stats_Display::comment_members( 5, 0 ), 'ol' );
 		}
 
 		/** This filter is documented in includes/class-stats-page.php */
@@ -191,16 +191,16 @@ class Stats_Page {
 		// --- Misc ------------------------------------------------------------
 		$output .= '<h2 id="MiscStats">' . __( 'Misc Stats', 'wp-stats' ) . '</h2>' . "\n";
 
-		if ( Stats_Options::display( 'post_cats' ) ) {
-			$output .= self::block( __( 'Post Categories', 'wp-stats' ), Stats_Display::post_categories( false ) );
+		if ( WP_Stats_Options::display( 'post_cats' ) ) {
+			$output .= self::block( __( 'Post Categories', 'wp-stats' ), WP_Stats_Display::post_categories( false ) );
 		}
 
-		if ( Stats_Options::display( 'link_cats' ) ) {
-			$output .= self::block( __( 'Link Categories', 'wp-stats' ), Stats_Display::link_categories() );
+		if ( WP_Stats_Options::display( 'link_cats' ) ) {
+			$output .= self::block( __( 'Link Categories', 'wp-stats' ), WP_Stats_Display::link_categories() );
 		}
 
-		if ( Stats_Options::display( 'tags_list' ) ) {
-			$output .= self::block( __( 'Tags List', 'wp-stats' ), Stats_Display::tags() );
+		if ( WP_Stats_Options::display( 'tags_list' ) ) {
+			$output .= self::block( __( 'Tags List', 'wp-stats' ), WP_Stats_Display::tags() );
 		}
 
 		/** This filter is documented in includes/class-stats-page.php */
@@ -233,53 +233,53 @@ class Stats_Page {
 	protected static function total_lines() {
 		$counts = array(
 			array(
-				Stats_Query::total_authors(),
+				WP_Stats_Query::total_authors(),
 				/* translators: %s: Number of authors. */
 				_n_noop( '<strong>%s</strong> author to this blog.', '<strong>%s</strong> authors to this blog.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_posts(),
+				WP_Stats_Query::total_posts(),
 				/* translators: %s: Number of posts. */
 				_n_noop( '<strong>%s</strong> post was posted.', '<strong>%s</strong> posts were posted.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_pages(),
+				WP_Stats_Query::total_pages(),
 				/* translators: %s: Number of pages. */
 				_n_noop( '<strong>%s</strong> page was created.', '<strong>%s</strong> pages were created.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_terms( 'post_tag' ),
+				WP_Stats_Query::total_terms( 'post_tag' ),
 				/* translators: %s: Number of tags. */
 				_n_noop( '<strong>%s</strong> tag was created.', '<strong>%s</strong> tags were created.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_comments(),
+				WP_Stats_Query::total_comments(),
 				/* translators: %s: Number of comments. */
 				_n_noop( '<strong>%s</strong> comment was posted.', '<strong>%s</strong> comments were posted.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_comment_posters(),
+				WP_Stats_Query::total_comment_posters(),
 				/* translators: %s: Number of nicknames. */
 				_n_noop( '<strong>%s</strong> nickname was represented in the comments.', '<strong>%s</strong> different nicknames were represented in the comments.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_links(),
+				WP_Stats_Query::total_links(),
 				/* translators: %s: Number of links. */
 				_n_noop( '<strong>%s</strong> link was added.', '<strong>%s</strong> links were added.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_terms( 'category' ),
+				WP_Stats_Query::total_terms( 'category' ),
 				/* translators: %s: Number of post categories. */
 				_n_noop( '<strong>%s</strong> post category was needed.', '<strong>%s</strong> post categories were needed.', 'wp-stats' ),
 			),
 			array(
-				Stats_Query::total_terms( 'link_category' ),
+				WP_Stats_Query::total_terms( 'link_category' ),
 				/* translators: %s: Number of link categories. */
 				_n_noop( '<strong>%s</strong> link category was needed.', '<strong>%s</strong> link categories were needed.', 'wp-stats' ),
 			),
 		);
 
-		$spam = Stats_Query::spam_count();
+		$spam = WP_Stats_Query::spam_count();
 
 		if ( null !== $spam ) {
 			$counts[] = array(
@@ -313,17 +313,17 @@ class Stats_Page {
 	protected static function render_author( $comment_author, $page ) {
 		global $post;
 
-		$stats_url           = esc_url( Stats_Options::url() );
+		$stats_url           = esc_url( WP_Stats_Options::url() );
 		$comment_author_link = urlencode( $comment_author );
 
-		$total    = Stats_Query::count_comments_by_author( $comment_author );
+		$total    = WP_Stats_Query::count_comments_by_author( $comment_author );
 		$max_page = (int) ceil( $total / self::PER_PAGE );
 		$offset   = ( $page - 1 ) * self::PER_PAGE;
 
 		$max_on_page     = ( $offset + self::PER_PAGE ) > $total ? $total : ( $offset + self::PER_PAGE );
 		$display_on_page = ( $offset + 1 ) > $total ? $total : ( $offset + 1 );
 
-		$comments = Stats_Query::comments_by_author( $comment_author, $offset, self::PER_PAGE );
+		$comments = WP_Stats_Query::comments_by_author( $comment_author, $offset, self::PER_PAGE );
 
 		$output  = '<h2>' . __( 'Comments Posted By', 'wp-stats' ) . ' ' . esc_html( $comment_author ) . '</h2>';
 		$output .= '<p>' . sprintf(

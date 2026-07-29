@@ -30,9 +30,9 @@ abstract class WP_Stats_TestCase extends WP_UnitTestCase {
 	public function set_up() {
 		parent::set_up();
 
-		Stats_Options::flush();
-		Stats_Options::update( Stats_Options::defaults() );
-		Stats_Options::flush();
+		WP_Stats_Options::flush();
+		WP_Stats_Options::update( WP_Stats_Options::defaults() );
+		WP_Stats_Options::flush();
 
 		update_option( 'date_format', 'Y-m-d' );
 		update_option( 'time_format', 'H:i' );
@@ -167,10 +167,10 @@ abstract class WP_Stats_TestCase extends WP_UnitTestCase {
 	 * @return void
 	 */
 	protected function set_display( array $display ) {
-		$options            = Stats_Options::get();
-		$options['display'] = array_merge( Stats_Options::display_defaults(), $display );
-		Stats_Options::update( $options );
-		Stats_Options::flush();
+		$options            = WP_Stats_Options::get();
+		$options['display'] = array_merge( WP_Stats_Options::display_defaults(), $display );
+		WP_Stats_Options::update( $options );
+		WP_Stats_Options::flush();
 	}
 
 	/**
@@ -180,10 +180,10 @@ abstract class WP_Stats_TestCase extends WP_UnitTestCase {
 	 * @return void
 	 */
 	protected function set_limit( $limit ) {
-		$options               = Stats_Options::get();
+		$options               = WP_Stats_Options::get();
 		$options['most_limit'] = (int) $limit;
-		Stats_Options::update( $options );
-		Stats_Options::flush();
+		WP_Stats_Options::update( $options );
+		WP_Stats_Options::flush();
 	}
 
 	/**

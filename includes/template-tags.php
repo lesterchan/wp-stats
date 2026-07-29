@@ -53,7 +53,7 @@ function wp_stats_maybe_echo( $value, $display ) {
  * @return bool
  */
 function wp_stats_display_enabled( $key ) {
-	return Stats_Options::display( $key );
+	return WP_Stats_Options::display( $key );
 }
 
 /**
@@ -64,7 +64,7 @@ function wp_stats_display_enabled( $key ) {
  * @return int
  */
 function wp_stats_most_limit() {
-	return Stats_Options::most_limit();
+	return WP_Stats_Options::most_limit();
 }
 
 /**
@@ -88,7 +88,7 @@ function wp_stats_checkbox( $value, $label ) {
 	return sprintf(
 		'<input type="hidden" name="%1$s[known][]" value="%2$s" />' .
 		'<input type="checkbox" name="%1$s[display][]" id="wpstats_%2$s" value="%2$s"%3$s />&nbsp;&nbsp;<label for="wpstats_%2$s">%4$s</label><br />' . "\n",
-		esc_attr( Stats_Options::OPTION ),
+		esc_attr( WP_Stats_Options::OPTION ),
 		esc_attr( $value ),
 		checked( wp_stats_display_enabled( $value ), true, false ),
 		esc_html( $label )
@@ -108,7 +108,7 @@ function wp_stats_checkbox( $value, $label ) {
  * @return int|void
  */
 function get_totalauthors( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Query::total_authors(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Query::total_authors(), $display );
 }
 
 /**
@@ -118,7 +118,7 @@ function get_totalauthors( $display = true ) {
  * @return int|void
  */
 function get_totalposts( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Query::total_posts(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Query::total_posts(), $display );
 }
 
 /**
@@ -128,7 +128,7 @@ function get_totalposts( $display = true ) {
  * @return int|void
  */
 function get_totalpages( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Query::total_pages(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Query::total_pages(), $display );
 }
 
 /**
@@ -138,7 +138,7 @@ function get_totalpages( $display = true ) {
  * @return int|void
  */
 function get_totalcomments( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Query::total_comments(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Query::total_comments(), $display );
 }
 
 /**
@@ -148,7 +148,7 @@ function get_totalcomments( $display = true ) {
  * @return int|void
  */
 function get_totalcommentposters( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Query::total_comment_posters(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Query::total_comment_posters(), $display );
 }
 
 /**
@@ -158,7 +158,7 @@ function get_totalcommentposters( $display = true ) {
  * @return int|void
  */
 function get_totallinks( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Query::total_links(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Query::total_links(), $display );
 }
 
 /**
@@ -170,7 +170,7 @@ function get_totallinks( $display = true ) {
  * @return string|void
  */
 function get_recentposts( $mode = '', $limit = 10, $display = true ) {
-	return wp_stats_maybe_echo( Stats_Display::recent_posts( $mode, $limit ), $display );
+	return wp_stats_maybe_echo( WP_Stats_Display::recent_posts( $mode, $limit ), $display );
 }
 
 /**
@@ -182,7 +182,7 @@ function get_recentposts( $mode = '', $limit = 10, $display = true ) {
  * @return string|void
  */
 function get_recentcomments( $mode = '', $limit = 10, $display = true ) {
-	return wp_stats_maybe_echo( Stats_Display::recent_comments( $mode, $limit ), $display );
+	return wp_stats_maybe_echo( WP_Stats_Display::recent_comments( $mode, $limit ), $display );
 }
 
 /**
@@ -195,7 +195,7 @@ function get_recentcomments( $mode = '', $limit = 10, $display = true ) {
  * @return string|void
  */
 function get_mostcommented( $mode = '', $limit = 10, $chars = 0, $display = true ) {
-	return wp_stats_maybe_echo( Stats_Display::most_commented( $mode, $limit, $chars ), $display );
+	return wp_stats_maybe_echo( WP_Stats_Display::most_commented( $mode, $limit, $chars ), $display );
 }
 
 /**
@@ -206,7 +206,7 @@ function get_mostcommented( $mode = '', $limit = 10, $chars = 0, $display = true
  * @return string|void
  */
 function get_authorsstats( $mode = '', $display = true ) {
-	return wp_stats_maybe_echo( Stats_Display::authors( $mode ), $display );
+	return wp_stats_maybe_echo( WP_Stats_Display::authors( $mode ), $display );
 }
 
 /**
@@ -218,7 +218,7 @@ function get_authorsstats( $mode = '', $display = true ) {
  * @return string|void
  */
 function get_commentmembersstats( $threshhold = -1, $limit = 0, $display = true ) {
-	return wp_stats_maybe_echo( Stats_Display::comment_members( $threshhold, $limit ), $display );
+	return wp_stats_maybe_echo( WP_Stats_Display::comment_members( $threshhold, $limit ), $display );
 }
 
 /**
@@ -228,7 +228,7 @@ function get_commentmembersstats( $threshhold = -1, $limit = 0, $display = true 
  * @return string|void
  */
 function get_postcats( $display = true ) {
-	return Stats_Display::post_categories( $display );
+	return WP_Stats_Display::post_categories( $display );
 }
 
 /**
@@ -238,7 +238,7 @@ function get_postcats( $display = true ) {
  * @return string|void
  */
 function get_linkcats( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Display::link_categories(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Display::link_categories(), $display );
 }
 
 /**
@@ -248,7 +248,7 @@ function get_linkcats( $display = true ) {
  * @return string|void
  */
 function get_tags_list( $display = true ) {
-	return wp_stats_maybe_echo( Stats_Display::tags(), $display );
+	return wp_stats_maybe_echo( WP_Stats_Display::tags(), $display );
 }
 
 /**
@@ -257,7 +257,7 @@ function get_tags_list( $display = true ) {
  * @return string
  */
 function stats_page() {
-	return Stats_Page::render();
+	return WP_Stats_Page::render();
 }
 
 /**
@@ -268,7 +268,7 @@ function stats_page() {
  * @return string
  */
 function stats_page_link( $author, $page = 0 ) {
-	return Stats_Page::author_link( $author, $page );
+	return WP_Stats_Page::author_link( $author, $page );
 }
 
 /**
@@ -277,7 +277,7 @@ function stats_page_link( $author, $page = 0 ) {
  * @return array<string,int>
  */
 function stats_display_defaults() {
-	return Stats_Options::display_defaults();
+	return WP_Stats_Options::display_defaults();
 }
 
 // A very generic name, so it has always been guarded. WP-PostViews used to
@@ -291,6 +291,6 @@ if ( ! function_exists( 'snippet_text' ) ) {
 	 * @return string
 	 */
 	function snippet_text( $text, $length = 0 ) {
-		return Stats_Display::snippet_text( $text, $length );
+		return WP_Stats_Display::snippet_text( $text, $length );
 	}
 }

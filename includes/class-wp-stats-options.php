@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-Stats class-stats-options.php
+ * WP-Stats class-wp-stats-options.php
  *
  * @package WP-Stats
  */
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.0.0
  */
-class Stats_Options {
+class WP_Stats_Options {
 
 	/**
 	 * The one option row this plugin owns.

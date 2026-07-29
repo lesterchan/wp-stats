@@ -11,7 +11,7 @@
 /**
  * Template tags.
  */
-class Test_Stats_Template_Tags extends WP_Stats_TestCase {
+class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 
 	/**
 	 * Seed a small blog for every test in this file.
@@ -185,10 +185,10 @@ class Test_Stats_Template_Tags extends WP_Stats_TestCase {
 	 * @param string $expected Resulting link.
 	 */
 	public function test_stats_page_link( $url, $page, $expected ) {
-		$options        = Stats_Options::get();
+		$options        = WP_Stats_Options::get();
 		$options['url'] = $url;
-		Stats_Options::update( $options );
-		Stats_Options::flush();
+		WP_Stats_Options::update( $options );
+		WP_Stats_Options::flush();
 
 		$this->assertSame( $expected, stats_page_link( 'bob', $page ) );
 	}

@@ -6,9 +6,9 @@
  */
 
 /**
- * Stats_Settings and the wp_stats_* helpers.
+ * WP_Stats_Settings and the wp_stats_* helpers.
  */
-class Test_Stats_Settings extends WP_Stats_TestCase {
+class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 
 	/**
 	 * Admin filters other plugins hook, in the order they fire.
@@ -29,7 +29,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 		// The screen renders whatever is registered against its page, and in the
 		// admin that registration happens on admin_init. Nothing fires admin_init
 		// here, so do what it would have done.
-		Stats_Settings::register();
+		WP_Stats_Settings::register();
 	}
 
 	/**
@@ -50,14 +50,14 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	public function test_the_screen_registers_sections_and_fields() {
 		global $wp_settings_sections, $wp_settings_fields;
 
-		$sections = $wp_settings_sections[ Stats_Settings::SLUG ];
-		$fields   = $wp_settings_fields[ Stats_Settings::SLUG ];
+		$sections = $wp_settings_sections[ WP_Stats_Settings::PAGE ];
+		$fields   = $wp_settings_fields[ WP_Stats_Settings::PAGE ];
 
-		$this->assertArrayHasKey( Stats_Settings::SECTION_GENERAL, $sections );
-		$this->assertArrayHasKey( Stats_Settings::SECTION_DISPLAY, $sections );
+		$this->assertArrayHasKey( WP_Stats_Settings::SECTION_GENERAL, $sections );
+		$this->assertArrayHasKey( WP_Stats_Settings::SECTION_DISPLAY, $sections );
 
-		$this->assertArrayHasKey( 'stats_url', $fields[ Stats_Settings::SECTION_GENERAL ] );
-		$this->assertArrayHasKey( 'stats_mostlimit', $fields[ Stats_Settings::SECTION_GENERAL ] );
+		$this->assertArrayHasKey( 'stats_url', $fields[ WP_Stats_Settings::SECTION_GENERAL ] );
+		$this->assertArrayHasKey( 'stats_mostlimit', $fields[ WP_Stats_Settings::SECTION_GENERAL ] );
 
 		// One row per admin filter, registered in the order they fire.
 		$this->assertSame(
@@ -67,7 +67,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 				},
 				$this->admin_filters
 			),
-			array_keys( $fields[ Stats_Settings::SECTION_DISPLAY ] )
+			array_keys( $fields[ WP_Stats_Settings::SECTION_DISPLAY ] )
 		);
 	}
 
@@ -86,14 +86,14 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 			static function () {
 				echo '<p>drawn-by-the-settings-api</p>';
 			},
-			Stats_Settings::SLUG,
-			Stats_Settings::SECTION_DISPLAY
+			WP_Stats_Settings::PAGE,
+			WP_Stats_Settings::SECTION_DISPLAY
 		);
 
 		try {
 			$html = $this->render_screen();
 		} finally {
-			unset( $wp_settings_fields[ Stats_Settings::SLUG ][ Stats_Settings::SECTION_DISPLAY ]['wp_stats_third_party_field'] );
+			unset( $wp_settings_fields[ WP_Stats_Settings::PAGE ][ WP_Stats_Settings::SECTION_DISPLAY ]['wp_stats_third_party_field'] );
 		}
 
 		$this->assertStringContainsString( 'A Third Party Field', $html );
@@ -109,7 +109,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 */
 	public function test_the_row_labels_track_the_limit() {
 		$this->set_limit( 7 );
-		Stats_Settings::register();
+		WP_Stats_Settings::register();
 
 		$html = $this->render_screen();
 
@@ -177,7 +177,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 * dropping them.
 	 */
 	public function test_sanitize_round_trips_a_save() {
-		$saved = Stats_Settings::sanitize(
+		$saved = WP_Stats_Settings::sanitize(
 			array(
 				'url'        => 'https://example.com/stats/',
 				'most_limit' => '25',
@@ -233,7 +233,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	public function test_a_default_on_toggle_can_be_switched_off() {
 		// A key nothing has registered and nothing has stored, exactly like a
 		// companion whose filter has not run in this request.
-		$saved = Stats_Settings::sanitize(
+		$saved = WP_Stats_Settings::sanitize(
 			array(
 				'url'        => '',
 				'most_limit' => '10',
@@ -251,7 +251,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 * The bookkeeping field is not stored alongside the settings.
 	 */
 	public function test_the_known_list_is_not_persisted() {
-		$saved = Stats_Settings::sanitize(
+		$saved = WP_Stats_Settings::sanitize(
 			array(
 				'url'        => '',
 				'most_limit' => '10',
@@ -274,7 +274,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 		$_POST['stats_display'] = array( 'legacy_companion' );
 
 		try {
-			$saved = Stats_Settings::sanitize(
+			$saved = WP_Stats_Settings::sanitize(
 				array(
 					'url'        => '',
 					'most_limit' => '10',
@@ -306,7 +306,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 		$_POST['stats_display'] = array( 'legacy_companion' );
 
 		try {
-			$saved = Stats_Settings::sanitize(
+			$saved = WP_Stats_Settings::sanitize(
 				array(
 					'url'        => '',
 					'most_limit' => '10',
@@ -329,7 +329,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 
 		// Unticked boxes are not posted, and this time nothing arrives under the
 		// old field name either.
-		$saved = Stats_Settings::sanitize(
+		$saved = WP_Stats_Settings::sanitize(
 			array(
 				'url'        => '',
 				'most_limit' => '10',
@@ -347,7 +347,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 		$_POST['stats_display'] = 'not-an-array';
 
 		try {
-			$saved = Stats_Settings::sanitize(
+			$saved = WP_Stats_Settings::sanitize(
 				array(
 					'url'        => '',
 					'most_limit' => '10',
@@ -368,7 +368,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 * keys would report "Settings saved" and silently drop the toggle.
 	 */
 	public function test_sanitize_accepts_a_companion_key() {
-		$saved = Stats_Settings::sanitize(
+		$saved = WP_Stats_Settings::sanitize(
 			array(
 				'url'        => '',
 				'most_limit' => '10',
@@ -389,7 +389,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 * and every real toggle would be zeroed.
 	 */
 	public function test_sanitize_reads_the_stored_shape() {
-		$saved = Stats_Settings::sanitize(
+		$saved = WP_Stats_Settings::sanitize(
 			array(
 				'url'        => '',
 				'most_limit' => 10,
@@ -421,15 +421,15 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 			)
 		);
 
-		$this->assertTrue( Stats_Options::display( 'tags_list' ) );
-		$this->assertFalse( Stats_Options::display( 'total_stats' ) );
+		$this->assertTrue( WP_Stats_Options::display( 'tags_list' ) );
+		$this->assertFalse( WP_Stats_Options::display( 'total_stats' ) );
 	}
 
 	/**
 	 * The limit never saves below 1.
 	 */
 	public function test_sanitize_clamps_the_limit() {
-		$saved = Stats_Settings::sanitize(
+		$saved = WP_Stats_Settings::sanitize(
 			array(
 				'url'        => '',
 				'most_limit' => '0',
@@ -448,7 +448,7 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 * @param mixed $input Whatever arrives.
 	 */
 	public function test_sanitize_survives_junk( $input ) {
-		$saved = Stats_Settings::sanitize( $input );
+		$saved = WP_Stats_Settings::sanitize( $input );
 
 		$this->assertIsArray( $saved );
 		$this->assertArrayHasKey( 'url', $saved );
@@ -491,11 +491,11 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 * The registered setting is the one the form posts to.
 	 */
 	public function test_the_setting_is_registered() {
-		Stats_Settings::register();
+		WP_Stats_Settings::register();
 
 		$registered = get_registered_settings();
 
-		$this->assertArrayHasKey( Stats_Options::OPTION, $registered );
+		$this->assertArrayHasKey( WP_Stats_Options::OPTION, $registered );
 	}
 
 	/**
@@ -504,6 +504,6 @@ class Test_Stats_Settings extends WP_Stats_TestCase {
 	 * @return string
 	 */
 	private function render_screen() {
-		return $this->render( array( 'Stats_Settings', 'render' ) );
+		return $this->render( array( 'WP_Stats_Settings', 'render' ) );
 	}
 }

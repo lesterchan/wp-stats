@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-Stats class-stats-query.php
+ * WP-Stats class-wp-stats-query.php
  *
  * @package WP-Stats
  */
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.0.0
  */
-class Stats_Query {
+class WP_Stats_Query {
 
 	/**
 	 * Number of users who can author content.

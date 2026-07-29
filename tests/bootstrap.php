@@ -32,7 +32,7 @@ function _stats_manually_load_plugin() {
 
 	// register_activation_hook() never fires in the test environment, so the
 	// option row has to be seeded by hand.
-	Stats_Options::activate();
+	WP_Stats_Options::activate();
 }
 tests_add_filter( 'muplugins_loaded', '_stats_manually_load_plugin' );
 

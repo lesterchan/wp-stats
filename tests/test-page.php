@@ -6,9 +6,9 @@
  */
 
 /**
- * Stats_Page.
+ * WP_Stats_Page.
  */
-class Test_Stats_Page extends WP_Stats_TestCase {
+class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 	/**
 	 * Filters other plugins hook, in the order they fire.

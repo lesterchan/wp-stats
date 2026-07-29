@@ -6,9 +6,9 @@
  */
 
 /**
- * Stats_Options.
+ * WP_Stats_Options.
  */
-class Test_Stats_Options extends WP_Stats_TestCase {
+class WP_Stats_Options_Test extends WP_Stats_TestCase {
 
 	/**
 	 * The pre-3.0.0 option names, folded into one row by the migration.
@@ -35,16 +35,16 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	 * activated companion plugin appears without a save.
 	 */
 	public function test_unknown_keys_fall_back_to_their_default() {
-		Stats_Options::update(
+		WP_Stats_Options::update(
 			array(
 				'url'        => 'https://example.com/stats/',
 				'most_limit' => 5,
 				'display'    => array( 'total_stats' => 0 ),
 			)
 		);
-		Stats_Options::flush();
+		WP_Stats_Options::flush();
 
-		$options = Stats_Options::get();
+		$options = WP_Stats_Options::get();
 
 		$this->assertSame( 0, (int) $options['display']['total_stats'], 'A stored 0 must survive.' );
 		$this->assertSame( 1, (int) $options['display']['authors'], 'A missing key takes its default.' );
@@ -61,9 +61,9 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 			}
 		);
 
-		Stats_Options::flush();
+		WP_Stats_Options::flush();
 
-		$this->assertArrayHasKey( 'my_plugin', Stats_Options::display_defaults() );
+		$this->assertArrayHasKey( 'my_plugin', WP_Stats_Options::display_defaults() );
 		$this->assertTrue( wp_stats_display_enabled( 'my_plugin' ) );
 	}
 
@@ -71,10 +71,10 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	 * The limit never drops below 1, which would produce an empty LIMIT.
 	 */
 	public function test_most_limit_is_clamped() {
-		Stats_Options::update( array( 'most_limit' => 0 ) );
-		Stats_Options::flush();
+		WP_Stats_Options::update( array( 'most_limit' => 0 ) );
+		WP_Stats_Options::flush();
 
-		$this->assertSame( 1, Stats_Options::most_limit() );
+		$this->assertSame( 1, WP_Stats_Options::most_limit() );
 	}
 
 	/**
@@ -84,10 +84,10 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	public function test_migration_carries_the_legacy_rows_over() {
 		$this->given_a_pre_300_install();
 
-		Stats_Options::maybe_migrate();
-		Stats_Options::flush();
+		WP_Stats_Options::maybe_migrate();
+		WP_Stats_Options::flush();
 
-		$options = Stats_Options::get();
+		$options = WP_Stats_Options::get();
 
 		$this->assertSame( 'https://legacy.example.com/my-stats/', $options['url'] );
 		$this->assertSame( 7, $options['most_limit'] );
@@ -105,14 +105,14 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 
 		$this->given_a_pre_300_install();
 
-		Stats_Options::maybe_migrate();
+		WP_Stats_Options::maybe_migrate();
 
 		foreach ( $this->legacy as $name ) {
 			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->options WHERE option_name = %s", $name ) );
 			$this->assertSame( 0, (int) $count, "$name should have been deleted." );
 		}
 
-		$this->assertSame( Stats_Options::DB_VERSION, (int) get_option( Stats_Options::DB_VERSION_OPTION ) );
+		$this->assertSame( WP_Stats_Options::DB_VERSION, (int) get_option( WP_Stats_Options::DB_VERSION_OPTION ) );
 	}
 
 	/**
@@ -125,12 +125,12 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	public function test_migration_is_idempotent() {
 		$this->given_a_pre_300_install();
 
-		Stats_Options::maybe_migrate();
-		Stats_Options::flush();
-		Stats_Options::maybe_migrate();
-		Stats_Options::flush();
+		WP_Stats_Options::maybe_migrate();
+		WP_Stats_Options::flush();
+		WP_Stats_Options::maybe_migrate();
+		WP_Stats_Options::flush();
 
-		$options = Stats_Options::get();
+		$options = WP_Stats_Options::get();
 
 		$this->assertSame( 'https://legacy.example.com/my-stats/', $options['url'] );
 		$this->assertSame( 7, $options['most_limit'] );
@@ -150,15 +150,15 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	public function test_a_reappearing_legacy_row_does_not_restart_the_migration() {
 		$this->given_a_pre_300_install();
 
-		Stats_Options::maybe_migrate();
-		Stats_Options::flush();
+		WP_Stats_Options::maybe_migrate();
+		WP_Stats_Options::flush();
 
 		// The user changes their settings after upgrading.
-		$options               = Stats_Options::get();
+		$options               = WP_Stats_Options::get();
 		$options['url']        = 'https://current.example.com/stats/';
 		$options['most_limit'] = 42;
-		Stats_Options::update( $options );
-		Stats_Options::flush();
+		WP_Stats_Options::update( $options );
+		WP_Stats_Options::flush();
 
 		// Something writes the old row back.
 		update_option(
@@ -169,10 +169,10 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 			)
 		);
 
-		Stats_Options::maybe_migrate();
-		Stats_Options::flush();
+		WP_Stats_Options::maybe_migrate();
+		WP_Stats_Options::flush();
 
-		$after = Stats_Options::get();
+		$after = WP_Stats_Options::get();
 
 		$this->assertSame( 'https://current.example.com/stats/', $after['url'], 'The migration must not run again.' );
 		$this->assertSame( 42, $after['most_limit'] );
@@ -183,20 +183,20 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	 * A fresh install has no legacy rows and must not be treated as an upgrade.
 	 */
 	public function test_migration_leaves_a_fresh_install_alone() {
-		delete_option( Stats_Options::DB_VERSION_OPTION );
-		Stats_Options::update(
+		delete_option( WP_Stats_Options::DB_VERSION_OPTION );
+		WP_Stats_Options::update(
 			array(
 				'url'        => 'https://fresh.example.com/stats/',
 				'most_limit' => 3,
 				'display'    => array( 'total_stats' => 0 ),
 			)
 		);
-		Stats_Options::flush();
+		WP_Stats_Options::flush();
 
-		Stats_Options::maybe_migrate();
-		Stats_Options::flush();
+		WP_Stats_Options::maybe_migrate();
+		WP_Stats_Options::flush();
 
-		$options = Stats_Options::get();
+		$options = WP_Stats_Options::get();
 
 		$this->assertSame( 'https://fresh.example.com/stats/', $options['url'] );
 		$this->assertSame( 3, $options['most_limit'] );
@@ -214,8 +214,8 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	public function test_legacy_option_names_still_answer( $option, $expected ) {
 		$this->given_a_pre_300_install();
 
-		Stats_Options::maybe_migrate();
-		Stats_Options::flush();
+		WP_Stats_Options::maybe_migrate();
+		WP_Stats_Options::flush();
 
 		$value = get_option( $option );
 
@@ -255,9 +255,9 @@ class Test_Stats_Options extends WP_Stats_TestCase {
 	 * @return void
 	 */
 	private function given_a_pre_300_install() {
-		delete_option( Stats_Options::OPTION );
-		delete_option( Stats_Options::DB_VERSION_OPTION );
-		Stats_Options::flush();
+		delete_option( WP_Stats_Options::OPTION );
+		delete_option( WP_Stats_Options::DB_VERSION_OPTION );
+		WP_Stats_Options::flush();
 
 		update_option( 'stats_url', 'https://legacy.example.com/my-stats/' );
 		update_option( 'stats_mostlimit', 7 );

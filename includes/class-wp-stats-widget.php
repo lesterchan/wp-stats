@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-Stats class-stats-widget.php
+ * WP-Stats class-wp-stats-widget.php
  *
  * @package WP-Stats
  */
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.0.0
  */
-class Stats_Widget extends WP_Widget {
+class WP_Stats_Widget extends WP_Widget {
 
 	/**
 	 * Register the widget.
@@ -79,47 +79,47 @@ class Stats_Widget extends WP_Widget {
 
 		$lines = array(
 			'stats_total_authors'    => array(
-				Stats_Query::total_authors(),
+				WP_Stats_Query::total_authors(),
 				/* translators: %s: Number of authors. */
 				_n_noop( '<strong>%s</strong> Author', '<strong>%s</strong> Authors', 'wp-stats' ),
 			),
 			'stats_total_posts'      => array(
-				Stats_Query::total_posts(),
+				WP_Stats_Query::total_posts(),
 				/* translators: %s: Number of posts. */
 				_n_noop( '<strong>%s</strong> Post', '<strong>%s</strong> Posts', 'wp-stats' ),
 			),
 			'stats_total_pages'      => array(
-				Stats_Query::total_pages(),
+				WP_Stats_Query::total_pages(),
 				/* translators: %s: Number of pages. */
 				_n_noop( '<strong>%s</strong> Page', '<strong>%s</strong> Pages', 'wp-stats' ),
 			),
 			'stats_total_tags'       => array(
-				Stats_Query::total_terms( 'post_tag' ),
+				WP_Stats_Query::total_terms( 'post_tag' ),
 				/* translators: %s: Number of tags. */
 				_n_noop( '<strong>%s</strong> Tag', '<strong>%s</strong> Tags', 'wp-stats' ),
 			),
 			'stats_total_comments'   => array(
-				Stats_Query::total_comments(),
+				WP_Stats_Query::total_comments(),
 				/* translators: %s: Number of comments. */
 				_n_noop( '<strong>%s</strong> Comment', '<strong>%s</strong> Comments', 'wp-stats' ),
 			),
 			'stats_total_commenters' => array(
-				Stats_Query::total_comment_posters(),
+				WP_Stats_Query::total_comment_posters(),
 				/* translators: %s: Number of comment posters. */
 				_n_noop( '<strong>%s</strong> Comment Poster', '<strong>%s</strong> Comment Posters', 'wp-stats' ),
 			),
 			'stats_total_links'      => array(
-				Stats_Query::total_links(),
+				WP_Stats_Query::total_links(),
 				/* translators: %s: Number of links. */
 				_n_noop( '<strong>%s</strong> Link', '<strong>%s</strong> Links', 'wp-stats' ),
 			),
 			'stats_total_post_cat'   => array(
-				Stats_Query::total_terms( 'category' ),
+				WP_Stats_Query::total_terms( 'category' ),
 				/* translators: %s: Number of post categories. */
 				_n_noop( '<strong>%s</strong> Post Category', '<strong>%s</strong> Post Categories', 'wp-stats' ),
 			),
 			'stats_total_link_cat'   => array(
-				Stats_Query::total_terms( 'link_category' ),
+				WP_Stats_Query::total_terms( 'link_category' ),
 				/* translators: %s: Number of link categories. */
 				_n_noop( '<strong>%s</strong> Link Category', '<strong>%s</strong> Link Categories', 'wp-stats' ),
 			),
@@ -145,7 +145,7 @@ class Stats_Widget extends WP_Widget {
 			) . '</li>' . "\n";
 		}
 
-		$spam = Stats_Query::spam_count();
+		$spam = WP_Stats_Query::spam_count();
 
 		if ( ! empty( $instance['stats_total_spam'] ) && null !== $spam ) {
 			echo '<li>' . wp_kses_post(
@@ -165,7 +165,7 @@ class Stats_Widget extends WP_Widget {
 			echo '<ul>' . "\n";
 			echo '<li><strong>' . esc_html( number_format_i18n( $limit ) ) . ' ' . esc_html__( 'Most Commented Posts', 'wp-stats' ) . '</strong>' . "\n";
 			echo '<ul>' . "\n";
-			echo wp_kses_post( Stats_Display::most_commented( 'post', $limit, $chars ) );
+			echo wp_kses_post( WP_Stats_Display::most_commented( 'post', $limit, $chars ) );
 			echo '</ul>' . "\n";
 			echo '</li>' . "\n";
 			echo '</ul>' . "\n";
@@ -173,7 +173,7 @@ class Stats_Widget extends WP_Widget {
 
 		if ( ! empty( $instance['show_link'] ) ) {
 			echo '<ul>' . "\n";
-			echo '<li><a href="' . esc_url( Stats_Options::url() ) . '">' . esc_html__( 'My Blog Statistics', 'wp-stats' ) . '</a></li>' . "\n";
+			echo '<li><a href="' . esc_url( WP_Stats_Options::url() ) . '">' . esc_html__( 'My Blog Statistics', 'wp-stats' ) . '</a></li>' . "\n";
 			echo '</ul>' . "\n";
 		}
 
@@ -218,7 +218,7 @@ class Stats_Widget extends WP_Widget {
 	 */
 	public function form( $instance ) {
 		$instance   = wp_parse_args( (array) $instance, $this->defaults() );
-		$most_limit = Stats_Options::most_limit();
+		$most_limit = WP_Stats_Options::most_limit();
 
 		$toggles = array(
 			'stats_total_authors'    => __( 'Total Authors', 'wp-stats' ),

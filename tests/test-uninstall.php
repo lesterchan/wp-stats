@@ -8,7 +8,7 @@
 /**
  * Uninstall.php.
  */
-class Test_Stats_Uninstall extends WP_Stats_TestCase {
+class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 
 	/**
 	 * Every option the plugin can leave behind.
@@ -129,6 +129,6 @@ class Test_Stats_Uninstall extends WP_Stats_TestCase {
 			require dirname( __DIR__ ) . '/uninstall.php';
 		}
 
-		Stats_Options::flush();
+		WP_Stats_Options::flush();
 	}
 }

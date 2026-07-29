@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-Stats class-stats-settings.php
+ * WP-Stats class-wp-stats-settings.php
  *
  * @package WP-Stats
  */
@@ -23,17 +23,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.0.0
  */
-class Stats_Settings {
+class WP_Stats_Settings {
 
 	/**
-	 * Settings group name, used by settings_fields().
+	 * Settings group name, used by settings_fields(). The same name as the
+	 * option row it writes, so there is one thing to remember rather than two.
 	 */
-	const GROUP = 'wp-stats';
+	const GROUP = 'wp_stats_options';
 
 	/**
 	 * Menu slug, and the page name the sections are registered against.
 	 */
-	const SLUG = 'wp-stats-options';
+	const PAGE = 'wp-stats-settings';
 
 	/**
 	 * Section holding the scalar settings.
@@ -72,8 +73,8 @@ class Stats_Settings {
 		add_options_page(
 			__( 'Stats', 'wp-stats' ),
 			__( 'Stats', 'wp-stats' ),
-			'manage_options',
-			self::SLUG,
+			WP_Stats_Admin::capability( 'settings' ),
+			self::PAGE,
 			array( __CLASS__, 'render' )
 		);
 	}
@@ -89,11 +90,11 @@ class Stats_Settings {
 	public static function register() {
 		register_setting(
 			self::GROUP,
-			Stats_Options::OPTION,
+			WP_Stats_Options::OPTION,
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( __CLASS__, 'sanitize' ),
-				'default'           => Stats_Options::defaults(),
+				'default'           => WP_Stats_Options::defaults(),
 			)
 		);
 
@@ -103,14 +104,14 @@ class Stats_Settings {
 			self::SECTION_GENERAL,
 			'',
 			'__return_false',
-			self::SLUG
+			self::PAGE
 		);
 
 		add_settings_field(
 			'stats_url',
 			__( 'Stats URL', 'wp-stats' ),
 			array( __CLASS__, 'render_url_field' ),
-			self::SLUG,
+			self::PAGE,
 			self::SECTION_GENERAL,
 			array( 'label_for' => 'stats_url' )
 		);
@@ -119,7 +120,7 @@ class Stats_Settings {
 			'stats_mostlimit',
 			__( 'Stats Most Limit', 'wp-stats' ),
 			array( __CLASS__, 'render_most_limit_field' ),
-			self::SLUG,
+			self::PAGE,
 			self::SECTION_GENERAL,
 			array( 'label_for' => 'stats_mostlimit' )
 		);
@@ -128,7 +129,7 @@ class Stats_Settings {
 			self::SECTION_DISPLAY,
 			__( 'Type Of Stats To Display', 'wp-stats' ),
 			'__return_false',
-			self::SLUG
+			self::PAGE
 		);
 
 		// Registration order is document order, which is the order the
@@ -138,7 +139,7 @@ class Stats_Settings {
 				'wp_stats_display_' . $group,
 				$config['title'],
 				array( __CLASS__, 'render_display_field' ),
-				self::SLUG,
+				self::PAGE,
 				self::SECTION_DISPLAY,
 				array( 'group' => $group )
 			);
@@ -157,7 +158,7 @@ class Stats_Settings {
 	 * @return array<string,array{title:string,checkboxes:array<string,string>}>
 	 */
 	protected static function display_groups() {
-		$limit = Stats_Options::most_limit();
+		$limit = WP_Stats_Options::most_limit();
 		$count = number_format_i18n( $limit );
 
 		return array(
@@ -226,7 +227,7 @@ class Stats_Settings {
 	 */
 	public static function sanitize( $input ) {
 		$input   = is_array( $input ) ? $input : array();
-		$current = Stats_Options::get();
+		$current = WP_Stats_Options::get();
 
 		$output = array(
 			'url'        => isset( $input['url'] ) ? esc_url_raw( trim( $input['url'] ) ) : '',
@@ -242,7 +243,7 @@ class Stats_Settings {
 		// it had not registered its default by the time this callback ran. The
 		// other two keep already-stored keys alive when an older companion
 		// plugin renders a checkbox without the hidden field.
-		$universe = array_merge( Stats_Options::display_defaults(), $current['display'] );
+		$universe = array_merge( WP_Stats_Options::display_defaults(), $current['display'] );
 		$known    = array_fill_keys( array_keys( $universe ), 0 );
 
 		if ( isset( $input['known'] ) && is_array( $input['known'] ) ) {
@@ -308,7 +309,7 @@ class Stats_Settings {
 
 		$output['display'] = $known;
 
-		Stats_Options::flush();
+		WP_Stats_Options::flush();
 
 		return $output;
 	}
@@ -347,7 +348,7 @@ class Stats_Settings {
 	 * @return void
 	 */
 	public static function render() {
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( WP_Stats_Admin::capability( 'settings' ) ) ) {
 			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'wp-stats' ) );
 		}
 
@@ -366,7 +367,7 @@ class Stats_Settings {
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( self::GROUP );
-				do_settings_sections( self::SLUG );
+				do_settings_sections( self::PAGE );
 				submit_button();
 				?>
 			</form>
@@ -381,7 +382,7 @@ class Stats_Settings {
 	 */
 	public static function render_url_field() {
 		?>
-		<input type="text" id="stats_url" name="<?php echo esc_attr( Stats_Options::OPTION ); ?>[url]" value="<?php echo esc_url( Stats_Options::url() ); ?>" size="50" dir="ltr" class="regular-text" />
+		<input type="text" id="stats_url" name="<?php echo esc_attr( WP_Stats_Options::OPTION ); ?>[url]" value="<?php echo esc_url( WP_Stats_Options::url() ); ?>" size="50" dir="ltr" class="regular-text" />
 		<p class="description">
 			<?php esc_html_e( 'URL to the page holding the [page_stats] shortcode.', 'wp-stats' ); ?><br />
 			<?php esc_html_e( 'Example: https://www.yoursite.com/blog/stats/', 'wp-stats' ); ?><br />
@@ -397,7 +398,7 @@ class Stats_Settings {
 	 */
 	public static function render_most_limit_field() {
 		?>
-		<input type="number" min="1" id="stats_mostlimit" name="<?php echo esc_attr( Stats_Options::OPTION ); ?>[most_limit]" value="<?php echo esc_attr( Stats_Options::most_limit() ); ?>" size="2" class="small-text" />
+		<input type="number" min="1" id="stats_mostlimit" name="<?php echo esc_attr( WP_Stats_Options::OPTION ); ?>[most_limit]" value="<?php echo esc_attr( WP_Stats_Options::most_limit() ); ?>" size="2" class="small-text" />
 		<p class="description"><?php esc_html_e( 'Top X Stats, where X is the most limit.', 'wp-stats' ); ?></p>
 		<?php
 	}

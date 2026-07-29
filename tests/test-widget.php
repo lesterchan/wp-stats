@@ -6,14 +6,14 @@
  */
 
 /**
- * Stats_Widget.
+ * WP_Stats_Widget.
  */
-class Test_Stats_Widget extends WP_Stats_TestCase {
+class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 
 	/**
 	 * Widget under test.
 	 *
-	 * @var Stats_Widget
+	 * @var WP_Stats_Widget
 	 */
 	private $widget;
 
@@ -35,7 +35,7 @@ class Test_Stats_Widget extends WP_Stats_TestCase {
 	public function set_up() {
 		parent::set_up();
 		$this->seed_blog();
-		$this->widget = new Stats_Widget();
+		$this->widget = new WP_Stats_Widget();
 	}
 
 	/**

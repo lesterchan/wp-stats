@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-Stats class-stats-display.php
+ * WP-Stats class-wp-stats-display.php
  *
  * @package WP-Stats
  */
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.0.0
  */
-class Stats_Display {
+class WP_Stats_Display {
 
 	/**
 	 * The "nothing here" list item every block falls back to.
@@ -71,7 +71,7 @@ class Stats_Display {
 	public static function recent_posts( $mode = '', $limit = 10 ) {
 		global $post;
 
-		$rows = Stats_Query::recent_posts( $mode, $limit );
+		$rows = WP_Stats_Query::recent_posts( $mode, $limit );
 
 		if ( ! $rows ) {
 			return self::none();
@@ -107,7 +107,7 @@ class Stats_Display {
 	public static function recent_comments( $mode = '', $limit = 10 ) {
 		global $post;
 
-		$rows = Stats_Query::recent_comments( $mode, $limit );
+		$rows = WP_Stats_Query::recent_comments( $mode, $limit );
 
 		if ( ! $rows ) {
 			return self::none();
@@ -144,7 +144,7 @@ class Stats_Display {
 	public static function most_commented( $mode = '', $limit = 10, $chars = 0 ) {
 		global $post;
 
-		$rows = Stats_Query::most_commented( $mode, $limit );
+		$rows = WP_Stats_Query::most_commented( $mode, $limit );
 
 		if ( ! $rows ) {
 			return self::none();
@@ -185,7 +185,7 @@ class Stats_Display {
 	public static function authors( $mode = '' ) {
 		global $wp_rewrite;
 
-		$rows = Stats_Query::author_post_counts( $mode );
+		$rows = WP_Stats_Query::author_post_counts( $mode );
 
 		if ( ! $rows ) {
 			return self::none();
@@ -230,7 +230,7 @@ class Stats_Display {
 	 * @return string
 	 */
 	public static function comment_members( $threshold = -1, $limit = 0 ) {
-		$rows = Stats_Query::comment_author_counts( $limit );
+		$rows = WP_Stats_Query::comment_author_counts( $limit );
 
 		if ( ! $rows ) {
 			return self::none();
@@ -250,7 +250,7 @@ class Stats_Display {
 
 			// urlencode(), not rawurlencode(): this is a query-string value, and
 			// switching would change every existing link's spaces from + to %20.
-			$temp .= '<li><a href="' . esc_url( Stats_Page::author_link( urlencode( $comment_author ) ) ) . '" title="' . esc_attr(
+			$temp .= '<li><a href="' . esc_url( WP_Stats_Page::author_link( urlencode( $comment_author ) ) ) . '" title="' . esc_attr(
 				sprintf(
 					/* translators: %s: Comment author name. */
 					__( 'View all comments posted by %s', 'wp-stats' ),
@@ -288,7 +288,7 @@ class Stats_Display {
 	public static function link_categories() {
 		$temp = '';
 
-		foreach ( Stats_Query::link_categories() as $cat ) {
+		foreach ( WP_Stats_Query::link_categories() as $cat ) {
 			$temp .= '<li>' . esc_html( $cat->name ) . ' (' . esc_html( number_format_i18n( $cat->count ) ) . ")</li>\n";
 		}
 
@@ -303,7 +303,7 @@ class Stats_Display {
 	public static function tags() {
 		$temp = '';
 
-		foreach ( Stats_Query::tags() as $tag ) {
+		foreach ( WP_Stats_Query::tags() as $tag ) {
 			$temp .= '<li><a href="' . esc_url( get_tag_link( $tag->term_id ) ) . '" title="' . esc_attr(
 				sprintf(
 					/* translators: %s: Number of topics. */

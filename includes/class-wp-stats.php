@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-Stats class-stats.php
+ * WP-Stats class-wp-stats.php
  *
  * @package WP-Stats
  */
@@ -14,19 +14,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 3.0.0
  */
-class Stats {
+class WP_Stats {
 
 	/**
 	 * Sole instance.
 	 *
-	 * @var Stats|null
+	 * @var WP_Stats|null
 	 */
 	protected static $instance = null;
 
 	/**
 	 * Get the instance, creating it on first call.
 	 *
-	 * @return Stats
+	 * @return WP_Stats
 	 */
 	public static function get_instance() {
 		if ( null === self::$instance ) {
@@ -45,9 +45,9 @@ class Stats {
 	protected function __construct() {
 		register_activation_hook( WP_STATS_MAIN_FILE, array( __CLASS__, 'activate' ) );
 
-		Stats_Options::init();
-		Stats_Settings::init();
-		Stats_Admin::init();
+		WP_Stats_Options::init();
+		WP_Stats_Settings::init();
+		WP_Stats_Admin::init();
 
 		add_action( 'widgets_init', array( __CLASS__, 'register_widget' ) );
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_styles' ) );
@@ -72,14 +72,14 @@ class Stats {
 
 			foreach ( $site_ids as $site_id ) {
 				switch_to_blog( (int) $site_id );
-				Stats_Options::activate();
+				WP_Stats_Options::activate();
 				restore_current_blog();
 			}
 
 			return;
 		}
 
-		Stats_Options::activate();
+		WP_Stats_Options::activate();
 	}
 
 	/**
@@ -88,7 +88,7 @@ class Stats {
 	 * @return void
 	 */
 	public static function register_widget() {
-		register_widget( 'Stats_Widget' );
+		register_widget( 'WP_Stats_Widget' );
 	}
 
 	/**
@@ -136,6 +136,6 @@ class Stats {
 	 * @return string
 	 */
 	public static function shortcode() {
-		return Stats_Page::render();
+		return WP_Stats_Page::render();
 	}
 }

@@ -4,8 +4,8 @@
  * Plugin URI: https://lesterchan.net/portfolio/programming/php/
  * Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
  * Version: 3.0.0
- * Requires at least: 6.0
- * Requires PHP: 7.4
+ * Requires at least: 6.8
+ * Requires PHP: 8.2
  * Author: Lester 'GaMerZ' Chan
  * Author URI: https://lesterchan.net
  * License: GPLv2 or later
@@ -17,7 +17,7 @@
  */
 
 /*
-	Copyright 2026 Lester Chan  (email : lesterchan@gmail.com)
+	Copyright 2026  Lester Chan  (email : lesterchan@gmail.com)
 
 	This program is free software; you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -34,27 +34,50 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+defined( 'ABSPATH' ) || exit;
 
-// Exit if accessed directly.
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
-
-
-// Version.
+/**
+ * WP-Stats version. The last-run value is kept in the wp_stats_version row.
+ */
 define( 'WP_STATS_VERSION', '3.0.0' );
+
+/**
+ * Schema counter. Bumped only when the stored rows need reshaping.
+ */
+define( 'WP_STATS_DB_VERSION', '1' );
+
+/**
+ * WP-Stats slug, which is also the text domain.
+ */
+define( 'WP_STATS_SLUG', 'wp-stats' );
+
+/**
+ * WP-Stats main file.
+ */
 define( 'WP_STATS_MAIN_FILE', __FILE__ );
 
-// Classes. Required at file load because the activation hook and the template
-// tags are both reached before any action fires.
-require_once __DIR__ . '/includes/class-stats-options.php';
-require_once __DIR__ . '/includes/class-stats-query.php';
-require_once __DIR__ . '/includes/class-stats-display.php';
-require_once __DIR__ . '/includes/class-stats-page.php';
-require_once __DIR__ . '/includes/class-stats-widget.php';
-require_once __DIR__ . '/includes/class-stats-admin.php';
-require_once __DIR__ . '/includes/class-stats-settings.php';
-require_once __DIR__ . '/includes/class-stats.php';
-require_once __DIR__ . '/includes/template-tags.php';
+/**
+ * WP-Stats directory, with a trailing slash.
+ */
+define( 'WP_STATS_DIR', plugin_dir_path( __FILE__ ) );
 
-Stats::get_instance();
+/**
+ * WP-Stats URL, with a trailing slash.
+ */
+define( 'WP_STATS_URL', plugin_dir_url( __FILE__ ) );
+
+/*
+ * Required at file load rather than from a hook: the activation hook and the
+ * template tags are both reached before any action fires.
+ */
+require_once WP_STATS_DIR . 'includes/class-wp-stats-options.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats-query.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats-display.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats-page.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats-widget.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats-admin.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats-settings.php';
+require_once WP_STATS_DIR . 'includes/template-tags.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats.php';
+
+WP_Stats::get_instance();
