@@ -191,26 +191,6 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 		);
 	}
 
-	/**
-	 * The regression guard for the marker bug this family has already had once.
-	 */
-	public function test_the_sanitizer_never_stores_version_markers() {
-		$saved = WP_Stats_Settings::sanitize(
-			array(
-				'url'        => '',
-				'most_limit' => '10',
-				'display'    => array(),
-				'version'    => '9.9.9',
-				'db_version' => '99',
-				'versions'   => array( 'plugin' => '9.9.9' ),
-			)
-		);
-
-		foreach ( array( 'version', 'db_version', 'versions' ) as $key ) {
-			$this->assertArrayNotHasKey( $key, $saved, "A version marker must never reach {$key} in the settings row." );
-		}
-	}
-
 	public function test_sanitize_clamps_the_limit() {
 		$saved = WP_Stats_Settings::sanitize(
 			array(

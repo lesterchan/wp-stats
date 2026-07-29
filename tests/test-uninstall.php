@@ -2,11 +2,16 @@
 /**
  * Uninstall behaviour.
  *
+ * The family-wide "nothing matching wp_stats_% survives" assertion is in
+ * test-metadata.php. What is here is the rest: the pre-3.0.0 rows an aborted
+ * migration can leave behind, and the shape of the multisite branch, which a
+ * single-site suite cannot run and which has failed silently before.
+ *
  * @package WP-Stats
  */
 
 /**
- * Uninstall.php.
+ * @coversNothing
  */
 class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 
@@ -27,8 +32,8 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 	);
 
 	/**
-	 * Uninstalling removes the consolidated option, the schema version, the
-	 * widget instances and any pre-3.0.0 rows an aborted migration left.
+	 * Uninstalling removes the settings row, the upgrade markers, the widget
+	 * instances and every pre-3.0.0 row an aborted migration left behind.
 	 */
 	public function test_it_removes_every_option() {
 		global $wpdb;
@@ -37,12 +42,11 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 			update_option( $option, 'set' );
 		}
 
-		$this->run_uninstall();
+		wp_stats_test_run_uninstall();
 
-		// Checked against the options table rather than through get_option():
-		// the backwards-compatibility filters answer the three legacy names out
-		// of the consolidated row, so get_option() never reports them missing
-		// while the plugin is loaded.
+		// Checked against the options table rather than through get_option(),
+		// which reads through the object cache: a row deleted while the plugin
+		// is loaded can still be answered from there.
 		foreach ( $this->options as $option ) {
 			$count = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->options WHERE option_name = %s", $option ) );
 			$this->assertSame( 0, (int) $count, "$option should have been deleted." );
@@ -55,8 +59,8 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 	public function test_it_is_idempotent() {
 		global $wpdb;
 
-		$this->run_uninstall();
-		$this->run_uninstall();
+		wp_stats_test_run_uninstall();
+		wp_stats_test_run_uninstall();
 
 		$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->options WHERE option_name = 'wp_stats_options'" );
 		$this->assertSame( 0, (int) $count );
@@ -112,25 +116,4 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 		$this->assertLessThan( $m[0][1], $restore, 'restore_current_blog() must be inside the foreach.' );
 	}
 
-	/**
-	 * Run uninstall.php the way WordPress does.
-	 *
-	 * The file declares wp_stats_uninstall_site(), so it can only be required
-	 * once per process; later calls go straight to the function.
-	 *
-	 * @return void
-	 */
-	private function run_uninstall() {
-		if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-			define( 'WP_UNINSTALL_PLUGIN', 'wp-stats/wp-stats.php' );
-		}
-
-		if ( function_exists( 'wp_stats_uninstall_site' ) ) {
-			wp_stats_uninstall_site();
-		} else {
-			require dirname( __DIR__ ) . '/uninstall.php';
-		}
-
-		WP_Stats_Options::flush();
-	}
 }

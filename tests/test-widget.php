@@ -6,7 +6,7 @@
  */
 
 /**
- * WP_Stats_Widget.
+ * @covers WP_Stats_Widget
  */
 class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 

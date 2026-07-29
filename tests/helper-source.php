@@ -60,3 +60,27 @@ function wp_stats_test_source_code( array $skip = array() ) {
 function wp_stats_test_read( $relative ) {
 	return (string) file_get_contents( dirname( __DIR__ ) . '/' . $relative );
 }
+
+/**
+ * Run uninstall.php the way WordPress does.
+ *
+ * The file declares wp_stats_uninstall_site(), so it can only be required once
+ * per process; every later call has to go straight to the function or PHP
+ * fatals on the redeclaration. Two test files exercise uninstall and their
+ * order is not fixed, so both go through here.
+ *
+ * @return void
+ */
+function wp_stats_test_run_uninstall() {
+	if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
+		define( 'WP_UNINSTALL_PLUGIN', 'wp-stats/wp-stats.php' );
+	}
+
+	if ( function_exists( 'wp_stats_uninstall_site' ) ) {
+		wp_stats_uninstall_site();
+	} else {
+		require dirname( __DIR__ ) . '/uninstall.php';
+	}
+
+	WP_Stats_Options::flush();
+}
