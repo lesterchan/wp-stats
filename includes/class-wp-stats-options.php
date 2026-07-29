@@ -1,82 +1,64 @@
 <?php
 /**
- * WP-Stats class-wp-stats-options.php
+ * The plugin's two stored rows.
+ *
+ * wp_stats_options holds every setting a site owner can change and nothing
+ * else. wp_stats_version holds the pair of upgrade markers, in its own row: the
+ * settings form never posts them, so a marker kept inside the settings array
+ * would have to be rescued from the stored value on every single save, and the
+ * one save that forgot would make the upgrade run again on every request.
+ *
+ * Before 3.0.0 the settings were three unprefixed rows - stats_url,
+ * stats_mostlimit and stats_display - two of which six other plugins read
+ * directly. That arrangement is what STANDARDS.md 13 replaces: WP-Stats now
+ * owns only its own row, and a companion plugin contributes a section through
+ * the wp_stats_sections filter instead of sharing storage.
  *
  * @package WP-Stats
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
- * The plugin's settings, in one option row.
- *
- * Before 3.0.0 these lived in three rows - stats_url, stats_mostlimit and
- * stats_display - which every read had to fetch separately. They are now one
- * nested array in `stats_options`, migrated on upgrade.
+ * Reads, writes and upgrades the settings and the version markers.
  *
  * @since 3.0.0
  */
 class WP_Stats_Options {
 
 	/**
-	 * The one option row this plugin owns.
+	 * Settings row. Autoloaded.
 	 */
-	const OPTION = 'stats_options';
+	const OPTION = 'wp_stats_options';
 
 	/**
-	 * Schema version. Kept in its own row because it is read to decide whether
-	 * the main option needs migrating, so it cannot live inside the thing
-	 * being migrated.
+	 * Upgrade markers row, holding 'plugin' and 'db'. Autoloaded.
 	 */
-	const DB_VERSION_OPTION = 'stats_db_version';
+	const VERSION = 'wp_stats_version';
 
 	/**
-	 * Current schema version.
-	 */
-	const DB_VERSION = 1;
-
-	/**
-	 * Cached copy of the merged options for this request.
+	 * Cached copy of the merged settings for this request.
 	 *
 	 * @var array|null
 	 */
 	protected static $cache = null;
 
 	/**
-	 * True while the migration is reading the legacy rows.
+	 * Register the upgrade check.
 	 *
-	 * The compatibility filters below answer the old option names out of the
-	 * consolidated row. During the migration that is exactly backwards: the
-	 * migration needs the real rows, and without this guard it would read its
-	 * own defaults and write them over the settings it was meant to preserve.
-	 *
-	 * @var bool
-	 */
-	protected static $migrating = false;
-
-	/**
-	 * Wire up the migration and the backwards-compatibility shims.
+	 * Hooked to plugins_loaded rather than left to the activation hook: an
+	 * activation hook does not fire on plugin *update*, which is the usual
+	 * reason a migration silently never runs. Once the markers agree the check
+	 * costs one autoloaded read.
 	 *
 	 * @return void
 	 */
-	public static function init() {
-		// Activation does not fire on plugin *update*, which is the usual reason
-		// a migration never runs, so drive it from a request hook as well.
-		add_action( 'init', array( __CLASS__, 'maybe_migrate' ), 1 );
-
-		// Plugins released before WP-Stats 3.0.0 read the three legacy rows
-		// directly. Serve them from the consolidated option so a stale companion
-		// keeps working instead of silently losing every toggle.
-		foreach ( array( 'stats_url', 'stats_mostlimit', 'stats_display' ) as $legacy ) {
-			add_filter( "option_{$legacy}", array( __CLASS__, 'filter_legacy_option' ), 10, 2 );
-			add_filter( "default_option_{$legacy}", array( __CLASS__, 'filter_legacy_option' ), 10, 2 );
-		}
+	public static function register() {
+		add_action( 'plugins_loaded', array( __CLASS__, 'maybe_upgrade' ) );
 	}
 
 	/**
-	 * Defaults for the whole option.
+	 * Defaults for the whole settings row.
 	 *
 	 * @return array
 	 */
@@ -91,45 +73,32 @@ class WP_Stats_Options {
 	/**
 	 * Which stat blocks are shown, and their default state.
 	 *
-	 * The single source of truth for the display keys. A companion plugin that
-	 * contributes its own checkbox should register the key here via the filter,
-	 * so its default is known before anyone has visited the options screen.
+	 * These are WP-Stats' own blocks and only its own. Before 3.0.0 the list
+	 * also carried a toggle per companion plugin - polls, ratings, views,
+	 * e-mailed posts and the rest - which meant WP-Stats decided whether a
+	 * plugin it knew nothing about got to draw a panel. Each of those plugins
+	 * now keeps that decision in its own settings row and answers the
+	 * wp_stats_sections filter accordingly.
 	 *
 	 * @return array<string,int>
 	 */
 	public static function display_defaults() {
-		return apply_filters(
-			'wp_stats_display_defaults',
-			array(
-				'total_stats'        => 1,
-				'email'              => 1,
-				'polls'              => 1,
-				'ratings'            => 1,
-				'views'              => 1,
-				'useronline'         => 1,
-				'recent_posts'       => 1,
-				'recent_comments'    => 1,
-				'commented_post'     => 1,
-				'commented_page'     => 0,
-				'emailed_most_post'  => 1,
-				'emailed_most_page'  => 0,
-				'rated_highest_post' => 1,
-				'rated_highest_page' => 0,
-				'rated_most_post'    => 1,
-				'rated_most_page'    => 0,
-				'viewed_most_post'   => 1,
-				'viewed_most_page'   => 0,
-				'authors'            => 1,
-				'comment_members'    => 1,
-				'post_cats'          => 1,
-				'link_cats'          => 1,
-				'tags_list'          => 0,
-			)
+		return array(
+			'total_stats'     => 1,
+			'recent_posts'    => 1,
+			'recent_comments' => 1,
+			'commented_post'  => 1,
+			'commented_page'  => 0,
+			'authors'         => 1,
+			'comment_members' => 1,
+			'post_cats'       => 1,
+			'link_cats'       => 1,
+			'tags_list'       => 0,
 		);
 	}
 
 	/**
-	 * The full option, merged over the defaults.
+	 * The settings row, merged over the defaults.
 	 *
 	 * @return array
 	 */
@@ -144,8 +113,8 @@ class WP_Stats_Options {
 		$options = wp_parse_args( $stored, self::defaults() );
 
 		// wp_parse_args() is shallow, so the nested display array would replace
-		// the defaults wholesale and lose any key a companion has registered
-		// since the last save.
+		// the defaults wholesale and lose the default of any toggle added since
+		// the last save.
 		$options['display'] = array_map(
 			'intval',
 			wp_parse_args(
@@ -163,9 +132,9 @@ class WP_Stats_Options {
 	}
 
 	/**
-	 * Persist the option.
+	 * Persist the settings row.
 	 *
-	 * @param array $options Full option array.
+	 * @param array $options Full settings array.
 	 * @return bool
 	 */
 	public static function update( $options ) {
@@ -218,112 +187,134 @@ class WP_Stats_Options {
 	}
 
 	/**
-	 * Every display key currently known, defaults plus whatever is stored.
+	 * The stored upgrade markers, normalised.
 	 *
-	 * @return string[]
+	 * @return array
 	 */
-	public static function display_keys() {
-		$options = self::get();
+	public static function markers() {
+		$markers = get_option( self::VERSION, array() );
 
-		return array_keys( $options['display'] );
+		return is_array( $markers ) ? $markers : array();
 	}
 
 	/**
-	 * Create the option on activation.
+	 * Create the settings row on activation.
 	 *
 	 * @return void
 	 */
 	public static function activate() {
-		self::maybe_migrate();
+		self::maybe_upgrade();
 
 		$defaults        = self::defaults();
 		$defaults['url'] = home_url( '/stats/' );
 
 		add_option( self::OPTION, $defaults );
-		add_option( self::DB_VERSION_OPTION, self::DB_VERSION );
 	}
 
 	/**
-	 * Fold the three pre-3.0.0 option rows into one.
+	 * Bring the stored rows up to the running version.
 	 *
-	 * Gated on the schema version rather than on "do the old keys exist": an
-	 * install that has already migrated has no old keys, and re-running would
-	 * write defaults straight over the settings.
+	 * Gated on the markers rather than on "do the old rows exist". An install
+	 * that has already migrated has no old rows, so a second pass would find
+	 * nothing and write the defaults straight over the settings; and a row that
+	 * reappears afterwards - a restored backup, or a plugin built against 2.x
+	 * calling update_option() - must not send the migration round again.
+	 *
+	 * Both markers are written in one call at the end, so an upgrade that dies
+	 * half way never records itself as finished.
 	 *
 	 * @return void
 	 */
-	public static function maybe_migrate() {
-		if ( (int) get_option( self::DB_VERSION_OPTION, 0 ) >= self::DB_VERSION ) {
+	public static function maybe_upgrade() {
+		$markers = self::markers();
+
+		$plugin = isset( $markers['plugin'] ) ? (string) $markers['plugin'] : '';
+		$db     = isset( $markers['db'] ) ? (string) $markers['db'] : '';
+
+		if ( WP_STATS_VERSION === $plugin && WP_STATS_DB_VERSION === $db ) {
 			return;
 		}
 
-		self::$migrating = true;
+		if ( '' === $db ) {
+			self::migrate_legacy_rows();
+		}
 
+		update_option(
+			self::VERSION,
+			array(
+				'plugin' => WP_STATS_VERSION,
+				'db'     => WP_STATS_DB_VERSION,
+			),
+			true
+		);
+	}
+
+	/**
+	 * Carry the pre-3.0.0 rows over, then delete them.
+	 *
+	 * Two generations are folded in at once: stats_url, stats_mostlimit and
+	 * stats_display are the 2.x rows, and stats_options is the consolidated row
+	 * an unreleased 3.0.0 build wrote before the name gained its prefix. An
+	 * install that had neither is a fresh one and keeps its defaults.
+	 *
+	 * The toggles a companion plugin owned are deliberately not carried over.
+	 * They were never WP-Stats' to hold, and each of those plugins reads the
+	 * same stats_display row in its own migration.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_legacy_rows() {
+		$legacy_options = get_option( 'stats_options', null );
 		$legacy_url     = get_option( 'stats_url', null );
 		$legacy_limit   = get_option( 'stats_mostlimit', null );
 		$legacy_display = get_option( 'stats_display', null );
 
-		self::$migrating = false;
-
-		// Nothing to carry over: a fresh install, not an upgrade.
-		if ( null === $legacy_url && null === $legacy_limit && null === $legacy_display ) {
-			update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
-			return;
-		}
-
 		$options = self::defaults();
+		$found   = false;
+
+		if ( is_array( $legacy_options ) ) {
+			$options = wp_parse_args( $legacy_options, $options );
+			$found   = true;
+		}
 
 		if ( null !== $legacy_url ) {
 			$options['url'] = (string) $legacy_url;
+			$found          = true;
 		}
 
 		if ( null !== $legacy_limit ) {
 			$options['most_limit'] = max( 1, (int) $legacy_limit );
+			$found                 = true;
 		}
+
+		$display = isset( $options['display'] ) && is_array( $options['display'] ) ? $options['display'] : array();
 
 		if ( is_array( $legacy_display ) ) {
-			$options['display'] = array_map(
-				'intval',
-				array_merge( $options['display'], $legacy_display )
-			);
+			$display = array_merge( $display, $legacy_display );
+			$found   = true;
 		}
 
-		update_option( self::OPTION, $options );
+		// Only the keys WP-Stats still owns survive the fold, so a companion
+		// plugin's old toggle cannot linger in this row for ever.
+		$options['display'] = array_map(
+			'intval',
+			array_intersect_key(
+				wp_parse_args( $display, self::display_defaults() ),
+				self::display_defaults()
+			)
+		);
 
-		foreach ( array( 'stats_url', 'stats_mostlimit', 'stats_display' ) as $legacy ) {
+		$options['most_limit'] = max( 1, (int) $options['most_limit'] );
+		$options['url']        = (string) $options['url'];
+
+		if ( $found ) {
+			update_option( self::OPTION, $options );
+		}
+
+		foreach ( array( 'stats_options', 'stats_db_version', 'stats_url', 'stats_mostlimit', 'stats_display' ) as $legacy ) {
 			delete_option( $legacy );
 		}
 
-		update_option( self::DB_VERSION_OPTION, self::DB_VERSION );
-
 		self::$cache = null;
-	}
-
-	/**
-	 * Serve a deleted legacy option row from the consolidated one.
-	 *
-	 * Registered on both `option_*` and `default_option_*` so it answers whether
-	 * or not the row still exists.
-	 *
-	 * @param mixed  $value  Stored value, or the default when the row is gone.
-	 * @param string $option Option name.
-	 * @return mixed
-	 */
-	public static function filter_legacy_option( $value, $option ) {
-		if ( self::$migrating ) {
-			return $value;
-		}
-
-		switch ( $option ) {
-			case 'stats_url':
-				return self::url();
-			case 'stats_mostlimit':
-				return self::most_limit();
-			case 'stats_display':
-				$options = self::get();
-				return $options['display'];
-		}
-
-		return $value;
 	}
 }

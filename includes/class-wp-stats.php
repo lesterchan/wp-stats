@@ -45,7 +45,7 @@ class WP_Stats {
 	protected function __construct() {
 		register_activation_hook( WP_STATS_MAIN_FILE, array( __CLASS__, 'activate' ) );
 
-		WP_Stats_Options::init();
+		WP_Stats_Options::register();
 		WP_Stats_Settings::init();
 		WP_Stats_Admin::init();
 

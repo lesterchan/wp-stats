@@ -16,6 +16,8 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 	 * @var string[]
 	 */
 	private $options = array(
+		'wp_stats_options',
+		'wp_stats_version',
 		'stats_options',
 		'stats_db_version',
 		'stats_mostlimit',
@@ -56,7 +58,7 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 		$this->run_uninstall();
 		$this->run_uninstall();
 
-		$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->options WHERE option_name = 'stats_options'" );
+		$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->options WHERE option_name = 'wp_stats_options'" );
 		$this->assertSame( 0, (int) $count );
 	}
 
@@ -113,7 +115,7 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 	/**
 	 * Run uninstall.php the way WordPress does.
 	 *
-	 * The file declares stats_uninstall_site(), so it can only be required
+	 * The file declares wp_stats_uninstall_site(), so it can only be required
 	 * once per process; later calls go straight to the function.
 	 *
 	 * @return void
@@ -123,8 +125,8 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 			define( 'WP_UNINSTALL_PLUGIN', 'wp-stats/wp-stats.php' );
 		}
 
-		if ( function_exists( 'stats_uninstall_site' ) ) {
-			stats_uninstall_site();
+		if ( function_exists( 'wp_stats_uninstall_site' ) ) {
+			wp_stats_uninstall_site();
 		} else {
 			require dirname( __DIR__ ) . '/uninstall.php';
 		}

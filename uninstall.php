@@ -1,26 +1,37 @@
 <?php
 /**
- * WP-Stats uninstall.php
+ * Uninstall WP-Stats.
+ *
+ * Runs with the plugin inactive, so nothing here may depend on the plugin's own
+ * classes or constants being loaded. The row names are therefore spelled out
+ * rather than read from WP_Stats_Options.
  *
  * @package WP-Stats
  */
 
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit;
+	exit();
 }
 
 /**
- * Delete this site's WP-Stats options.
+ * Delete the plugin's rows for the current site.
+ *
+ * The pre-3.0.0 names are still listed: an install deactivated before the
+ * migration fired would otherwise keep them for ever, and tests/test-metadata.php
+ * asserts over wp_options with a LIKE rather than naming rows, so a row added
+ * later and forgotten here fails the suite.
  *
  * @return void
  */
-function stats_uninstall_site() {
+function wp_stats_uninstall_site() {
 	$option_names = array(
-		// The consolidated option and its schema version.
+		// The settings row and the upgrade markers.
+		'wp_stats_options',
+		'wp_stats_version',
+		// Pre-3.0.0 rows, including the unprefixed name an unreleased 3.0.0
+		// build used before the prefix rule landed.
 		'stats_options',
 		'stats_db_version',
-		// Pre-3.0.0 rows. Still removed here so an install that never ran the
-		// migration - deactivated before it fired - does not leave them behind.
 		'stats_mostlimit',
 		'stats_display',
 		'stats_url',
@@ -34,22 +45,28 @@ function stats_uninstall_site() {
 }
 
 if ( is_multisite() ) {
-	// 'number' => 0 lifts WP_Site_Query's default cap of 100, which silently
-	// left every site past the hundredth untouched.
-	$site_ids = get_sites(
+	/*
+	 * 'number' => 0 lifts WP_Site_Query's default cap of 100, which would
+	 * otherwise leave the rows behind on every site past the hundredth while
+	 * still reporting a successful uninstall. 'fields' => 'ids' avoids
+	 * hydrating WP_Site objects the loop never looks at.
+	 */
+	$wp_stats_site_ids = get_sites(
 		array(
 			'fields' => 'ids',
 			'number' => 0,
 		)
 	);
 
-	foreach ( $site_ids as $site_id ) {
-		switch_to_blog( (int) $site_id );
-		stats_uninstall_site();
-		// switch_to_blog() pushes onto a stack, so restoring once after the loop
-		// would leave it unwound by one.
+	foreach ( $wp_stats_site_ids as $wp_stats_site_id ) {
+		// switch_to_blog() pushes onto a stack, so the restore belongs inside
+		// the loop -- restoring once at the end leaves it unwound by one.
+		switch_to_blog( (int) $wp_stats_site_id );
+
+		wp_stats_uninstall_site();
+
 		restore_current_blog();
 	}
 } else {
-	stats_uninstall_site();
+	wp_stats_uninstall_site();
 }
