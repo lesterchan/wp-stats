@@ -117,7 +117,7 @@ class WP_Stats_Admin {
 		}
 
 		echo '<div class="wrap">';
-		echo '<h1>' . esc_html__( 'WP-Stats', 'wp-stats' ) . '</h1>';
+		echo '<h1>' . esc_html__( 'Stats', 'wp-stats' ) . '</h1>';
 		echo wp_kses_post( WP_Stats_Page::render() );
 		echo '</div>';
 	}
