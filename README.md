@@ -171,7 +171,7 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 ### 3.0.0
 The first release since 2.56.1, and five things about it are worth knowing before you update.
 
-**Your site must be on WordPress 6.8 or later and PHP 8.2 or later.** Anything older will simply not be offered the update. If your host still runs PHP 7.4, ask to be moved to a supported version before updating — 7.4 stopped receiving security fixes in 2022.
+**Your site must be on WordPress 6.8 or later and PHP 8.2 or later.** Anything older will simply not be offered the update. Check `WP-Admin -> Tools -> Site Health -> Info -> Server` for your PHP version; if it is below 8.2, ask your host to move you up. PHP 8.1 and everything before it stopped receiving security fixes.
 
 **Both admin screens have moved.** The statistics used to be at `Dashboard -> WP-Stats` and the settings at `Settings -> Stats`. There is one `WP-Stats` menu now, with `Statistics` and `Settings` under it. Update any bookmarks; nothing else about the screens changed.
 
