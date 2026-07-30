@@ -359,8 +359,13 @@ class WP_Stats_Metadata_Test extends WP_Stats_TestCase {
 		$code = wp_stats_test_source_code();
 
 		$this->assertStringNotContainsStringIgnoringCase( 'jquery', $code );
+
+		// The opening bracket matters. Without it this also matches the ACTION
+		// name wp_enqueue_scripts, which the plugin legitimately hooks to
+		// enqueue its stylesheet -- registering no scripts is not the same as
+		// never touching the hook scripts are registered on.
 		$this->assertStringNotContainsString(
-			'wp_enqueue_script',
+			'wp_enqueue_script(',
 			$code,
 			'The plugin registers no scripts, so it can declare no dependencies.'
 		);
