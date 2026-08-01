@@ -133,40 +133,6 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 * FIXED: The widget's "Statistics To Display" label used the wrong text domain and could not be translated.
 * FIXED: The widget's spam line read "Spam Blockeds" in the plural.
 
-### 2.56.1
-* FIXED: Reflected XSS via double-encoded `stats_author` parameter (sanitize input, escape output)
-* FIXED: Stored XSS via comment author names, display names and post titles (escape all output)
-* CHANGED: Use `$wpdb->prepare()` for comment author queries
-
-### 2.56
-* NEW: WordPress 5.5 only because of comment_type changes
-
-### 2.55
-* FIXED: Notices
-
-### 2.54
-* FIXED: Akismet_Admin class not found
-
-### 2.53
-* FIXED: Notices in Widget Constructor for WordPress 4.3
-
-### 2.52
-* FIXED: Added nonce field and esc_url() to fix XSS. Props HSASec-Team.
-
-### 2.51
-* NEW: Supports WordPress Multisite Network Activation
-* NEW: Uses WordPress native uninstall.php
-
-### 2.50 (01-06-2009)
-* NEW: Works For WordPress 2.8
-* NEW: Update PageNavi Function Names
-* NEW: Added Most Commented Pages
-* NEW: Use _n() Instead Of __ngettext() And _n_noop() Instead Of __ngettext_noop()
-* NEW: Uses New Widget Class From WordPress
-* NEW: Merge Widget Code To wp-stats.php And Remove wp-stats-widget.php
-* FIXED: Uses $_SERVER['PHP_SELF'] With plugin_basename(__FILE__) Instead Of Just $_SERVER['REQUEST_URI']
-* FIXED: Recent Comments Now Include Comments Posted In Pages
-
 ## Upgrade Notice
 ### 3.0.0
 The first release since 2.56.1, and five things about it are worth knowing before you update.
