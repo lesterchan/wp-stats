@@ -174,7 +174,7 @@ class WP_Stats_Admin {
 			self::page_capability(),
 			self::PAGE,
 			array( __CLASS__, 'render' ),
-			'dashicons-chart-bar'
+			'dashicons-chart-area'
 		);
 	}
 
