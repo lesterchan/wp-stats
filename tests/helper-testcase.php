@@ -44,6 +44,21 @@ abstract class WP_Stats_TestCase extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Run the uninstaller, repeatably.
+	 *
+	 * The work itself is wp_stats_test_run_uninstall(), which requires the file
+	 * once for the function it declares and calls that function every time
+	 * after - a require_once that has already fired is a silent no-op, and a
+	 * second require fatals on the redeclaration. This plugin's uninstaller
+	 * touches no schema, so it can be the real thing rather than a copy of it.
+	 *
+	 * @return void
+	 */
+	protected function run_uninstall() {
+		wp_stats_test_run_uninstall();
+	}
+
+	/**
 	 * Content dated in the past.
 	 *
 	 * Every listing filters on `post_date < current_time('mysql')`, so content
