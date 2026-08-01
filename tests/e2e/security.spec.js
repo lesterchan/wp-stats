@@ -216,7 +216,20 @@ test.describe( 'Hostile values on the statistics page', () => {
 		// new one by eating a value the escaping had already made safe.
 		const stats = page.locator( '.wp-stats' );
 
-		expect( await pwned( page ) ).toBe( false );
+		// Scoped to the plugin's own container, and deliberately not asking the
+		// page-global sentinel. This screen is wp-admin, where the admin bar
+		// always renders, and core builds it as
+		// `'Howdy, ' . '<span class="display-name">' . $current_user->display_name`
+		// with no escaping at all. This spec's own fixture makes the
+		// administrator's display name a script tag, so the sentinel is set by
+		// core's markup on this screen no matter what WP-Stats does, and
+		// asserting on it would be asserting about WordPress.
+		//
+		// What is left is the whole of the property that belongs to this
+		// plugin: nothing executable inside .wp-stats, and the payloads still
+		// readable there. Escaping that ate the values would pass the first
+		// half and is its own bug, which is what the two toContainText calls
+		// are for.
 		await expectNothingArmed( stats );
 		await expect( stats ).toContainText( 'Ada' );
 		await expect( stats ).toContainText( 'window.__pwned' );
@@ -301,7 +314,12 @@ test.describe( 'Hostile values on the statistics page', () => {
 			// wp_kses_post() before printing it.
 			const widget = guest.locator( '#stats-9' );
 
-			expect( await pwned( guest ) ).toBe( false );
+			// Scoped to the widget for the same reason the admin-screen test
+			// above is scoped to .wp-stats, one step removed: this test browses
+			// to hostilePost itself, and the theme prints that post's title with
+			// the_title(), which does not escape -- markup in a post title is a
+			// WordPress feature. So the page-global sentinel is set by the
+			// theme's own H1 before the sidebar is even reached.
 			await expectNothingArmed( widget );
 			await expect( widget ).toContainText( 'Hostile' );
 		} );

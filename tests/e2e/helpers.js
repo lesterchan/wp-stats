@@ -552,10 +552,33 @@ function insertLink( name, category ) {
 	const id = wpEval(
 		// See deleteAllLinks(): wp_insert_link() is a wp-admin function too.
 		`require_once ABSPATH . 'wp-admin/includes/bookmark.php';
+		global $wpdb;
 		$data = json_decode( base64_decode( '${ encode( { name, category } ) }' ), true );
 		$term = term_exists( $data['category'], 'link_category' );
 		if ( ! $term ) {
 			$term = wp_insert_term( $data['category'], 'link_category' );
+			/*
+			 * And then the name is written again, straight into the row.
+			 *
+			 * wp_insert_term() sanitises a name -- it runs the value through
+			 * wp_filter_kses(), which deletes a script element and everything
+			 * inside it. So a category asked for as
+			 * "Links <script>window.__pwned = 1;</script>" was stored as
+			 * "Links", and the security spec's assertion about it was checking
+			 * a payload that had been eaten before it ever reached the plugin.
+			 * The tag fixture in that spec already does exactly this, for
+			 * exactly this reason; the link category was the one that was
+			 * missed. A caller passing an ordinary name gets the same name it
+			 * always did.
+			 */
+			$wpdb->update(
+				$wpdb->terms,
+				array( 'name' => $data['category'] ),
+				array( 'term_id' => (int) $term['term_id'] ),
+				array( '%s' ),
+				array( '%d' )
+			);
+			clean_term_cache( (int) $term['term_id'], 'link_category' );
 		}
 		$id = wp_insert_link(
 			array(
