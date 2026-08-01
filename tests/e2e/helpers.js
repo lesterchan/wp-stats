@@ -30,8 +30,14 @@ const { expect } = require( '@wordpress/e2e-test-utils-playwright' );
 /** The plugin root, which is where wp-env reads .wp-env.json from. */
 const PLUGIN_ROOT = path.join( __dirname, '../..' );
 
+/**
+ * The one admin page, and its two tabs.
+ *
+ * Statistics is the default, so its URL is the page with no tab argument --
+ * which is also the URL the menu entry points at.
+ */
 const STATS_URL = '/wp-admin/admin.php?page=wp-stats';
-const SETTINGS_URL = '/wp-admin/admin.php?page=wp-stats-settings';
+const SETTINGS_URL = '/wp-admin/admin.php?page=wp-stats&tab=settings';
 
 /**
  * Every display toggle, with the exact heading of the block it governs.
@@ -726,15 +732,18 @@ function ensureUser( username, role, password ) {
 }
 
 /**
- * Open the settings screen.
+ * Open the Settings tab of the WP-Stats page.
  *
  * @param {import('@playwright/test').Page} page Page under test.
- * @return {Promise<void>} Resolves once the screen is up.
+ * @return {Promise<void>} Resolves once the tab is up.
  */
 async function openSettings( page ) {
 	await page.goto( SETTINGS_URL );
 
-	await expect( page.getByRole( 'heading', { name: 'WP-Stats Settings' } ) ).toBeVisible();
+	// The heading names the page, which is the same on both tabs, so the tab
+	// strip is what says the settings are the half being drawn.
+	await expect( page.getByRole( 'heading', { name: 'Stats', exact: true } ) ).toBeVisible();
+	await expect( page.locator( '.nav-tab-active' ) ).toHaveText( 'Settings' );
 }
 
 /**

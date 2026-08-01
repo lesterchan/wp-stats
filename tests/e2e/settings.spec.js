@@ -28,7 +28,7 @@ const {
 	wpEvalJson,
 } = require( './helpers.js' );
 
-test.describe( 'The settings screen', () => {
+test.describe( 'The settings tab', () => {
 	let statsPage;
 
 	test.beforeAll( async ( { requestUtils } ) => {

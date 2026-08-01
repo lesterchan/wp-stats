@@ -36,7 +36,7 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 4. Click 'Edit', type in `stats` in the text field and click 'Save'.
 5. Type `[page_stats]` in the page's content area
 6. Click 'Publish'
-7. If you ARE NOT using nice permalinks, go to `WP-Admin -> WP-Stats -> Settings` and fill in 'Stats URL' with the URL of the page you just created.
+7. If you ARE NOT using nice permalinks, go to `WP-Admin -> WP-Stats`, open the `Settings` tab and fill in 'Stats URL' with the URL of the page you just created.
 
 ### The Widget
 1. Go to `WP-Admin -> Appearance -> Widgets`
@@ -111,10 +111,10 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 * BREAKING: The unprefixed `stats_page` filter is now `wp_stats_page`, and is handed the page complete with its wrapper element.
 * BREAKING: The seven `wp_stats_page_*` filters, the two `wp_stats_paging_*` filters and the seven `wp_stats_page_admin_*` filters are removed. A plugin contributing a block answers `wp_stats_sections` and renders through `wp_stats_section_<slug>`.
 * BREAKING: `stats_display_defaults()` is removed. A plugin keeps its own display setting in its own option row.
-* BREAKING: The statistics screen moved from `Dashboard -> WP-Stats` to its own `WP-Stats` menu, and the settings from `Settings -> Stats` to `WP-Stats -> Settings`.
+* BREAKING: The statistics screen moved from `Dashboard -> WP-Stats` and the settings from `Settings -> Stats` onto one `WP-Stats` page with two tabs, `Statistics` and `Settings`, at `admin.php?page=wp-stats`.
 * BREAKING: Every class is prefixed. The widget class is `WP_Stats_Widget`; placed widgets and their settings are unaffected.
 * NEW: `wp_stats_sections` and `wp_stats_section_<slug>`, the contract other plugins use to add a block to the statistics page.
-* NEW: `wp_stats_capability`, which every capability check goes through, so the read-only statistics screen can be opened to editors without opening the settings.
+* NEW: `wp_stats_capability`, which every capability check goes through, so the read-only statistics tab can be opened to editors without opening the settings.
 * NEW: Restructured into `includes/` with one class per responsibility.
 * NEW: Settings screen rebuilt on the WordPress Settings API.
 * NEW: PHPUnit test suite and GitHub Actions CI.
@@ -139,7 +139,9 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 
 Requires WordPress 6.8 and PHP 8.2.
 
-**Both admin screens moved.** The statistics were at `Dashboard -> WP-Stats` and the settings at `Settings -> Stats`; there is one `WP-Stats` menu now, with `Statistics` and `Settings` under it. Nothing else about the screens changed.
+**Both admin screens moved, and they are now one screen.** The statistics were at `Dashboard -> WP-Stats` and the settings at `Settings -> Stats`; there is one `WP-Stats` menu now opening one page with two tabs, `Statistics` and `Settings`. Bookmarks to either old screen stop working: the page is `wp-admin/admin.php?page=wp-stats`, and the settings are `wp-admin/admin.php?page=wp-stats&tab=settings`. The menu has no submenu entries any more. Nothing else about the screens changed.
+
+**`wp_stats_capability` still tells the two apart.** It is filtered per tab rather than per screen, with the same `statistics` and `settings` contexts. A tab the current user cannot open is not drawn, and the page itself is registered with whichever of the two capabilities that user holds — so handing out the statistics tab alone works exactly as it did when it was its own menu entry.
 
 **Update WP-EMail, WP-Polls, WP-PostRatings, WP-PostViews, WP-UserOnline and WP-DownloadManager at the same time.** Those six put their own blocks on the statistics page, and all seven plugins shared one `stats_display` row between them. Each plugin keeps that setting in its own settings now, and the shared row is deleted during the upgrade. An older copy of any of the six simply stops appearing on the statistics page until you update it; if a block does not come back, switch it on again in that plugin's own settings.
 

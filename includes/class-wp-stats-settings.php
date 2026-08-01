@@ -1,11 +1,18 @@
 <?php
 /**
- * The WP-Stats -> Settings screen.
+ * The Settings tab of the WP-Stats page.
  *
  * Built entirely on the Settings API: register_setting() for storage and for
  * the nonce and capability handling, add_settings_section() and
  * add_settings_field() for the body, do_settings_sections() to draw it. The
  * screen writes no table markup of its own.
+ *
+ * Every setting WP-Stats has lives on this one tab, so the sanitizer is a plain
+ * function from what the form posted to what gets stored. The moment a setting
+ * moves to a second tab it stops being one: register_setting() hands the
+ * sanitize callback only the fields the submitting form posted, so returning
+ * just what it was given would wipe the other tab's values. Merge the submitted
+ * subset over the stored value then, the way WP-PostRatings does.
  *
  * @package WP-Stats
  */
@@ -26,7 +33,12 @@ class WP_Stats_Settings {
 	const GROUP = 'wp_stats_options';
 
 	/**
-	 * Menu slug, and the page name the sections are registered against.
+	 * The Settings API page the sections are registered against.
+	 *
+	 * Not a menu slug: WP-Stats has one page, WP_Stats_Admin::PAGE, and this
+	 * names the half of it do_settings_sections() draws. Registering a section
+	 * against this rather than against the menu slug is what stops the
+	 * Statistics tab drawing the settings form.
 	 */
 	const PAGE = 'wp-stats-settings';
 
@@ -206,7 +218,11 @@ class WP_Stats_Settings {
 	}
 
 	/**
-	 * Render the screen.
+	 * Render the Settings tab.
+	 *
+	 * The body only: WP_Stats_Admin::render() owns the wrapper, the heading,
+	 * the tab strip and settings_errors(), because a save can return to either
+	 * tab and both have to be able to report it.
 	 *
 	 * @return void
 	 */
@@ -216,25 +232,25 @@ class WP_Stats_Settings {
 		}
 
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'WP-Stats Settings', 'wp-stats' ); ?></h1>
-
+		<form method="post" action="<?php echo esc_url( admin_url( 'options.php' ) ); ?>">
 			<?php
-			// Core only calls this from wp-admin/options-head.php, which runs
-			// for its own settings screens. A plugin page is dispatched by
-			// admin.php instead, so without this the save redirect lands back
-			// here with no confirmation at all.
-			settings_errors();
-			?>
+			settings_fields( self::GROUP );
 
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( self::GROUP );
-				do_settings_sections( self::PAGE );
-				submit_button();
-				?>
-			</form>
-		</div>
+			/*
+			 * The tab is carried through the save so options.php sends the
+			 * browser back to the tab it was submitted from rather than to the
+			 * page's default one. Printed after settings_fields(), whose nonce
+			 * field emits a referer of its own: the later field wins.
+			 */
+			printf(
+				'<input type="hidden" name="_wp_http_referer" value="%s" />',
+				esc_url( WP_Stats_Admin::tab_url( 'settings' ) )
+			);
+
+			do_settings_sections( self::PAGE );
+			submit_button();
+			?>
+		</form>
 		<?php
 	}
 

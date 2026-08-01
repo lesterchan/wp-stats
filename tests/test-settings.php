@@ -35,7 +35,7 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 	public function test_the_screen_renders() {
 		$html = $this->render_screen();
 
-		$this->assertStringContainsString( 'WP-Stats Settings', $html );
+		$this->assertStringContainsString( '<h1>Stats</h1>', $html );
 		$this->assertStringContainsString( 'option_page', $html, 'settings_fields() must be present or nothing saves.' );
 		$this->assertStringContainsString( '_wpnonce', $html );
 		$this->assertMarkupIsClean( $html );
@@ -278,11 +278,18 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 	}
 
 	/**
-	 * Render the settings screen.
+	 * Render the Settings tab, the way a browser asks for it.
+	 *
+	 * Through the page rather than through WP_Stats_Settings::render() alone:
+	 * the wrapper, the heading, the tab strip and settings_errors() belong to
+	 * the page now, and a test that skipped it would stop noticing when they
+	 * went missing.
 	 *
 	 * @return string
 	 */
 	private function render_screen() {
-		return $this->render( array( 'WP_Stats_Settings', 'render' ) );
+		$_GET['tab'] = 'settings';
+
+		return $this->render( array( 'WP_Stats_Admin', 'render' ) );
 	}
 }
