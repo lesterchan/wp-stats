@@ -85,8 +85,10 @@ class WP_Stats {
 	 * Declare the two query arguments the statistics page understands.
 	 *
 	 * Registering them is what lets the page read them with get_query_var()
-	 * instead of reaching into $_GET: WordPress parses and unslashes them, and
-	 * this list is the one place that says what the page accepts.
+	 * instead of reaching into $_GET, and this list is the one place that says
+	 * what the page accepts. It does not clean them: the values are copied out
+	 * of $_GET as they are, slashes and all, so a reader still has to unslash
+	 * and sanitize whatever it takes back out.
 	 *
 	 * @param string[] $vars Public query variables.
 	 * @return string[]

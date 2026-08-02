@@ -129,6 +129,7 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 * FIXED: `get_linkcats()` and `get_tags_list()` used arguments and functions deprecated since WordPress 3.0.
 * FIXED: Removed the unreachable "Comments Protected" branch; every listing already excludes password-protected posts.
 * FIXED: A negative `stats_page` query argument caused a SQL error.
+* FIXED: A commenter whose name contains an apostrophe or a quote — "Sinead O'Brien" is enough — got an empty list of comments, under a heading with a stray backslash in it. The `stats_author` query argument was read without removing the slashes WordPress adds to every request value, so the name never matched the row it came from.
 * FIXED: Undefined index warning reading the post-password cookie.
 * FIXED: The widget's "Statistics To Display" label used the wrong text domain and could not be translated.
 * FIXED: The widget's spam line read "Spam Blockeds" in the plural.

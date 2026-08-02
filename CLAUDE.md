@@ -98,8 +98,13 @@ two family tests are failing on it. Left failing deliberately.
   WP-PageNavi, which is why the plugin used to switch its own styles off when
   WP-PageNavi was active. Both halves of that are gone.
 * `stats_author` and `stats_page` arrive as registered query vars, not from
-  `$_GET`, so WordPress has already unslashed them and
-  `WP_Stats::register_query_vars()` is the single list of what the page accepts.
+  `$_GET`, so `WP_Stats::register_query_vars()` is the single list of what the
+  page accepts. **Registering a query var does not unslash it** —
+  `WP::parse_request()` copies it out of `$_GET` after `wp_magic_quotes()` has
+  slashed it. `WP_Stats_Page::render()` has to `wp_unslash()` before
+  `sanitize_text_field()`, which does not remove backslashes; the docblock here
+  and in the source used to claim the opposite, and "Sinead O'Brien" got an
+  empty drill-down for it.
 * §7.2.1: this is the plugin whose `test_no_jquery_is_enqueued()` failed because
   the needle `wp_enqueue_script` (no bracket) is a substring of the action name
   `wp_enqueue_scripts`, which it legitimately hooks to enqueue a *stylesheet*.

@@ -149,6 +149,45 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	}
 
 	/**
+	 * An apostrophe in a commenter's name is the ordinary case, not an attack.
+	 *
+	 * The fixture slashes the name because that is what the page is handed:
+	 * WP::parse_request() copies a registered query variable straight out of
+	 * $_GET, which wp_magic_quotes() has already slashed. Written in plain
+	 * ASCII this test cannot fail - the name has to carry a quote through the
+	 * round trip for the missing wp_unslash() to show. Without it the lookup is
+	 * for "Sinead O\'Brien", which matches no row.
+	 */
+	public function test_an_apostrophe_in_the_name_still_finds_their_comments() {
+		$this->add_comment( $this->ids['p1'], "Sinead O'Brien", 22 );
+
+		$html = $this->with_query( array( 'stats_author' => wp_slash( "Sinead O'Brien" ) ) );
+
+		$this->assertStringNotContainsString( 'has not made any comments yet', $html );
+		$this->assertStringContainsString( 'Stats Post One', $html, 'The drill-down found none of their comments.' );
+		$this->assertStringContainsString( 'Sinead O&#039;Brien', $html );
+		$this->assertStringNotContainsString( 'O\\&#039;Brien', $html, 'A backslash reached the heading.' );
+		$this->assertMarkupIsClean( $html );
+	}
+
+	/**
+	 * The paging links out of that view carry the name back unmangled.
+	 *
+	 * The view is only reachable from the Comment Members list, so a name that
+	 * survives the first hop but not the second still ends in an empty page.
+	 */
+	public function test_an_apostrophe_survives_the_paging_links() {
+		for ( $i = 0; $i < WP_Stats_Page::PER_PAGE + 1; $i++ ) {
+			$this->add_comment( $this->ids['p1'], "Sinead O'Brien", 22 );
+		}
+
+		$html = $this->with_query( array( 'stats_author' => wp_slash( "Sinead O'Brien" ) ) );
+
+		$this->assertStringContainsString( 'stats_author=' . rawurlencode( "Sinead O'Brien" ), $html );
+		$this->assertMarkupIsClean( $html );
+	}
+
+	/**
 	 * An unknown commenter gets a message rather than a warning.
 	 */
 	public function test_an_unknown_author_gets_the_empty_message() {

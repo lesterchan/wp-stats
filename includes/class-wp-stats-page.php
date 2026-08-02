@@ -54,14 +54,20 @@ class WP_Stats_Page {
 	 * Render whichever view the request asks for.
 	 *
 	 * The two arguments arrive as registered query variables rather than out of
-	 * $_GET, so WordPress has already unslashed them and there is one place -
-	 * WP_Stats::register_query_vars() - that says which arguments this page
-	 * understands.
+	 * $_GET, which is what makes WP_Stats::register_query_vars() the one place
+	 * that says which arguments this page understands. Registering one does not
+	 * clean it, though: WP::parse_request() copies the value straight out of
+	 * $_GET, and wp_magic_quotes() has already slashed everything in there, so
+	 * it still arrives with backslashes in front of its quotes. Unslash it
+	 * before it is compared against anything - sanitize_text_field() does not,
+	 * and without this a commenter called Sinead O'Brien is looked up as
+	 * Sinead O\'Brien, matches no row and gets an empty listing under a heading
+	 * with a stray backslash in it.
 	 *
 	 * @return string
 	 */
 	public static function render() {
-		$comment_author = sanitize_text_field( (string) get_query_var( 'stats_author' ) );
+		$comment_author = sanitize_text_field( wp_unslash( (string) get_query_var( 'stats_author' ) ) );
 		$page           = max( 1, (int) get_query_var( 'stats_page' ) );
 
 		$output = '' === $comment_author
