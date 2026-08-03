@@ -3,10 +3,14 @@
  *
  * It is the only part of this plugin that pages, and the paging is the reason
  * the file exists: thirty comments per page and ten page links either side is a
- * lot of arithmetic for something nobody looks at twice, and it is reached by
+ * lot of arithmetic for something nobody looks at twice. It is reached by
  * clicking the links the page rendered rather than by building a URL, because
- * the tests environment ships plain permalinks and the Stats URL setting is
- * what every one of those links is built from.
+ * the Stats URL setting is what every one of those links is built from, and
+ * clicking is the only way to assert that.
+ *
+ * Where a URL has to be built anyway -- a page number no link offers, a name no
+ * commenter has -- authorView() builds it, because what the page's own link
+ * looks like depends on the permalink structure. See its comment.
  */
 
 const { test, expect } = require( '@wordpress/e2e-test-utils-playwright' );
@@ -23,6 +27,29 @@ const {
 
 /** What WP_Stats_Page::PER_PAGE is, which decides where page two starts. */
 const PER_PAGE = 30;
+
+/**
+ * The statistics page with the per-commenter query variables on it.
+ *
+ * Assembled through URL rather than by appending `&stats_author=` to the page's
+ * link, because that link only carries a query string to append to when the
+ * permalinks are plain. WordPress turns pretty permalinks on at install time,
+ * so on a fresh site the concatenation produces
+ * `/stats-page/&stats_author=Prolific`, which is a path rather than a query --
+ * WordPress serves a 404, and the assertion that follows fails saying the
+ * element was not found rather than saying the URL never made sense.
+ *
+ * @param {string} link   The statistics page's permalink, whatever its shape.
+ * @param {Object} params Query variables to put on it.
+ * @return {string} The URL to navigate to.
+ */
+function authorView( link, params ) {
+	const url = new URL( link );
+
+	Object.entries( params ).forEach( ( [ key, value ] ) => url.searchParams.set( key, value ) );
+
+	return url.toString();
+}
 
 test.describe( 'The per-commenter view', () => {
 	let statsPage;
@@ -241,7 +268,9 @@ test.describe( 'The per-commenter view', () => {
 		page,
 	} ) => {
 		await asGuest( page, {}, async ( guest ) => {
-			await guest.goto( `${ statsPage.link }&stats_author=Prolific&stats_page=99` );
+			await guest.goto(
+				authorView( statsPage.link, { stats_author: 'Prolific', stats_page: 99 } ),
+			);
 
 			// The offset runs past the total, so the counter is clamped to the
 			// total rather than printing a number larger than there are
@@ -262,7 +291,7 @@ test.describe( 'The per-commenter view', () => {
 
 		await asGuest( page, {}, async ( guest ) => {
 			await guest.goto(
-				`${ statsPage.link }&stats_author=${ encodeURIComponent( `Nobody ${ payload }` ) }`,
+				authorView( statsPage.link, { stats_author: `Nobody ${ payload }` } ),
 			);
 
 			// The name is echoed into the heading and into the "has not made any

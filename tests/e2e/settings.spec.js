@@ -25,6 +25,7 @@ const {
 	saveSettings,
 	setOptions,
 	uniqueTitle,
+	wpEval,
 	wpEvalJson,
 } = require( './helpers.js' );
 
@@ -95,11 +96,20 @@ test.describe( 'The settings tab', () => {
 	} );
 
 	test( 'a Stats URL that already carries a query string gets an ampersand, not a question mark', async () => {
-		// The tests environment ships plain permalinks, so the page this plugin
-		// documents is reached as ?page_id=N -- which is exactly the case the
-		// separator logic exists for, and the one a pretty-permalink developer
-		// never sees.
-		setOptions( { url: statsPage.link } );
+		// Built as ?page_id=N rather than read off statsPage.link, because what
+		// that link looks like is whatever the permalink structure says:
+		// ?page_id=N on a plain site and /stats-page/ on a pretty one, and
+		// WordPress turns pretty permalinks on at install time. Reading the link
+		// left this test asserting the separator logic only on a long-lived
+		// local container and asserting nothing at all on CI.
+		//
+		// A query string is the whole case the separator exists for, so the test
+		// has to supply one rather than hope the site is configured to.
+		const plainLink = wpEval(
+			`echo '<<<' . add_query_arg( 'page_id', ${ statsPage.id }, home_url( '/' ) ) . '>>>';`,
+		);
+
+		setOptions( { url: plainLink } );
 
 		const link = wpEvalJson( 'WP_Stats_Page::author_link( "Ada", 2 )' );
 
