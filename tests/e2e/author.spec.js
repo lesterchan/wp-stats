@@ -177,7 +177,18 @@ test.describe( 'The per-commenter view', () => {
 		await asGuest( page, {}, async ( guest ) => {
 			// Built by hand this once, because there is deliberately no link to
 			// a commenter who does not exist.
-			await guest.goto( `${ statsPage.link }&stats_author=Nobody` );
+			//
+			// Through URL rather than by concatenating "&", because the page's
+			// own link only carries a query string on a site with plain
+			// permalinks. On a pretty one it is /stats/, and appending "&…"
+			// gives /stats/&stats_author=Nobody -- no query var, so the drill-
+			// down never happens and the heading this asserts is simply absent.
+			// WordPress turns pretty permalinks on at install time, so that is
+			// what CI has and a drifted local wp-env does not.
+			const url = new URL( statsPage.link );
+			url.searchParams.set( 'stats_author', 'Nobody' );
+
+			await guest.goto( url.toString() );
 
 			await expect(
 				guest.getByRole( 'heading', { name: 'Comments Posted By Nobody' } ),
