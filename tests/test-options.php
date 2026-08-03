@@ -112,7 +112,7 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 		$options = WP_Stats_Options::get();
 
 		$this->assertArrayNotHasKey( 'downloads', $options['display'], "A companion plugin's toggle must not survive into wp_stats_options." );
-		$this->assertArrayNotHasKey( 'polls', $options['display'] );
+		$this->assertArrayNotHasKey( 'polls', $options['display'], 'The polls toggle belongs to WP-Polls, not to wp_stats_options.' );
 	}
 
 	/**

@@ -129,8 +129,15 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	 * Comment author names are escaped, not rendered.
 	 */
 	public function test_comment_author_names_are_escaped() {
-		foreach ( array( get_recentcomments( 'both', 10, false ), get_commentmembersstats( -1, 0, false ) ) as $html ) {
-			$this->assertStringNotContainsString( '<script>alert(1)</script>', $html );
+		// Keyed by the tag that produced the markup, so a failure names which of
+		// the two stopped escaping rather than reporting an anonymous string.
+		$rendered = array(
+			'get_recentcomments'      => get_recentcomments( 'both', 10, false ),
+			'get_commentmembersstats' => get_commentmembersstats( -1, 0, false ),
+		);
+
+		foreach ( $rendered as $tag => $html ) {
+			$this->assertStringNotContainsString( '<script>alert(1)</script>', $html, $tag . '() renders a comment author name as text.' );
 		}
 	}
 

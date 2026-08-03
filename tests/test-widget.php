@@ -123,7 +123,7 @@ class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 	 * A post that is not this widget's form leaves the stored instance alone.
 	 */
 	public function test_update_ignores_a_foreign_post() {
-		$this->assertFalse( $this->widget->update( array( 'title' => 'x' ), array( 'title' => 'kept' ) ) );
+		$this->assertFalse( $this->widget->update( array( 'title' => 'x' ), array( 'title' => 'kept' ) ), 'A post from another form is refused, so the stored instance survives.' );
 	}
 
 	/**

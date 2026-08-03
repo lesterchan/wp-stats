@@ -107,7 +107,7 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 		$source = $this->code_of( dirname( __DIR__ ) . '/uninstall.php' );
 
 		$restore = strpos( $source, 'restore_current_blog' );
-		$this->assertNotFalse( $restore );
+		$this->assertNotFalse( $restore, 'uninstall.php calls restore_current_blog at all.' );
 
 		// The single-site branch of the if/else. Everything before it is the
 		// multisite loop, so that is where the restore has to fall.

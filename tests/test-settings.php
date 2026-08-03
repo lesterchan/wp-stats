@@ -47,8 +47,8 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 		$sections = $wp_settings_sections[ WP_Stats_Settings::PAGE ];
 		$fields   = $wp_settings_fields[ WP_Stats_Settings::PAGE ];
 
-		$this->assertArrayHasKey( WP_Stats_Settings::SECTION_GENERAL, $sections );
-		$this->assertArrayHasKey( WP_Stats_Settings::SECTION_DISPLAY, $sections );
+		$this->assertArrayHasKey( WP_Stats_Settings::SECTION_GENERAL, $sections, 'The General section is registered on the screen.' );
+		$this->assertArrayHasKey( WP_Stats_Settings::SECTION_DISPLAY, $sections, 'The Display section is registered on the screen.' );
 
 		$this->assertSame(
 			array( 'url', 'most_limit' ),
@@ -137,13 +137,15 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 		$this->set_display( array( 'tags_list' => 1 ) );
 		$this->assertMatchesRegularExpression(
 			'/id="wp_stats_display_tags_list"[^>]*checked/',
-			$this->render_screen()
+			$this->render_screen(),
+			'A stored 1 renders the checkbox checked.'
 		);
 
 		$this->set_display( array( 'tags_list' => 0 ) );
 		$this->assertDoesNotMatchRegularExpression(
 			'/id="wp_stats_display_tags_list"[^>]*checked/',
-			$this->render_screen()
+			$this->render_screen(),
+			'A stored 0 renders the checkbox unchecked.'
 		);
 	}
 
@@ -213,10 +215,10 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 	public function test_sanitize_survives_junk( $input ) {
 		$saved = WP_Stats_Settings::sanitize( $input );
 
-		$this->assertIsArray( $saved );
-		$this->assertArrayHasKey( 'url', $saved );
-		$this->assertArrayHasKey( 'most_limit', $saved );
-		$this->assertIsArray( $saved['display'] );
+		$this->assertIsArray( $saved, 'The sanitiser returns an array however junk the input was.' );
+		$this->assertArrayHasKey( 'url', $saved, 'The sanitiser rebuilds the url key rather than dropping it.' );
+		$this->assertArrayHasKey( 'most_limit', $saved, 'The sanitiser rebuilds the most_limit key rather than dropping it.' );
+		$this->assertIsArray( $saved['display'], 'The display key comes back an array, whatever was posted into it.' );
 	}
 
 	/**
@@ -247,8 +249,8 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 			)
 		);
 
-		$this->assertTrue( WP_Stats_Options::display( 'tags_list' ) );
-		$this->assertFalse( WP_Stats_Options::display( 'total_stats' ) );
+		$this->assertTrue( WP_Stats_Options::display( 'tags_list' ), 'A stored 1 reads back as on.' );
+		$this->assertFalse( WP_Stats_Options::display( 'total_stats' ), 'A stored 0 reads back as off.' );
 	}
 
 	/**
@@ -273,7 +275,7 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 
 		$registered = get_registered_settings();
 
-		$this->assertArrayHasKey( WP_Stats_Options::OPTION, $registered );
+		$this->assertArrayHasKey( WP_Stats_Options::OPTION, $registered, 'The settings row is registered, so its sanitise callback and default are attached.' );
 		$this->assertSame( WP_Stats_Options::OPTION, WP_Stats_Settings::GROUP, 'The group is named after the row it writes.' );
 	}
 

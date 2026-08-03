@@ -242,7 +242,7 @@ class WP_Stats_Sections_Test extends WP_Stats_TestCase {
 
 		$this->assertSame( 'Polls', $seen['title'] );
 		$this->assertSame( 7, $seen['priority'] );
-		$this->assertIsCallable( $seen['render'] );
+		$this->assertIsCallable( $seen['render'], 'The section entry hands the action something it can call to render.' );
 	}
 
 	/**
