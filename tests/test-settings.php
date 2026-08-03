@@ -24,7 +24,7 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 		parent::set_up();
 
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 
 		// The screen renders whatever is registered against its page, and in the
 		// admin that registration happens on admin_init. Nothing fires admin_init

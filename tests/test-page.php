@@ -236,7 +236,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	 * The admin screen renders the same page inside a wrap.
 	 */
 	public function test_the_admin_screen_renders_the_page() {
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 
 		$html = $this->render( array( 'WP_Stats_Admin', 'render' ) );
 

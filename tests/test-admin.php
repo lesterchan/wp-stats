@@ -24,7 +24,7 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 
 		require_once ABSPATH . 'wp-admin/includes/admin.php';
 
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		wp_set_current_user( $this->create_admin() );
 
 		$GLOBALS['menu']    = array();
 		$GLOBALS['submenu'] = array();
