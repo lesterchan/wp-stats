@@ -88,8 +88,8 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 
 		$options = WP_Stats_Options::get();
 
-		$this->assertSame( 'https://legacy.example.com/my-stats/', $options['url'] );
-		$this->assertSame( 7, $options['most_limit'] );
+		$this->assertSame( 'https://legacy.example.com/my-stats/', $options['url'], 'The 2.x URL row is carried into the new settings row.' );
+		$this->assertSame( 7, $options['most_limit'], 'And the 2.x limit row with it, so neither is lost.' );
 		$this->assertSame( 0, (int) $options['display']['total_stats'], 'An explicit 0 must not be overwritten by the default 1.' );
 		$this->assertSame( 1, (int) $options['display']['tags_list'], 'An explicit 1 must not be overwritten by the default 0.' );
 		$this->assertSame( 1, (int) $options['display']['authors'], 'A toggle the old row never had takes its default.' );
@@ -135,9 +135,9 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 
 		$options = WP_Stats_Options::get();
 
-		$this->assertSame( 'https://unprefixed.example.com/stats/', $options['url'] );
-		$this->assertSame( 4, $options['most_limit'] );
-		$this->assertSame( 0, (int) $options['display']['link_cats'] );
+		$this->assertSame( 'https://unprefixed.example.com/stats/', $options['url'], 'The unprefixed 3.0 URL row is carried over too.' );
+		$this->assertSame( 4, $options['most_limit'], 'And its limit.' );
+		$this->assertSame( 0, (int) $options['display']['link_cats'], 'And its display toggles, which is the half a partial migration drops.' );
 	}
 
 	public function test_the_migration_deletes_every_row_it_folded_in() {
@@ -165,9 +165,9 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 
 		$options = WP_Stats_Options::get();
 
-		$this->assertSame( 'https://legacy.example.com/my-stats/', $options['url'] );
-		$this->assertSame( 7, $options['most_limit'] );
-		$this->assertSame( 0, (int) $options['display']['total_stats'] );
+		$this->assertSame( 'https://legacy.example.com/my-stats/', $options['url'], 'Running the migration twice leaves the URL as it was.' );
+		$this->assertSame( 7, $options['most_limit'], 'And the limit.' );
+		$this->assertSame( 0, (int) $options['display']['total_stats'], 'And the toggles, so a second run cannot reset them to the defaults.' );
 	}
 
 	/**
@@ -207,7 +207,7 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 		$after = WP_Stats_Options::get();
 
 		$this->assertSame( 'https://current.example.com/stats/', $after['url'], 'The migration must not run again.' );
-		$this->assertSame( 42, $after['most_limit'] );
+		$this->assertSame( 42, $after['most_limit'], 'A legacy row written back after the migration does not restart it and overwrite the current value.' );
 		$this->assertSame( 0, (int) $after['display']['total_stats'], 'The stale row must not be merged in.' );
 	}
 
@@ -230,9 +230,9 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 
 		$options = WP_Stats_Options::get();
 
-		$this->assertSame( 'https://fresh.example.com/stats/', $options['url'] );
-		$this->assertSame( 3, $options['most_limit'] );
-		$this->assertSame( 0, (int) $options['display']['total_stats'] );
+		$this->assertSame( 'https://fresh.example.com/stats/', $options['url'], 'A fresh install keeps the URL it was configured with.' );
+		$this->assertSame( 3, $options['most_limit'], 'And its limit.' );
+		$this->assertSame( 0, (int) $options['display']['total_stats'], 'And its toggles; there was no legacy row to fold in.' );
 	}
 
 	/**
@@ -247,7 +247,7 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 		$markers = WP_Stats_Options::markers();
 
 		$this->assertSame( home_url( '/stats/' ), WP_Stats_Options::url(), 'A new install gets a sensible stats page URL.' );
-		$this->assertSame( WP_STATS_DB_VERSION, $markers['db'] );
+		$this->assertSame( WP_STATS_DB_VERSION, $markers['db'], 'Activation stamps the db marker, which is what stops the migration running again.' );
 	}
 
 	/**

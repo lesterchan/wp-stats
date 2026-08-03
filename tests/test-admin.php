@@ -76,23 +76,23 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 		);
 
 		$this->assertSame( 'Statistics', WP_Stats_Admin::tabs()['statistics'], 'The tab is named for the screen, not "WP-Stats Statistics".' );
-		$this->assertSame( 'Settings', WP_Stats_Admin::tabs()['settings'] );
+		$this->assertSame( 'Settings', WP_Stats_Admin::tabs()['settings'], 'Settings is the second tab, so Statistics comes first.' );
 	}
 
 	public function test_the_default_tab_is_statistics() {
-		$this->assertSame( 'statistics', WP_Stats_Admin::current_tab() );
+		$this->assertSame( 'statistics', WP_Stats_Admin::current_tab(), 'With no tab asked for, Statistics is what opens.' );
 	}
 
 	public function test_a_tab_can_be_asked_for_by_name() {
 		$_GET['tab'] = 'settings';
 
-		$this->assertSame( 'settings', WP_Stats_Admin::current_tab() );
+		$this->assertSame( 'settings', WP_Stats_Admin::current_tab(), 'A tab asked for by name is the one that opens.' );
 	}
 
 	public function test_an_unknown_tab_falls_back_rather_than_drawing_nothing() {
 		$_GET['tab'] = 'no-such-tab';
 
-		$this->assertSame( 'statistics', WP_Stats_Admin::current_tab() );
+		$this->assertSame( 'statistics', WP_Stats_Admin::current_tab(), 'An unknown tab falls back to Statistics rather than drawing an empty screen.' );
 	}
 
 	/**
@@ -102,9 +102,9 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 		$html = $this->render_page();
 
 		$this->assertSame( 1, substr_count( $html, '<h1>' ), 'One h1 per screen.' );
-		$this->assertStringContainsString( 'nav-tab-wrapper', $html );
-		$this->assertStringContainsString( 'page=wp-stats&#038;tab=statistics', $html );
-		$this->assertStringContainsString( 'page=wp-stats&#038;tab=settings', $html );
+		$this->assertStringContainsString( 'nav-tab-wrapper', $html, 'The screen carries the core tab nav wrapper.' );
+		$this->assertStringContainsString( 'page=wp-stats&#038;tab=statistics', $html, 'The Statistics tab links to itself.' );
+		$this->assertStringContainsString( 'page=wp-stats&#038;tab=settings', $html, 'The Settings tab links to itself.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -149,9 +149,9 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'id="GeneralStats"', $html );
-		$this->assertStringNotContainsString( '<form', $html );
-		$this->assertStringNotContainsString( 'options.php', $html );
+		$this->assertStringContainsString( 'id="GeneralStats"', $html, 'The Statistics tab renders the stats blocks.' );
+		$this->assertStringNotContainsString( '<form', $html, 'It carries no form; there is nothing on it to save.' );
+		$this->assertStringNotContainsString( 'options.php', $html, 'And nothing posts to options.php from it.' );
 	}
 
 	public function test_the_settings_tab_carries_the_form() {
@@ -159,7 +159,7 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'options.php', $html );
+		$this->assertStringContainsString( 'options.php', $html, 'The Settings tab is the one that posts to options.php.' );
 		$this->assertStringContainsString( 'option_page', $html, 'settings_fields() must be present or nothing saves.' );
 		$this->assertStringNotContainsString( 'id="GeneralStats"', $html, 'The report belongs to the other tab.' );
 	}
@@ -175,7 +175,8 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 
 		$this->assertStringContainsString(
 			'name="_wp_http_referer" value="' . esc_url( WP_Stats_Admin::tab_url( 'settings' ) ) . '"',
-			$this->render_page()
+			$this->render_page(),
+			'The referer field carries the tab, so a save returns to the tab it was made on.'
 		);
 	}
 
@@ -197,8 +198,8 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'settings_updated', $html );
-		$this->assertStringContainsString( 'Settings saved.', $html );
+		$this->assertStringContainsString( 'settings_updated', $html, 'The save marker reaches the screen.' );
+		$this->assertStringContainsString( 'Settings saved.', $html, 'And the notice it produces is rendered.' );
 	}
 
 	/**
@@ -215,7 +216,7 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 		$this->open_statistics_to_editors();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
 
-		$this->assertSame( 'edit_pages', WP_Stats_Admin::page_capability() );
+		$this->assertSame( 'edit_pages', WP_Stats_Admin::page_capability(), 'The menu requires whichever tab the reader can open, not the stricter of the two.' );
 	}
 
 	/**
@@ -227,9 +228,9 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 
 		$html = $this->render_page();
 
-		$this->assertStringContainsString( 'tab=statistics', $html );
+		$this->assertStringContainsString( 'tab=statistics', $html, 'The tab the reader can open is still drawn.' );
 		$this->assertStringNotContainsString( 'tab=settings', $html, 'A tab that dies when it is clicked is worse than no tab.' );
-		$this->assertStringNotContainsString( 'options.php', $html );
+		$this->assertStringNotContainsString( 'options.php', $html, 'The one they cannot is not reachable, so the form is absent entirely.' );
 
 		$_GET['tab'] = 'settings';
 
@@ -264,7 +265,7 @@ class WP_Stats_Admin_Test extends WP_Stats_TestCase {
 			array_keys( $wp_settings_fields ),
 			'A field registered against another tab would be dropped by the sanitizer on every save of this one.'
 		);
-		$this->assertSame( array( WP_Stats_Settings::PAGE ), array_keys( $wp_settings_sections ) );
+		$this->assertSame( array( WP_Stats_Settings::PAGE ), array_keys( $wp_settings_sections ), 'Every section belongs to the settings tab; none is registered against the bare page.' );
 	}
 
 	/**

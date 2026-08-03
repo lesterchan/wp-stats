@@ -43,8 +43,8 @@ class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 	 * change even though the class was renamed in 3.0.0.
 	 */
 	public function test_the_id_base_survived_the_rename() {
-		$this->assertSame( 'stats', $this->widget->id_base );
-		$this->assertSame( 'widget_stats', $this->widget->option_name );
+		$this->assertSame( 'stats', $this->widget->id_base, 'The widget keeps its released id_base, so existing sidebars still find it.' );
+		$this->assertSame( 'widget_stats', $this->widget->option_name, 'And its released option name, so their stored instances still load.' );
 	}
 
 	/**
@@ -53,12 +53,12 @@ class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 	public function test_it_renders_every_enabled_line() {
 		$html = $this->render_widget( array( 'title' => 'My Stats' ) );
 
-		$this->assertStringContainsString( '<aside>', $html );
-		$this->assertStringContainsString( '<h3>My Stats</h3>', $html );
-		$this->assertStringContainsString( 'Total Stats', $html );
-		$this->assertStringContainsString( 'Most Commented Posts', $html );
-		$this->assertStringContainsString( 'My Blog Statistics', $html );
-		$this->assertStringContainsString( '</aside>', $html );
+		$this->assertStringContainsString( '<aside>', $html, 'The widget is wrapped in the before_widget markup the theme passed.' );
+		$this->assertStringContainsString( '<h3>My Stats</h3>', $html, 'The title renders inside the theme heading markup.' );
+		$this->assertStringContainsString( 'Total Stats', $html, 'An enabled line is rendered.' );
+		$this->assertStringContainsString( 'Most Commented Posts', $html, 'Every enabled line, not only the first.' );
+		$this->assertStringContainsString( 'My Blog Statistics', $html, 'Including the link line, which is a setting of its own.' );
+		$this->assertStringContainsString( '</aside>', $html, 'And the wrapper is closed.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -72,10 +72,10 @@ class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 	 */
 	public function test_a_toggle_gates_its_line( $key, $needle ) {
 		$on = $this->render_widget( array( $key => 1 ) );
-		$this->assertStringContainsString( $needle, $on );
+		$this->assertStringContainsString( $needle, $on, 'With the toggle on, the ' . $needle . ' line is rendered.' );
 
 		$off = $this->render_widget( array( $key => 0 ) );
-		$this->assertStringNotContainsString( $needle, $off );
+		$this->assertStringNotContainsString( $needle, $off, 'With it off, the ' . $needle . ' line is gone.' );
 	}
 
 	/**
@@ -112,11 +112,11 @@ class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 			array()
 		);
 
-		$this->assertSame( 'Bold Title', $saved['title'] );
-		$this->assertSame( 7, $saved['limit'] );
-		$this->assertSame( 42, $saved['chars'] );
-		$this->assertSame( 0, $saved['show_link'] );
-		$this->assertSame( 1, $saved['stats_total_authors'] );
+		$this->assertSame( 'Bold Title', $saved['title'], 'The title is stripped of markup rather than escaped and kept.' );
+		$this->assertSame( 7, $saved['limit'], 'The limit is cast to an integer.' );
+		$this->assertSame( 42, $saved['chars'], 'And the character count.' );
+		$this->assertSame( 0, $saved['show_link'], 'An unticked checkbox stores as zero.' );
+		$this->assertSame( 1, $saved['stats_total_authors'], 'And a ticked one as one.' );
 	}
 
 	/**
@@ -132,8 +132,8 @@ class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 	public function test_update_turns_missing_checkboxes_off() {
 		$saved = $this->widget->update( array( 'submit' => 1 ), array() );
 
-		$this->assertSame( 0, $saved['stats_total_authors'] );
-		$this->assertSame( 0, $saved['show_link'] );
+		$this->assertSame( 0, $saved['stats_total_authors'], 'A checkbox absent from the post is turned off rather than left as it was.' );
+		$this->assertSame( 0, $saved['show_link'], 'Every absent checkbox, not only the first.' );
 	}
 
 	/**
@@ -146,8 +146,8 @@ class WP_Stats_Widget_Test extends WP_Stats_TestCase {
 			}
 		);
 
-		$this->assertStringContainsString( 'No. Of Records To Show', $html );
-		$this->assertStringContainsString( 'widget-stats', $html );
+		$this->assertStringContainsString( 'No. Of Records To Show', $html, 'The form draws its fields.' );
+		$this->assertStringContainsString( 'widget-stats', $html, 'Under names core will hand back to update().' );
 		$this->assertMarkupIsClean( $html );
 	}
 

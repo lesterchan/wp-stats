@@ -183,7 +183,7 @@ class WP_Stats_Metadata_Test extends Plugin_Metadata_TestCase {
 	 * @return void
 	 */
 	public function test_the_licence_block_is_the_or_later_variant() {
-		$this->assertSame( 'GPLv2 or later', $this->header_field( 'License' ) );
+		$this->assertSame( 'GPLv2 or later', $this->header_field( 'License' ), 'The header offers the later-version option, matching the licence comment.' );
 		$this->assertStringContainsString(
 			'either version 2 of the License, or',
 			$this->plugin_file(),

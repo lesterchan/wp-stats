@@ -69,8 +69,8 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	 * Counts agree with core's own.
 	 */
 	public function test_post_and_page_counts_match_core() {
-		$this->assertSame( (int) wp_count_posts( 'post' )->publish, get_totalposts( false ) );
-		$this->assertSame( (int) wp_count_posts( 'page' )->publish, get_totalpages( false ) );
+		$this->assertSame( (int) wp_count_posts( 'post' )->publish, get_totalposts( false ), 'The post count is core count, not a query of its own that could drift.' );
+		$this->assertSame( (int) wp_count_posts( 'page' )->publish, get_totalpages( false ), 'And the page count.' );
 	}
 
 	/**
@@ -84,7 +84,7 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 			)
 		);
 
-		$this->assertSame( (int) $approved, get_totalcomments( false ) );
+		$this->assertSame( (int) $approved, get_totalcomments( false ), 'The comment count is the approved comments, excluding spam and pending.' );
 
 		$names = array();
 		foreach ( get_comments(
@@ -96,7 +96,7 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 			$names[ $comment->comment_author ] = true;
 		}
 
-		$this->assertSame( count( $names ), get_totalcommentposters( false ) );
+		$this->assertSame( count( $names ), get_totalcommentposters( false ), 'The commenter count is distinct people, not comments.' );
 	}
 
 	/**
@@ -112,7 +112,7 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 		}
 
 		$this->assertGreaterThanOrEqual( 2, $expected, 'Fixture sanity: more than one author.' );
-		$this->assertSame( $expected, get_totalauthors( false ) );
+		$this->assertSame( $expected, get_totalauthors( false ), 'The author count is users who can publish, not every registered user.' );
 	}
 
 	/**
@@ -121,8 +121,8 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	public function test_listings_exclude_drafts() {
 		$html = get_recentposts( 'post', 10, false );
 
-		$this->assertStringContainsString( 'Stats Post One', $html );
-		$this->assertStringNotContainsString( 'Stats Draft', $html );
+		$this->assertStringContainsString( 'Stats Post One', $html, 'A published post is listed.' );
+		$this->assertStringNotContainsString( 'Stats Draft', $html, 'A draft is not, so the listing is what a visitor may see.' );
 	}
 
 	/**
@@ -147,24 +147,24 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	public function test_most_commented_truncates_the_link_text() {
 		$html = get_mostcommented( 'post', 10, 6, false );
 
-		$this->assertStringContainsString( '>Stats ...</a>', $html );
-		$this->assertStringNotContainsString( '>Stats Post One</a>', $html );
+		$this->assertStringContainsString( '>Stats ...</a>', $html, 'The link text is truncated to the character limit.' );
+		$this->assertStringNotContainsString( '>Stats Post One</a>', $html, 'The untruncated title is not rendered alongside it.' );
 	}
 
 	/**
 	 * The threshold hides commenters below it.
 	 */
 	public function test_comment_members_honours_the_threshold() {
-		$this->assertStringContainsString( 'Normal Commenter', get_commentmembersstats( -1, 0, false ) );
-		$this->assertStringNotContainsString( 'Normal Commenter', get_commentmembersstats( 99, 0, false ) );
+		$this->assertStringContainsString( 'Normal Commenter', get_commentmembersstats( -1, 0, false ), 'Below the threshold the commenter is listed.' );
+		$this->assertStringNotContainsString( 'Normal Commenter', get_commentmembersstats( 99, 0, false ), 'Above it they are not, so the threshold is what filters.' );
 	}
 
 	/**
 	 * Snippet text truncates and leaves short text alone.
 	 */
 	public function test_snippet_text() {
-		$this->assertSame( 'Stats Post...', snippet_text( 'Stats Post One', 10 ) );
-		$this->assertSame( 'Short', snippet_text( 'Short', 100 ) );
+		$this->assertSame( 'Stats Post...', snippet_text( 'Stats Post One', 10 ), 'A string past the limit is cut and given an ellipsis.' );
+		$this->assertSame( 'Short', snippet_text( 'Short', 100 ), 'A string within it is returned whole, with no ellipsis added.' );
 	}
 
 	/**
@@ -175,7 +175,7 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 		get_totalposts( true );
 		$echoed = ob_get_clean();
 
-		$this->assertSame( (string) get_totalposts( false ), $echoed );
+		$this->assertSame( (string) get_totalposts( false ), $echoed, 'The display argument echoes exactly what the return form would have given.' );
 	}
 
 	/**
@@ -190,7 +190,7 @@ class WP_Stats_Template_Tags_Test extends WP_Stats_TestCase {
 	public function test_stats_page_link( $url, $page, $expected ) {
 		$this->set_url( $url );
 
-		$this->assertSame( $expected, stats_page_link( 'bob', $page ) );
+		$this->assertSame( $expected, stats_page_link( 'bob', $page ), 'The author link is built from the configured Stats URL.' );
 	}
 
 	/**

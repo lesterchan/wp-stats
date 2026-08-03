@@ -35,9 +35,9 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 	public function test_the_screen_renders() {
 		$html = $this->render_screen();
 
-		$this->assertStringContainsString( '<h1>Stats</h1>', $html );
+		$this->assertStringContainsString( '<h1>Stats</h1>', $html, 'The screen is headed.' );
 		$this->assertStringContainsString( 'option_page', $html, 'settings_fields() must be present or nothing saves.' );
-		$this->assertStringContainsString( '_wpnonce', $html );
+		$this->assertStringContainsString( '_wpnonce', $html, 'And carries a nonce, so the save is not forgeable.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -88,12 +88,12 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 			unset( $wp_settings_fields[ WP_Stats_Settings::PAGE ][ WP_Stats_Settings::SECTION_DISPLAY ]['wp_stats_third_party_field'] );
 		}
 
-		$this->assertStringContainsString( 'A Third Party Field', $html );
-		$this->assertStringContainsString( 'drawn-by-the-settings-api', $html );
+		$this->assertStringContainsString( 'A Third Party Field', $html, 'A field another plugin registered is drawn.' );
+		$this->assertStringContainsString( 'drawn-by-the-settings-api', $html, 'Drawn by the Settings API rather than by this plugin walking a list of its own.' );
 
 		// The section heading and the form table are core's, not hand-written.
-		$this->assertStringContainsString( 'Type Of Stats To Display', $html );
-		$this->assertStringContainsString( 'class="form-table"', $html );
+		$this->assertStringContainsString( 'Type Of Stats To Display', $html, 'The plugin own fields are drawn alongside it.' );
+		$this->assertStringContainsString( 'class="form-table"', $html, 'All of them inside the core form table, so the screen looks like core.' );
 	}
 
 	/**
@@ -105,9 +105,9 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 
 		$html = $this->render_screen();
 
-		$this->assertStringContainsString( 'Top 7 Recent Stats', $html );
-		$this->assertStringContainsString( '7 Most Recent Posts', $html );
-		$this->assertStringContainsString( 'Top 7 Most/Highest Stats', $html );
+		$this->assertStringContainsString( 'Top 7 Recent Stats', $html, 'The stored limit reaches this label.' );
+		$this->assertStringContainsString( '7 Most Recent Posts', $html, 'And this one.' );
+		$this->assertStringContainsString( 'Top 7 Most/Highest Stats', $html, 'And this one, which is why they are rebuilt per call rather than registered once.' );
 	}
 
 	/**
@@ -129,7 +129,7 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 			);
 		}
 
-		$this->assertStringNotContainsString( 'name="stats_display[]"', $html );
+		$this->assertStringNotContainsString( 'name="stats_display[]"', $html, 'No toggle posts as a bare array member; each has its own name.' );
 		$this->assertStringNotContainsString( '[known][]', $html, 'The hidden bookkeeping field is no longer needed.' );
 	}
 
@@ -165,13 +165,13 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 			)
 		);
 
-		$this->assertSame( 'https://example.com/stats/', $saved['url'] );
-		$this->assertSame( 25, $saved['most_limit'] );
-		$this->assertSame( 1, $saved['display']['total_stats'] );
-		$this->assertSame( 1, $saved['display']['tags_list'] );
+		$this->assertSame( 'https://example.com/stats/', $saved['url'], 'The URL round-trips through the sanitiser.' );
+		$this->assertSame( 25, $saved['most_limit'], 'And the limit.' );
+		$this->assertSame( 1, $saved['display']['total_stats'], 'And a ticked toggle.' );
+		$this->assertSame( 1, $saved['display']['tags_list'], 'And every ticked toggle, not only the first.' );
 
 		$this->assertArrayHasKey( 'recent_posts', $saved['display'], 'An unticked box must persist as 0, not vanish.' );
-		$this->assertSame( 0, $saved['display']['recent_posts'] );
+		$this->assertSame( 0, $saved['display']['recent_posts'], 'While an unticked one comes back off rather than being left out.' );
 	}
 
 	/**
@@ -202,7 +202,7 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 			)
 		);
 
-		$this->assertSame( 1, $saved['most_limit'] );
+		$this->assertSame( 1, $saved['most_limit'], 'A limit below one is clamped rather than stored as zero.' );
 	}
 
 	/**
@@ -266,8 +266,8 @@ class WP_Stats_Settings_Test extends WP_Stats_TestCase {
 
 		$html = $this->render_screen();
 
-		$this->assertStringContainsString( 'settings_updated', $html );
-		$this->assertStringContainsString( 'Settings saved.', $html );
+		$this->assertStringContainsString( 'settings_updated', $html, 'The save marker reaches the screen.' );
+		$this->assertStringContainsString( 'Settings saved.', $html, 'And the notice it produces is rendered.' );
 	}
 
 	public function test_the_setting_is_registered_against_its_own_group() {

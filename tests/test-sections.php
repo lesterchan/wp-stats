@@ -70,7 +70,7 @@ class WP_Stats_Sections_Test extends WP_Stats_TestCase {
 	public function test_the_plugins_heading_is_absent_when_nothing_contributes() {
 		$html = $this->render( 'stats_page' );
 
-		$this->assertStringNotContainsString( 'id="PluginsStats"', $html );
+		$this->assertStringNotContainsString( 'id="PluginsStats"', $html, 'With no plugin contributing, the heading is absent rather than standing over nothing.' );
 	}
 
 	public function test_sections_render_in_priority_order() {
@@ -193,7 +193,7 @@ class WP_Stats_Sections_Test extends WP_Stats_TestCase {
 	public function test_the_filter_returning_something_that_is_not_an_array_is_survivable() {
 		$this->contribute_raw( '__return_false' );
 
-		$this->assertSame( array(), WP_Stats_Page::sections() );
+		$this->assertSame( array(), WP_Stats_Page::sections(), 'A filter returning a non-array is answered with an empty list rather than fatal.' );
 		$this->assertMarkupIsClean( $this->render( 'stats_page' ) );
 	}
 
@@ -216,7 +216,7 @@ class WP_Stats_Sections_Test extends WP_Stats_TestCase {
 
 		$html = $this->render( 'stats_page' );
 
-		$this->assertStringContainsString( 'replaced by the theme', $html );
+		$this->assertStringContainsString( 'replaced by the theme', $html, 'A theme can take over one section action without displacing the others.' );
 		$this->assertStringNotContainsString( 'body of wp_polls', $html, "WP-Stats' own rendering stood down." );
 		$this->assertStringContainsString( 'body of wp_email', $html, 'The other section is untouched.' );
 	}
@@ -240,8 +240,8 @@ class WP_Stats_Sections_Test extends WP_Stats_TestCase {
 
 		$this->render( 'stats_page' );
 
-		$this->assertSame( 'Polls', $seen['title'] );
-		$this->assertSame( 7, $seen['priority'] );
+		$this->assertSame( 'Polls', $seen['title'], 'The action is handed the entry title.' );
+		$this->assertSame( 7, $seen['priority'], 'And its priority, so a listener can order itself against the rest.' );
 		$this->assertIsCallable( $seen['render'], 'The section entry hands the action something it can call to render.' );
 	}
 

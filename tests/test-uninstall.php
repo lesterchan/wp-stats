@@ -63,7 +63,7 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 		wp_stats_test_run_uninstall();
 
 		$count = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->options WHERE option_name = 'wp_stats_options'" );
-		$this->assertSame( 0, (int) $count );
+		$this->assertSame( 0, (int) $count, 'Running the uninstaller twice leaves nothing behind and raises nothing.' );
 	}
 
 	/**
@@ -111,7 +111,7 @@ class WP_Stats_Uninstall_Test extends WP_Stats_TestCase {
 
 		// The single-site branch of the if/else. Everything before it is the
 		// multisite loop, so that is where the restore has to fall.
-		$this->assertSame( 1, preg_match( '/\}\s*else\s*\{/', $source, $m, PREG_OFFSET_CAPTURE ) );
+		$this->assertSame( 1, preg_match( '/\}\s*else\s*\{/', $source, $m, PREG_OFFSET_CAPTURE ), 'The multisite loop has an else branch, which is where the single-site path lives.' );
 
 		$this->assertLessThan( $m[0][1], $restore, 'restore_current_blog() must be inside the foreach.' );
 	}

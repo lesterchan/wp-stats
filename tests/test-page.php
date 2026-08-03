@@ -44,7 +44,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	public function test_section_headings_render( $id ) {
 		$html = $this->render( 'stats_page' );
 
-		$this->assertStringContainsString( 'id="' . $id . '"', $html );
+		$this->assertStringContainsString( 'id="' . $id . '"', $html, 'The ' . $id . ' section heading is missing from the page.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -68,10 +68,10 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	 * Each toggle gates its own block.
 	 */
 	public function test_a_toggle_gates_its_block() {
-		$this->assertStringNotContainsString( 'Most Commented Page', $this->render( 'stats_page' ) );
+		$this->assertStringNotContainsString( 'Most Commented Page', $this->render( 'stats_page' ), 'With the toggle off the block is absent.' );
 
 		$this->set_display( array( 'commented_page' => 1 ) );
-		$this->assertStringContainsString( 'Most Commented Page', $this->render( 'stats_page' ) );
+		$this->assertStringContainsString( 'Most Commented Page', $this->render( 'stats_page' ), 'With it on the block is drawn, so the toggle is what gates it.' );
 	}
 
 	/**
@@ -83,8 +83,8 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 		$html = $this->render( 'stats_page' );
 
-		$this->assertStringNotContainsString( 'id="GeneralStats"', $html );
-		$this->assertStringContainsString( 'id="MiscStats"', $html );
+		$this->assertStringNotContainsString( 'id="GeneralStats"', $html, 'Turning the block off takes its heading with it.' );
+		$this->assertStringContainsString( 'id="MiscStats"', $html, 'The blocks beside it are untouched.' );
 	}
 
 	/**
@@ -93,7 +93,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	public function test_most_limit_reaches_the_headings() {
 		$this->set_limit( 1 );
 
-		$this->assertStringContainsString( 'Top 1 Recent Stat', $this->render( 'stats_page' ) );
+		$this->assertStringContainsString( 'Top 1 Recent Stat', $this->render( 'stats_page' ), 'The stored limit reaches the heading, not only the query.' );
 	}
 
 	/**
@@ -109,7 +109,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 		$html = $this->render( 'stats_page' );
 
-		$this->assertStringContainsString( '<!--filtered-->', $html );
+		$this->assertStringContainsString( '<!--filtered-->', $html, 'The page filter is handed the finished markup and can add to it.' );
 		$this->assertStringContainsString( '<div class="wp-stats">', $html, 'The filter is handed the wrapper, not the bare blocks.' );
 	}
 
@@ -124,7 +124,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 			}
 		);
 
-		$this->assertStringNotContainsString( '<!--old-name-->', $this->render( 'stats_page' ) );
+		$this->assertStringNotContainsString( '<!--old-name-->', $this->render( 'stats_page' ), 'The unprefixed filter name is no longer fired; it was any plugin to claim.' );
 	}
 
 	/**
@@ -133,8 +133,8 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	public function test_the_author_view_lists_their_comments() {
 		$html = $this->with_query( array( 'stats_author' => 'Normal Commenter' ) );
 
-		$this->assertStringContainsString( 'Comments Posted By', $html );
-		$this->assertStringContainsString( 'Back To Stats Page', $html );
+		$this->assertStringContainsString( 'Comments Posted By', $html, 'The author view is headed with whose comments these are.' );
+		$this->assertStringContainsString( 'Back To Stats Page', $html, 'And offers the way back, since it replaces the whole page.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -144,8 +144,8 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	public function test_the_author_name_is_escaped() {
 		$html = $this->with_query( array( 'stats_author' => '<script>alert(1)</script>' ) );
 
-		$this->assertStringNotContainsString( '<script>alert(1)</script>', $html );
-		$this->assertStringContainsString( '&lt;script&gt;', $html );
+		$this->assertStringNotContainsString( '<script>alert(1)</script>', $html, 'A hostile author name never renders as markup.' );
+		$this->assertStringContainsString( '&lt;script&gt;', $html, 'It renders as text, so the name is still readable.' );
 	}
 
 	/**
@@ -163,9 +163,9 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 		$html = $this->with_query( array( 'stats_author' => wp_slash( "Sinead O'Brien" ) ) );
 
-		$this->assertStringNotContainsString( 'has not made any comments yet', $html );
+		$this->assertStringNotContainsString( 'has not made any comments yet', $html, 'An apostrophe in the name still matches their comments.' );
 		$this->assertStringContainsString( 'Stats Post One', $html, 'The drill-down found none of their comments.' );
-		$this->assertStringContainsString( 'Sinead O&#039;Brien', $html );
+		$this->assertStringContainsString( 'Sinead O&#039;Brien', $html, 'And the name renders with the apostrophe escaped rather than as a slash.' );
 		$this->assertStringNotContainsString( 'O\\&#039;Brien', $html, 'A backslash reached the heading.' );
 		$this->assertMarkupIsClean( $html );
 	}
@@ -183,7 +183,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 		$html = $this->with_query( array( 'stats_author' => wp_slash( "Sinead O'Brien" ) ) );
 
-		$this->assertStringContainsString( 'stats_author=' . rawurlencode( "Sinead O'Brien" ), $html );
+		$this->assertStringContainsString( 'stats_author=' . rawurlencode( "Sinead O'Brien" ), $html, 'The paging links carry the name encoded, so page two finds the same commenter.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -193,7 +193,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	public function test_an_unknown_author_gets_the_empty_message() {
 		$html = $this->with_query( array( 'stats_author' => 'Nobody At All' ) );
 
-		$this->assertStringContainsString( 'has not made any comments yet', $html );
+		$this->assertStringContainsString( 'has not made any comments yet', $html, 'An author with no comments gets the empty message rather than an empty list.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -209,7 +209,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 		);
 
 		$this->assertMarkupIsClean( $html );
-		$this->assertStringContainsString( 'Comments Posted By', $html );
+		$this->assertStringContainsString( 'Comments Posted By', $html, 'A negative page is clamped and the view still renders.' );
 	}
 
 	/**
@@ -228,8 +228,8 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 		$detail = $this->with_query( array( 'stats_author' => 'Secret Commenter' ) );
 
-		$this->assertStringContainsString( 'has not made any comments yet', $detail );
-		$this->assertStringNotContainsString( 'Stats Protected Post', $this->render( 'stats_page' ) );
+		$this->assertStringContainsString( 'has not made any comments yet', $detail, 'Comments on a password-protected post are excluded from the author view.' );
+		$this->assertStringNotContainsString( 'Stats Protected Post', $this->render( 'stats_page' ), 'And the post itself is excluded from the listings.' );
 	}
 
 	/**
@@ -240,8 +240,8 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 
 		$html = $this->render( array( 'WP_Stats_Admin', 'render' ) );
 
-		$this->assertStringContainsString( 'class="wrap"', $html );
-		$this->assertStringContainsString( 'id="GeneralStats"', $html );
+		$this->assertStringContainsString( 'class="wrap"', $html, 'The admin screen wraps the page in the core container.' );
+		$this->assertStringContainsString( 'id="GeneralStats"', $html, 'And renders the same blocks the public page does.' );
 		$this->assertMarkupIsClean( $html );
 	}
 
@@ -263,9 +263,9 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 			2
 		);
 
-		$this->assertSame( 'edit_posts', WP_Stats_Admin::capability( 'statistics' ) );
-		$this->assertSame( 'manage_options', WP_Stats_Admin::capability( 'settings' ) );
-		$this->assertSame( array( 'statistics', 'settings' ), $seen );
+		$this->assertSame( 'edit_posts', WP_Stats_Admin::capability( 'statistics' ), 'The filter can set the Statistics tab capability.' );
+		$this->assertSame( 'manage_options', WP_Stats_Admin::capability( 'settings' ), 'And the Settings tab separately, so the two are not one gate.' );
+		$this->assertSame( array( 'statistics', 'settings' ), $seen, 'It is told which tab is asking, each time it is asked.' );
 	}
 
 	/**
@@ -278,7 +278,7 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 			}
 		);
 
-		$this->assertStringContainsString( 'id="GeneralStats"', $html );
+		$this->assertStringContainsString( 'id="GeneralStats"', $html, 'The shortcode renders the same page a theme would.' );
 	}
 
 	/**
