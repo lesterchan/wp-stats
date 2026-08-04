@@ -140,6 +140,47 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 		$this->assertSame( 0, (int) $options['display']['link_cats'], 'And its display toggles, which is the half a partial migration drops.' );
 	}
 
+	/**
+	 * A site that never touched the settings still gets a row written.
+	 *
+	 * Every other fixture in this file is customised, and deliberately so --
+	 * "deliberately opposite to the defaults in both directions" is the comment
+	 * on the one above. That is right for "did the values carry across" and it
+	 * is blind to §7.6.1, because a result differing from the defaults lands
+	 * whatever happened on the way in.
+	 *
+	 * This is the other install, and the commonest one. It seeds the legacy rows
+	 * with exactly what the plugin ships, so the migration's result is equal to
+	 * the defaults, and it runs on the far side of register_setting() so the
+	 * default_option_wp_stats_options filter is live while the write happens.
+	 * Under those two conditions an absent row reads back as the defaults, and
+	 * a bare update_option() would compare the two, find them identical and
+	 * write nothing -- while the legacy rows were deleted regardless.
+	 *
+	 * WP_Stats_Options::write() is what stops that, and this is what says so.
+	 * Asserted on the raw row, because get() merges over the defaults and cannot
+	 * tell a write that happened from one that did not.
+	 */
+	public function test_a_stock_pre_300_install_still_gets_its_row_written() {
+		$this->given_a_pre_300_install_on_stock_settings();
+
+		$this->assertFalse( get_option( WP_Stats_Options::OPTION, false ), 'The fixture is only pre-migration if the settings row is genuinely absent.' );
+
+		WP_Stats_Settings::register();
+
+		WP_Stats_Options::maybe_upgrade();
+		WP_Stats_Options::flush();
+
+		$stored = get_option( WP_Stats_Options::OPTION, false );
+
+		$this->assertIsArray( $stored, 'The migration must write the settings row even when its result equals the shipped defaults.' );
+		$this->assertSame( WP_Stats_Options::display_defaults(), $stored['display'], 'And the toggles are in the row, not merely answered by the registered default.' );
+
+		foreach ( $this->legacy as $name ) {
+			$this->assertFalse( get_option( $name, false ), sprintf( 'The legacy row %s must not survive the migration.', $name ) );
+		}
+	}
+
 	public function test_the_migration_deletes_every_row_it_folded_in() {
 		$this->given_a_pre_300_install();
 
@@ -300,6 +341,25 @@ class WP_Stats_Options_Test extends WP_Stats_TestCase {
 		}
 
 		WP_Stats_Options::flush();
+	}
+
+	/**
+	 * The same install, on the settings WP-Stats shipped.
+	 *
+	 * Built from defaults() and display_defaults() rather than typed out, so a
+	 * default that changes stays stock here instead of quietly becoming a
+	 * customised fixture and losing the property this is for.
+	 *
+	 * @return void
+	 */
+	private function given_a_pre_300_install_on_stock_settings() {
+		$this->given_a_clean_slate();
+
+		$defaults = WP_Stats_Options::defaults();
+
+		update_option( 'stats_url', $defaults['url'] );
+		update_option( 'stats_mostlimit', $defaults['most_limit'] );
+		update_option( 'stats_display', WP_Stats_Options::display_defaults() );
 	}
 
 	/**
