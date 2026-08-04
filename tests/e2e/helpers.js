@@ -164,6 +164,140 @@ function resetOptions() {
 }
 
 /**
+ * The settings row as the database holds it, with no defaults merged in.
+ *
+ * Not the same question as option() above, and the difference is the whole of
+ * §7.6.1: WP_Stats_Options::get() merges over the defaults, so it answers
+ * identically for a row holding the defaults and for no row at all -- which is
+ * what a migration that read, deleted and never wrote leaves behind. Ask the
+ * database when the question is "was it written".
+ *
+ * @return {Object|false} The stored array, or false when there is no row.
+ */
+function rawOptions() {
+	return wpEvalJson( 'get_option( WP_Stats_Options::OPTION )' );
+}
+
+/**
+ * The defaults the running code would fall back to.
+ *
+ * @return {Object} The default settings.
+ */
+function defaultOptions() {
+	return wpEvalJson( 'WP_Stats_Options::defaults()' );
+}
+
+/**
+ * Put the install back into the shape a pre-3.0.0 site is in.
+ *
+ * The prefixed rows go away and whichever unprefixed ones the caller names take
+ * their place. Two generations reach this: stats_url, stats_mostlimit and
+ * stats_display are the 2.x rows, and stats_options is the consolidated row an
+ * unreleased 3.0.0 build wrote before the name gained its prefix.
+ *
+ * **It hands back what it can see, and that is not a convenience.**
+ * maybe_upgrade() is hooked to plugins_loaded, which a WP-CLI request reaches
+ * like any other. So the moment this call ends, the next `wp eval` boots
+ * WordPress with the markers missing and performs the upgrade itself, before
+ * running a line of the code it was given -- and a test that read the rows back
+ * through another helper would be asserting on WP-CLI's run rather than on the
+ * browser's, with nothing left for the browser to do.
+ *
+ * @param {Object} rows Legacy option name => value, stored exactly as given.
+ * @return {{legacy: string[], options: *, version: *}} The state as just seeded.
+ */
+function installLegacyRows( rows ) {
+	return JSON.parse(
+		wpEval(
+			`delete_option( WP_Stats_Options::OPTION );
+			delete_option( WP_Stats_Options::VERSION );
+			foreach ( WP_Stats_Options::LEGACY_ROWS as $row ) {
+				delete_option( $row );
+			}
+			foreach ( json_decode( base64_decode( '${ encode( rows ) }' ), true ) as $name => $value ) {
+				update_option( $name, $value );
+			}
+			WP_Stats_Options::flush();
+
+			$alive = array();
+			foreach ( WP_Stats_Options::LEGACY_ROWS as $row ) {
+				if ( false !== get_option( $row, false ) ) {
+					$alive[] = $row;
+				}
+			}
+
+			echo '<<<' . wp_json_encode( array(
+				'legacy'  => array_values( $alive ),
+				'options' => get_option( WP_Stats_Options::OPTION ),
+				'version' => get_option( WP_Stats_Options::VERSION ),
+			) ) . '>>>';`,
+		),
+	);
+}
+
+/**
+ * Which pre-3.0.0 rows are still in the database.
+ *
+ * Read through the plugin's own list rather than a set typed out here, so a row
+ * that is added to the migration and forgotten by the cleanup -- or the other
+ * way round -- shows up as a failure instead of going unnoticed.
+ *
+ * @return {string[]} The legacy rows that survive.
+ */
+function survivingLegacyRows() {
+	return wpEvalJson(
+		`array_values( array_filter(
+			WP_Stats_Options::LEGACY_ROWS,
+			static function ( $name ) {
+				return false !== get_option( $name, false );
+			}
+		) )`,
+	);
+}
+
+/**
+ * The upgrade markers, as the database holds them.
+ *
+ * @return {Object|false} The stored array, or false when there is no row.
+ */
+function versionRow() {
+	return wpEvalJson( 'get_option( WP_Stats_Options::VERSION )' );
+}
+
+/**
+ * Stamp the upgrade markers, or take them away.
+ *
+ * @param {Object|null} versions The two markers, or null to remove the row.
+ * @return {void}
+ */
+function setVersionRow( versions ) {
+	if ( null === versions ) {
+		wpEval( 'delete_option( WP_Stats_Options::VERSION ); echo \'<<<done>>>\';' );
+
+		return;
+	}
+
+	wpEval(
+		`update_option( WP_Stats_Options::VERSION, json_decode( base64_decode( '${ encode( versions ) }' ), true ) );
+		echo '<<<done>>>';`,
+	);
+}
+
+/**
+ * The version numbers the running code expects to find stamped.
+ *
+ * @return {{plugin: string, db: string}} The two markers.
+ */
+function runningVersions() {
+	return wpEvalJson(
+		`array(
+			'plugin' => WP_STATS_VERSION,
+			'db'     => WP_STATS_DB_VERSION,
+		)`,
+	);
+}
+
+/**
  * Turn every display toggle on, or off.
  *
  * @param {number} value 1 for on, 0 for off.
@@ -829,28 +963,35 @@ module.exports = {
 	asGuest,
 	createStatsPage,
 	deleteAllComments,
+	defaultOptions,
 	deleteAllLinks,
 	ensureUser,
 	insertComment,
 	insertComments,
 	insertLink,
+	installLegacyRows,
 	installMuPlugin,
 	installProbe,
 	installSections,
 	loginAs,
 	openSettings,
 	option,
+	rawOptions,
 	removeMuPlugin,
 	removeProbe,
 	removeSections,
 	removeStatsWidget,
 	resetOptions,
+	runningVersions,
 	saveSettings,
 	setAllToggles,
 	setOptions,
 	setRawTitle,
+	setVersionRow,
+	survivingLegacyRows,
 	takeOverSection,
 	uniqueTitle,
+	versionRow,
 	wpEval,
 	wpEvalJson,
 };
