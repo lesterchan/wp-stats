@@ -2,10 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-WP-Stats follows `_standards/STANDARDS.md` in the parent folder, which is the
-contract for all nineteen plugins in the collection. Where this file and that
-one disagree, that one wins.
-
 ## What it is
 
 A statistics page — post, comment, user, category, tag and link totals, "most
@@ -14,29 +10,29 @@ commented", "recent comments", a per-commenter drill-down — available as the
 and as a sidebar widget. It stores no statistics of its own; everything is
 counted on read.
 
-**WP-Stats owns the one cross-plugin contract in the collection.** Read §13 of
-STANDARDS.md before changing anything in `WP_Stats_Page`.
+**This plugin owns a contract other plugins depend on.** Read the section below
+before changing anything in `WP_Stats_Page`.
 
 ## The `wp_stats_sections` contract
 
-Six siblings (wp-email, wp-polls, wp-postratings, wp-postviews, wp-useronline,
-wp-downloadmanager) put blocks on the statistics page. Since 3.0.0 they do it by
-answering one filter:
+Companion plugins — WP-EMail, WP-Polls, WP-PostRatings, WP-PostViews,
+WP-UserOnline and WP-DownloadManager — put blocks on the statistics page. Since
+3.0.0 they do it by answering one filter:
 
 ```php
 $sections = apply_filters( 'wp_stats_sections', array() );
 ```
 
-Each returns one entry keyed by its own `{{UNDER}}`, holding `title`, `priority`
-and `render`. WP-Stats sorts by priority, ties broken by `strcmp()` on the key,
+Each returns one entry keyed by its own prefix (`wp_polls`, `wp_postviews`, …),
+holding `title`, `priority` and `render`. WP-Stats sorts by priority, ties broken by `strcmp()` on the key,
 and fires `wp_stats_section_{key}` for each — its **own** listener at priority 10
 echoes the title and calls `render`, which is what lets a theme replace one
 block by hooking earlier and removing that listener.
 
 Rules that the tests in `tests/test-sections.php` pin, and that must not drift:
 
-* **WP-Stats reads no sibling's option row.** `test_wp_stats_reads_no_sibling_option_row`.
-  Before 3.0.0 it had to know the names of every panel each of six plugins owned,
+* **WP-Stats reads no other plugin's option row.** `test_wp_stats_reads_no_sibling_option_row`.
+  Before 3.0.0 it had to know the names of every panel each companion owned,
   and read the shared `stats_display` row to find out whether it was allowed to
   draw them. That is why a section could be rendered for a plugin that was not
   installed.
@@ -57,28 +53,33 @@ Eleven hooks were removed to make this: nine `wp_stats_page_*` /
 ## Data
 
 `wp_stats_options` (absorbing `stats_url`, `stats_mostlimit` and the shared
-`stats_display`) and `wp_stats_version`. Per §13.2 the migration deletes the
-shared rows — **and `uninstall.php` must not.** Up to six siblings that have not
-upgraded are still reading them.
+`stats_display`) and `wp_stats_version`, which holds the `plugin` and `db`
+upgrade markers and nothing else.
 
-`_standards/RESUME.md` records that wp-stats (with wp-polls) is missing the
-"Update all seven WP-Stats plugins together" line the other five carry, and that
-two family tests are failing on it. Left failing deliberately.
+`stats_display` was **this plugin's own row**, but the companion plugins wrote
+their toggles into it, so the migration has to keep the toggles WP-Stats owns
+and drop theirs — they are not its to hold, and each companion reads the same
+row in its own migration. The migration deletes the shared rows once it has
+folded them in; **`uninstall.php` must not**, because a companion that has not
+upgraded is still reading them.
+
+The README is missing the "Update all the WP-Stats plugins together" line its
+companions carry, and two family tests fail on that. Left failing deliberately.
 
 ## Traps
 
-* **One menu, one page, two tabs** (`Statistics` / `Settings`), per §4.2.1. Both
-  screens moved: statistics from `Dashboard → WP-Stats`, settings from
+* **One menu, one page, two tabs** (`Statistics` / `Settings`). Both screens
+  moved: statistics from `Dashboard → WP-Stats`, settings from
   `Settings → Stats`. There are no submenu entries.
 * **`wp_stats_capability` is filtered per *tab*, not per screen**, with
   `statistics` and `settings` contexts, and the page itself registers with
-  whichever capability the current user holds. §4.2.1 spells out why this matters:
-  give the page the lower capability and forget the per-tab check, and filtering
-  the report down to `list_users` silently opens the settings form to that role.
-  That is privilege escalation dressed as a layout change.
-* **The dashicon is `chart-area`, not `chart-bar`.** wp-polls had the same icon
-  until somebody noticed they were indistinguishable at 20px; wp-polls draws
-  bars, so it kept `chart-bar` (§4.1, commit `59c79df`).
+  whichever capability the current user holds. Both halves matter: give the page
+  the lower capability and forget the per-tab check, and filtering the report
+  down to `list_users` silently opens the settings form to that role. That is
+  privilege escalation dressed as a layout change.
+* **The dashicon is `chart-area`, not `chart-bar`** (commit `59c79df`).
+  WP-Polls draws bars and keeps `chart-bar`; the two were indistinguishable at
+  20px while both used it.
 * **`WP_Stats_Query` is all core query APIs now**, not hand-written SQL: results
   go through core's object caches and a site's content-hiding filters still
   apply. Three methods group or count-distinct on `comment_author`, which
@@ -105,15 +106,41 @@ two family tests are failing on it. Left failing deliberately.
   `sanitize_text_field()`, which does not remove backslashes; the docblock here
   and in the source used to claim the opposite, and "Sinead O'Brien" got an
   empty drill-down for it.
-* §7.2.1: this is the plugin whose `test_no_jquery_is_enqueued()` failed because
-  the needle `wp_enqueue_script` (no bracket) is a substring of the action name
-  `wp_enqueue_scripts`, which it legitimately hooks to enqueue a *stylesheet*.
-  Four siblings carried the same bug, passing only for want of a sheet.
+* **A needle without its bracket matches the wrong thing.**
+  `test_no_jquery_is_enqueued()` searched for `wp_enqueue_script`, which is a
+  substring of the action name `wp_enqueue_scripts` — legitimately hooked here
+  to enqueue a *stylesheet*. Search for `wp_enqueue_script(` with the bracket.
+
+## Migrations, and why they are tested through a browser
+
+`maybe_upgrade()` hangs off `plugins_loaded`, so every request reaches it —
+activation hooks do not fire on a plugin update, which is the usual reason a
+migration never runs at all.
+
+Two generations fold in at once: `stats_url`, `stats_mostlimit` and
+`stats_display` are the 2.x rows, and `stats_options` is the consolidated row an
+unreleased 3.0.0 build wrote before the name gained its prefix. A dedicated 2.x
+row is the later word and wins over the copy inside that one.
+
+Three things `tests/e2e/upgrade.spec.js` relies on:
+
+* **A `wp eval` call is itself an upgrade request**, because WP-CLI reaches
+  `plugins_loaded` like any other request. Seed the fixture and read it back
+  inside *one* call; a second call finds the rows already migrated, and the
+  browser request then has nothing left to do.
+* **Read rows raw** — `WP_Stats_Options::get()` merges over the defaults, so it
+  cannot tell a written row from an absent one.
+* **A fresh install writes no settings row at all**, deliberately: there is
+  nothing to carry over, so the row stays absent and every read merges the
+  defaults. Only the markers are written, and only so the check does not run
+  again. A test expecting a row there would be asserting a behaviour the plugin
+  does not have.
 
 ## Tests
 
+`bin/test.sh` runs PHPUnit, `bin/test-multisite.sh` the network pass, and
+`bin/test-e2e.sh` the Playwright suite. **Run them rather than trusting a note
+about their last result** — CI is the authority, and this file cannot be.
+
 `tests/test-sections.php` is the contract's specification in executable form —
-read it before changing the filter. `tests/e2e/` is 9 specs and 91 tests.
-`upgrade.spec.js` (6) is green as of 2026-08-05; **the rest were not re-run that
-day** — the last full attempt reached 46/94 before the environment was torn
-down, so verify before trusting them.
+read it before changing the filter.
