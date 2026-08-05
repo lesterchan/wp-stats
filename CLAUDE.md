@@ -113,6 +113,7 @@ two family tests are failing on it. Left failing deliberately.
 ## Tests
 
 `tests/test-sections.php` is the contract's specification in executable form —
-read it before changing the filter. `tests/e2e/` is ten specs and 84 tests, among
-the twelve suites `_standards/RESUME.md` lists as never run to green; the third
-agent got it to 46/94 before the environment was torn down.
+read it before changing the filter. `tests/e2e/` is 9 specs and 91 tests.
+`upgrade.spec.js` (6) is green as of 2026-08-05; **the rest were not re-run that
+day** — the last full attempt reached 46/94 before the environment was torn
+down, so verify before trusting them.
