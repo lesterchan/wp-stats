@@ -98,11 +98,10 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 
 ## Screenshots
 
-1. Admin - Statistics
-2. Admin - Settings
-3. Admin - Widget
-4. Stats Page
-5. Stats Sidebar
+1. Stats -> Statistics: the site, then a section for every plugin that contributes one
+2. The Settings tab, which chooses what the report and the widget carry
+3. The stats page a visitor sees, from the shortcode
+4. The widget, in a sidebar
 
 ## Changelog
 ### 3.0.0
