@@ -139,6 +139,7 @@ class WP_Stats_Query {
 				'numberposts'      => max( 0, (int) $limit ),
 				'orderby'          => 'date',
 				'order'            => 'DESC',
+
 				/*
 				 * get_posts() defaults suppress_filters to true, so posts_where
 				 * and posts_join do not run -- which quietly contradicts the
