@@ -35,6 +35,59 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	}
 
 	/**
+	 * The file's own reasoning is that a site's content-hiding filters still
+	 * apply because these queries go through core's APIs. That holds for the
+	 * get_comments(), get_terms() and WP_User_Query paths and did not hold for
+	 * these two: get_posts() defaults suppress_filters to true, so posts_where
+	 * never ran and a membership plugin's hidden posts were listed on the public
+	 * statistics page anyway.
+	 *
+	 * @dataProvider data_post_listings
+	 *
+	 * @param string $method Query method under test.
+	 */
+	public function test_a_sites_own_posts_where_is_honoured( $method ) {
+		$hidden = self::factory()->post->create(
+			array(
+				'post_title'  => 'Members Only Post',
+				'post_status' => 'publish',
+			)
+		);
+
+		$filter = static function ( $where ) use ( $hidden ) {
+			global $wpdb;
+
+			return $where . $wpdb->prepare( " AND {$wpdb->posts}.ID != %d", $hidden );
+		};
+
+		$this->assertContains(
+			$hidden,
+			wp_list_pluck( WP_Stats_Query::$method( '', 50 ), 'ID' ),
+			'The post is listed before the filter, or the assertion below is vacuous.'
+		);
+
+		add_filter( 'posts_where', $filter );
+
+		$ids = wp_list_pluck( WP_Stats_Query::$method( '', 50 ), 'ID' );
+
+		remove_filter( 'posts_where', $filter );
+
+		$this->assertNotContains( $hidden, $ids, $method . '() honours the site\'s own posts_where.' );
+	}
+
+	/**
+	 * The two listings built on get_posts().
+	 *
+	 * @return array
+	 */
+	public function data_post_listings() {
+		return array(
+			'recent posts'   => array( 'recent_posts' ),
+			'most commented' => array( 'most_commented' ),
+		);
+	}
+
+	/**
 	 * The headings themes anchor on are all present.
 	 *
 	 * @dataProvider data_section_ids

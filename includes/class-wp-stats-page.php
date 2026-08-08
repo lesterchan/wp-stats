@@ -622,7 +622,15 @@ class WP_Stats_Page {
 	 * @return string
 	 */
 	protected static function page_link( $author, $page, $label ) {
-		return '<a href="' . self::author_link( $author, $page ) . '" title="' . esc_attr( html_entity_decode( $label, ENT_QUOTES, 'UTF-8' ) ) . '">&#8201;'
+		// esc_url() here as well as inside author_link(). That function returns
+		// URL-ish text rather than a self-escaping value, its docblock asks the
+		// caller to have URL-encoded the author already, and this was the one
+		// call site of the three that took it at its word. It happens to be safe
+		// -- render_author() rawurlencode()s before render_paging() ever sees the
+		// name -- but "safe because of what a caller two frames up did" is a
+		// property nothing enforces, and the one sink with no escaping is where
+		// it stops being true.
+		return '<a href="' . esc_url( self::author_link( $author, $page ) ) . '" title="' . esc_attr( html_entity_decode( $label, ENT_QUOTES, 'UTF-8' ) ) . '">&#8201;'
 			. wp_kses( $label, array() ) . '&#8201;</a>';
 	}
 }

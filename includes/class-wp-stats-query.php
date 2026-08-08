@@ -133,12 +133,23 @@ class WP_Stats_Query {
 	public static function recent_posts( $mode = '', $limit = 10 ) {
 		return get_posts(
 			array(
-				'post_type'    => self::post_types( $mode ),
-				'post_status'  => 'publish',
-				'has_password' => false,
-				'numberposts'  => max( 0, (int) $limit ),
-				'orderby'      => 'date',
-				'order'        => 'DESC',
+				'post_type'        => self::post_types( $mode ),
+				'post_status'      => 'publish',
+				'has_password'     => false,
+				'numberposts'      => max( 0, (int) $limit ),
+				'orderby'          => 'date',
+				'order'            => 'DESC',
+				/*
+				 * get_posts() defaults suppress_filters to true, so posts_where
+				 * and posts_join do not run -- which quietly contradicts the
+				 * reasoning at the top of this file, that a site's own
+				 * content-hiding filters still apply because the queries go
+				 * through core's APIs. They do apply to the get_comments(),
+				 * get_terms() and WP_User_Query paths; they did not apply here.
+				 * A membership plugin hiding published posts through posts_where
+				 * had them listed on the public statistics page anyway.
+				 */
+				'suppress_filters' => false,
 			)
 		);
 	}
@@ -180,12 +191,15 @@ class WP_Stats_Query {
 	public static function most_commented( $mode = '', $limit = 10 ) {
 		return get_posts(
 			array(
-				'post_type'    => self::post_types( $mode ),
-				'post_status'  => 'publish',
-				'has_password' => false,
-				'numberposts'  => max( 0, (int) $limit ),
-				'orderby'      => 'comment_count',
-				'order'        => 'DESC',
+				'post_type'        => self::post_types( $mode ),
+				'post_status'      => 'publish',
+				'has_password'     => false,
+				'numberposts'      => max( 0, (int) $limit ),
+				'orderby'          => 'comment_count',
+				'order'            => 'DESC',
+				// See recent_posts(): suppress_filters defaults to true and
+				// would skip the site's own posts_where.
+				'suppress_filters' => false,
 			)
 		);
 	}
