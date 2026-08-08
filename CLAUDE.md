@@ -6,9 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A statistics page — post, comment, user, category, tag and link totals, "most
 commented", "recent comments", a per-commenter drill-down — available as the
-`[page_stats]` shortcode on the front end, as a Dashboard-style admin screen,
-and as a sidebar widget. It stores no statistics of its own; everything is
-counted on read.
+`[page_stats]` shortcode on the front end, as the `wp-stats/page-stats` block,
+as a Dashboard-style admin screen, and as a sidebar widget. It stores no
+statistics of its own; everything is counted on read.
+
+**The block and the shortcode are siblings over `WP_Stats_Page::render()`**, and
+neither calls the other — no `do_shortcode()` in the block path. That is not
+tidiness: `render()` is where `wp_stats_sections` is fired, so going through it
+is the only thing that makes the block show the same contributed sections the
+shortcode shows. `tests/test-blocks.php` pins that the two render
+byte-identical markup and that unregistering either leaves the other working.
+The shortcode is not deprecated and is not going anywhere.
+
+The block name is hyphenated where the shortcode is underscored because a block
+name may not contain an underscore, and it keeps the `wp-` prefix because a
+block name is written into `post_content` and outlives the post. Its sources are
+in `src/`, committed and excluded from the deploy; `bin/build` compiles them to
+`build/`, which is gitignored and *is* shipped, since that is what
+`register_block_type_from_metadata()` loads. `bin/build` also writes the
+silence-is-golden `index.php` guards into `build/`, walked rather than listed,
+because webpack knows nothing about that rule.
 
 **This plugin owns a contract other plugins depend on.** Read the section below
 before changing anything in `WP_Stats_Page`.
@@ -106,6 +123,12 @@ companions carry, and two family tests fail on that. Left failing deliberately.
   `sanitize_text_field()`, which does not remove backslashes; the docblock here
   and in the source used to claim the opposite, and "Sinead O'Brien" got an
   empty drill-down for it.
+* **The stylesheet gate asks about both spellings of the page.**
+  `needs_styles()` used to ask only whether the post carried the shortcode,
+  which was the whole answer until the block existed. It now asks
+  `has_block()` too — the styles are for the paging strip in the per-commenter
+  view, which is reached by following a link on the page itself, so a page
+  carrying only the block would have sent a visitor to an unstyled one.
 * **A needle without its bracket matches the wrong thing.**
   `test_no_jquery_is_enqueued()` searched for `wp_enqueue_script`, which is a
   substring of the action name `wp_enqueue_scripts` — legitimately hooked here
