@@ -27,6 +27,14 @@ Other plugins of mine can add their own blocks to that page. WP-Stats does not n
 ### Donations
 I spent most of my free time creating, updating, maintaining and supporting these plugins, if you really love my plugins and could spare me a couple of bucks, I will really appreciate it. If not feel free to use it without any obligations.
 
+## Installation
+
+1. Install and activate the plugin.
+1. Create a page and put the `[page_stats]` shortcode in it, or add the **Stats** block. That page becomes your statistics page. Usage below has the full steps.
+1. The same statistics are in wp-admin under `WP-Stats`, and there is a sidebar widget for the totals.
+
+Other plugins of mine add their own sections to that page when they are installed. WP-Stats needs to know nothing about them in advance.
+
 ## Usage
 
 ### Create The Stats Page
