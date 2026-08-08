@@ -38,6 +38,14 @@ I spent most of my free time creating, updating, maintaining and supporting thes
 6. Click 'Publish'
 7. If you ARE NOT using nice permalinks, go to `WP-Admin -> WP-Stats`, open the `Settings` tab and fill in 'Stats URL' with the URL of the page you just created.
 
+### The Block
+
+**Blog Statistics** is in the editor's inserter, under **Widgets**. Add it to a page and that page is your statistics page — there is nothing to configure on the block itself, because what the page shows comes from the settings and from whichever companion plugins are installed, not from the post.
+
+It renders on the server, so the preview in the editor is the real page rather than an approximation, and the numbers are counted afresh on every view rather than frozen into the post when you save it.
+
+**The shortcode still works and is not going anywhere.** `[page_stats]` behaves exactly as it always has, and a page already containing it needs no change. The block calls the same code the shortcode calls, so the two render identically — including the blocks other plugins contribute — and you can use whichever suits the page.
+
 ### The Widget
 1. Go to `WP-Admin -> Appearance -> Widgets`
 2. The widget name is `Stats`.
@@ -112,6 +120,7 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 * BREAKING: `stats_display_defaults()` is removed. A plugin keeps its own display setting in its own option row.
 * BREAKING: The statistics screen moved from `Dashboard -> WP-Stats` and the settings from `Settings -> Stats` onto one `WP-Stats` page with two tabs, `Statistics` and `Settings`, at `admin.php?page=wp-stats`.
 * BREAKING: Every class is prefixed. The widget class is `WP_Stats_Widget`; placed widgets and their settings are unaffected.
+* NEW: A **Blog Statistics** block, `wp-stats/page-stats`, which renders the statistics page in the editor and on the front end. The `[page_stats]` shortcode is unchanged and still supported — the block calls the same code, so the two render identically and a page already using the shortcode needs no change.
 * NEW: `wp_stats_sections` and `wp_stats_section_<slug>`, the contract other plugins use to add a block to the statistics page.
 * NEW: `wp_stats_capability`, which every capability check goes through, so the read-only statistics tab can be opened to editors without opening the settings.
 * NEW: Restructured into `includes/` with one class per responsibility.

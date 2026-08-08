@@ -46,6 +46,7 @@ class WP_Stats {
 		WP_Stats_Options::register();
 		WP_Stats_Settings::init();
 		WP_Stats_Admin::init();
+		WP_Stats_Blocks::init();
 
 		add_filter( 'query_vars', array( __CLASS__, 'register_query_vars' ) );
 		add_action( 'widgets_init', array( __CLASS__, 'register_widget' ) );
@@ -133,6 +134,13 @@ class WP_Stats {
 	/**
 	 * Whether the current request renders anything the stylesheet applies to.
 	 *
+	 * Both spellings of the same page are asked about. The block is what a post
+	 * written in the editor carries, the shortcode is what every post written
+	 * before it carries, and the styles are for the paging strip in the
+	 * per-commenter view -- which is reached from a link on the page itself, so
+	 * a page holding the block would otherwise send a visitor to an unstyled
+	 * one.
+	 *
 	 * @return bool
 	 */
 	protected static function needs_styles() {
@@ -142,7 +150,12 @@ class WP_Stats {
 
 		$post = get_post();
 
-		return $post instanceof WP_Post && has_shortcode( $post->post_content, 'page_stats' );
+		if ( ! $post instanceof WP_Post ) {
+			return false;
+		}
+
+		return has_shortcode( $post->post_content, 'page_stats' )
+			|| has_block( 'wp-stats/page-stats', $post );
 	}
 
 	/**

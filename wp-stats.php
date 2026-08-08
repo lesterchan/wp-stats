@@ -74,6 +74,7 @@ require_once WP_STATS_DIR . 'includes/class-wp-stats-options.php';
 require_once WP_STATS_DIR . 'includes/class-wp-stats-query.php';
 require_once WP_STATS_DIR . 'includes/class-wp-stats-display.php';
 require_once WP_STATS_DIR . 'includes/class-wp-stats-page.php';
+require_once WP_STATS_DIR . 'includes/class-wp-stats-blocks.php';
 require_once WP_STATS_DIR . 'includes/class-wp-stats-widget.php';
 require_once WP_STATS_DIR . 'includes/class-wp-stats-admin.php';
 require_once WP_STATS_DIR . 'includes/class-wp-stats-settings.php';

@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "wp-stats/page-stats",
+	"version": "3.0.0",
+	"title": "Blog Statistics",
+	"category": "widgets",
+	"icon": "chart-area",
+	"description": "The whole statistics page: totals, listings, and whatever other plugins contribute.",
+	"keywords": [ "stats", "statistics", "totals" ],
+	"textdomain": "wp-stats",
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"reusable": false
+	},
+	"editorScript": "file:./index.js"
+}
