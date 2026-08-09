@@ -34,6 +34,32 @@ const {
 } = require( './helpers.js' );
 
 /**
+ * Patterns matching one Total Stats line each, in either grammatical number.
+ *
+ * Every line in that block is pluralised with _n_noop(), and the two arms do
+ * not share a common substring: the singular is "1 tag was created." and the
+ * plural "2 tags were created.", and the nickname line gains the word
+ * "different" only in the plural. A locator written against one arm therefore
+ * matches nothing at all the moment the count is not the one the fixture
+ * expected -- and Playwright reports that as a timeout waiting for an element,
+ * which says nothing about the count and sends you looking in the wrong place.
+ *
+ * Matching both arms means a wrong count fails on the number, with the line's
+ * text in the diff.
+ */
+const TOTALS = {
+	authors: /authors? to this blog/,
+	posts: /posts? (?:was|were) posted/,
+	pages: /pages? (?:was|were) created/,
+	tags: /tags? (?:was|were) created/,
+	comments: /comments? (?:was|were) posted/,
+	nicknames: /nicknames? (?:was|were) represented/,
+	links: /links? (?:was|were) added/,
+	postCategories: /post categor(?:y|ies) (?:was|were) needed/,
+	linkCategories: /link categor(?:y|ies) (?:was|were) needed/,
+};
+
+/**
  * The list that follows a block's heading.
  *
  * The page is a flat run of `<p><strong>heading</strong></p>` followed by a
@@ -54,12 +80,12 @@ function block( page, heading ) {
 /**
  * One line of the General Stats bullet list.
  *
- * @param {import('@playwright/test').Page} page Page showing the statistics.
- * @param {string}                          text Wording to look for.
+ * @param {import('@playwright/test').Page} page    Page showing the statistics.
+ * @param {RegExp}                          pattern One of TOTALS, matching either grammatical number.
  * @return {import('@playwright/test').Locator} The matching list item.
  */
-function totalLine( page, text ) {
-	return block( page, 'Total Stats' ).locator( 'li', { hasText: text } );
+function totalLine( page, pattern ) {
+	return block( page, 'Total Stats' ).locator( 'li' ).filter( { hasText: pattern } );
 }
 
 test.describe( 'The statistics page', () => {
@@ -156,9 +182,9 @@ test.describe( 'The statistics page', () => {
 			await guest.goto( statsPage.link );
 
 			await expect( guest.locator( '.wp-stats' ) ).toBeVisible();
-			await expect( totalLine( guest, 'posts were posted' ) ).toContainText( '3' );
-			await expect( totalLine( guest, 'page was created' ) ).toContainText( '1' );
-			await expect( totalLine( guest, 'comments were posted' ) ).toContainText( '12' );
+			await expect( totalLine( guest, TOTALS.posts ) ).toContainText( '3' );
+			await expect( totalLine( guest, TOTALS.pages ) ).toContainText( '1' );
+			await expect( totalLine( guest, TOTALS.comments ) ).toContainText( '12' );
 		} );
 	} );
 
@@ -168,16 +194,16 @@ test.describe( 'The statistics page', () => {
 
 			// Three names left the twelve comments, one tag, one link and one
 			// link category, all of which this spec put there itself.
-			await expect( totalLine( guest, 'different nicknames' ) ).toContainText( '3' );
-			await expect( totalLine( guest, 'tag was created' ) ).toContainText( '1' );
-			await expect( totalLine( guest, 'link was added' ) ).toContainText( '1' );
-			await expect( totalLine( guest, 'link category was needed' ) ).toContainText( '1' );
+			await expect( totalLine( guest, TOTALS.nicknames ) ).toContainText( '3' );
+			await expect( totalLine( guest, TOTALS.tags ) ).toContainText( '1' );
+			await expect( totalLine( guest, TOTALS.links ) ).toContainText( '1' );
+			await expect( totalLine( guest, TOTALS.linkCategories ) ).toContainText( '1' );
 
 			// Authors and post categories are not exact -- other spec files
 			// create users, and the default category is always there -- so the
 			// assertion is that the line is there and its number is not zero.
-			await expect( totalLine( guest, 'to this blog' ) ).toHaveText( /^[1-9]/ );
-			await expect( totalLine( guest, 'post categor' ) ).toHaveText( /^[1-9]/ );
+			await expect( totalLine( guest, TOTALS.authors ) ).toHaveText( /^[1-9]/ );
+			await expect( totalLine( guest, TOTALS.postCategories ) ).toHaveText( /^[1-9]/ );
 		} );
 	} );
 
