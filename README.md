@@ -151,6 +151,7 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 * FIXED: Undefined index warning reading the post-password cookie.
 * FIXED: The widget's "Statistics To Display" label used the wrong text domain and could not be translated.
 * FIXED: The widget's spam line read "Spam Blockeds" in the plural.
+* NOTE: A comment attribution was "Posted By" glued to the author and "On" glued to the date, and a link title was "Posted On" glued to a date. Each is one string with placeholders now, so a translation decides the word order. Those msgids changed, so existing translations of them fall back to English until they are retranslated
 
 ## Upgrade Notice
 

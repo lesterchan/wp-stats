@@ -192,6 +192,34 @@ class WP_Stats_Page_Test extends WP_Stats_TestCase {
 	}
 
 	/**
+	 * The attribution is one translatable sentence, not two labels and a value.
+	 *
+	 * It used to be "Posted By" concatenated with the author, then "On"
+	 * concatenated with the date -- so the word order was a fact about English
+	 * held in PHP, and a translator handed "By" and "On" separately could not
+	 * change it. The test reorders the sentence and asserts the output follows.
+	 */
+	public function test_the_comment_attribution_word_order_comes_from_the_translation() {
+		$reorder = static function ( $translation, $text, $domain ) {
+			if ( 'wp-stats' === $domain && 'Posted By %1$s On %2$s' === $text ) {
+				return 'On %2$s, posted by %1$s';
+			}
+
+			return $translation;
+		};
+
+		add_filter( 'gettext', $reorder, 10, 3 );
+		$html = $this->with_query( array( 'stats_author' => 'Normal Commenter' ) );
+		remove_filter( 'gettext', $reorder, 10 );
+
+		$this->assertMatchesRegularExpression(
+			'#On [^<]+, posted by <strong>Normal Commenter</strong>#',
+			$html,
+			'The translated sentence decides where the author and the date go.'
+		);
+	}
+
+	/**
 	 * The author name comes from the query string, so it must be escaped.
 	 */
 	public function test_the_author_name_is_escaped() {

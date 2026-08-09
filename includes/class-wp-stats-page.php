@@ -520,7 +520,13 @@ class WP_Stats_Page {
 
 			if ( $post_title !== $cache_post_title ) {
 				$output .= '<p><strong><a href="' . esc_url( $permalink ) . '" title="'
-					. esc_attr__( 'Posted On', 'wp-stats' ) . ' ' . esc_attr( $post_date ) . '">'
+					. esc_attr(
+						sprintf(
+							/* translators: %s: the date the post was published. */
+							__( 'Posted On %s', 'wp-stats' ),
+							$post_date
+						)
+					) . '">'
 					. esc_html( $post_title ) . '</a></strong></p>';
 			}
 
@@ -533,8 +539,13 @@ class WP_Stats_Page {
 						__( 'View the comment posted by %s', 'wp-stats' ),
 						$comment->comment_author
 					)
-				) . '">&raquo;</a> ' . esc_html__( 'Posted By', 'wp-stats' ) . ' <strong>' . esc_html( $comment->comment_author )
-				. '</strong> ' . esc_html__( 'On', 'wp-stats' ) . ' ' . esc_html( mysql2date( $format, $comment->comment_date ) ) . '</p></blockquote>';
+				) . '">&raquo;</a> '
+				. sprintf(
+					/* translators: 1: the comment author name, wrapped in <strong>. 2: the date the comment was posted. */
+					esc_html__( 'Posted By %1$s On %2$s', 'wp-stats' ),
+					'<strong>' . esc_html( $comment->comment_author ) . '</strong>',
+					esc_html( mysql2date( $format, $comment->comment_date ) )
+				) . '</p></blockquote>';
 
 			$cache_post_title = $post_title;
 		}
