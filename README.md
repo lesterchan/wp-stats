@@ -123,7 +123,7 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 ### 3.0.0
 * FIXED: Recent Posts and Most Commented did not honour a site's own `posts_where` filter. `get_posts()` suppresses filters by default, so a membership or paywall plugin hiding published posts had them listed on the public statistics page anyway — which contradicted the reasoning the rest of the file is built on, that these queries go through core's APIs precisely so a site's content rules still apply
 * FIXED: One of the three places that builds an author link did not escape the URL, relying instead on the caller having encoded the name first. It happens to be true today; nothing enforces it
-* BREAKING: Requires WordPress 6.8 and PHP 8.2, up from 6.0 and 7.4.
+* BREAKING: Requires WordPress 6.8 and PHP 8.2.
 * BREAKING: The `stats_url`, `stats_mostlimit`, `stats_display`, `stats_options` and `stats_db_version` rows are replaced by `wp_stats_options` and `wp_stats_version`, migrated automatically on upgrade and then deleted. The old names are no longer answered.
 * BREAKING: The unprefixed `stats_page` filter is now `wp_stats_page`, and is handed the page complete with its wrapper element.
 * BREAKING: The seven `wp_stats_page_*` filters, the two `wp_stats_paging_*` filters and the seven `wp_stats_page_admin_*` filters are removed. A plugin contributing a block answers `wp_stats_sections` and renders through `wp_stats_section_<slug>`.
