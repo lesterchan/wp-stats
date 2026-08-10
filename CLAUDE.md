@@ -80,8 +80,9 @@ row in its own migration. The migration deletes the shared rows once it has
 folded them in; **`uninstall.php` must not**, because a companion that has not
 upgraded is still reading them.
 
-The README is missing the "Update all the WP-Stats plugins together" line its
-companions carry, and two family tests fail on that. Left failing deliberately.
+The README carries the "Update all seven WP-Stats plugins together" note in its
+Upgrade Notice, matching its companions; family tests pin it, so removing the
+line turns them red.
 
 ## Traps
 
@@ -141,8 +142,8 @@ activation hooks do not fire on a plugin update, which is the usual reason a
 migration never runs at all.
 
 Two generations fold in at once: `stats_url`, `stats_mostlimit` and
-`stats_display` are the 2.x rows, and `stats_options` is the consolidated row an
-unreleased 3.0.0 build wrote before the name gained its prefix. A dedicated 2.x
+`stats_display` are the 2.x rows, and `stats_options` is the consolidated row a
+pre-release 3.0.0 build wrote before the name gained its prefix. A dedicated 2.x
 row is the later word and wins over the copy inside that one.
 
 Three things `tests/e2e/upgrade.spec.js` relies on:
