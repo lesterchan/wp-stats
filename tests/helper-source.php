@@ -64,10 +64,12 @@ function wp_stats_test_read( $relative ) {
 /**
  * Run uninstall.php the way WordPress does.
  *
- * The file declares wp_stats_uninstall_site(), so it can only be required once
- * per process; every later call has to go straight to the function or PHP
- * fatals on the redeclaration. Two test files exercise uninstall and their
- * order is not fixed, so both go through here.
+ * The uninstaller does its work in the file body, and PHP will not run a file
+ * body twice -- so the first caller in a process gets the real thing and any
+ * later one would silently get nothing at all. The require is therefore only
+ * there to guarantee the function exists, and the fan-out is driven from here:
+ * the same loop the file itself runs, with the same arguments. Two test files
+ * exercise uninstall and their order is not fixed, so both go through here.
  *
  * @return void
  */
@@ -76,11 +78,26 @@ function wp_stats_test_run_uninstall() {
 		define( 'WP_UNINSTALL_PLUGIN', 'wp-stats/wp-stats.php' );
 	}
 
-	if ( function_exists( 'wp_stats_uninstall_site' ) ) {
-		wp_stats_uninstall_site();
-	} else {
-		require dirname( __DIR__ ) . '/uninstall.php';
+	require_once dirname( __DIR__ ) . '/uninstall.php';
+
+	if ( is_multisite() ) {
+		$site_ids = get_sites(
+			array(
+				'fields' => 'ids',
+				'number' => 0,
+			)
+		);
+
+		foreach ( $site_ids as $site_id ) {
+			switch_to_blog( (int) $site_id );
+			wp_stats_uninstall_site();
+			WP_Stats_Options::flush();
+			restore_current_blog();
+		}
+
+		return;
 	}
 
+	wp_stats_uninstall_site();
 	WP_Stats_Options::flush();
 }
