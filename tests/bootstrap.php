@@ -27,14 +27,14 @@ require_once $_tests_dir . '/includes/functions.php';
  *
  * @return void
  */
-function wp_stats_manually_load_plugin() {
+function _wp_stats_manually_load_plugin() {
 	require dirname( __DIR__ ) . '/wp-stats.php';
 
 	// register_activation_hook() never fires in the test environment, so the
 	// settings row has to be seeded by hand.
 	WP_Stats_Options::activate();
 }
-tests_add_filter( 'muplugins_loaded', 'wp_stats_manually_load_plugin' );
+tests_add_filter( 'muplugins_loaded', '_wp_stats_manually_load_plugin' );
 
 require $_tests_dir . '/includes/bootstrap.php';
 
