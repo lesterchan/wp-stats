@@ -9,9 +9,7 @@
  * @package WP-Stats
  */
 
-if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit();
-}
+defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 /**
  * Delete the plugin's rows for the current site.
