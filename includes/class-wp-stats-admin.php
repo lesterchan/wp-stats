@@ -35,7 +35,7 @@ class WP_Stats_Admin {
 	const CAPABILITY = 'manage_options';
 
 	/**
-	 * Hook the screens up.
+	 * Hook registration.
 	 *
 	 * @return void
 	 */
@@ -82,14 +82,14 @@ class WP_Stats_Admin {
 	 */
 	public static function capability( $context ) {
 		/**
-		 * Filter the capability a WP-Stats tab requires.
+		 * Filters the capability required to reach a WP-Stats screen.
 		 *
 		 * @since 3.0.0
 		 *
-		 * @param string $capability Capability name.
+		 * @param string $capability The required capability.
 		 * @param string $context    Which tab is asking.
 		 */
-		return apply_filters( 'wp_stats_capability', self::CAPABILITY, $context );
+		return (string) apply_filters( 'wp_stats_capability', self::CAPABILITY, $context );
 	}
 
 	/**

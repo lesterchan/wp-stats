@@ -53,7 +53,7 @@ class WP_Stats_Settings {
 	const SECTION_DISPLAY = 'wp_stats_display';
 
 	/**
-	 * Hook the screen up.
+	 * Hook registration.
 	 *
 	 * @return void
 	 */

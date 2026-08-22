@@ -57,7 +57,7 @@ class WP_Stats_Blocks {
 	}
 
 	/**
-	 * Hook block registration.
+	 * Hooks block registration.
 	 *
 	 * @return void
 	 */
