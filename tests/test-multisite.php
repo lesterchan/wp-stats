@@ -7,7 +7,7 @@
  * site's own home_url(), so a loop that stays on one site does not merely skip
  * the others -- any site it did seed while switched wrongly would point its
  * statistics page at another site's address. The markers self-heal from
- * plugins_loaded, but nothing after activation ever seeds the url, so a site
+ * init, but nothing after activation ever seeds the url, so a site
  * the loop misses stays missed.
  *
  * @package WP-Stats

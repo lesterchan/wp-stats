@@ -35,12 +35,10 @@ class WP_Stats {
 	}
 
 	/**
-	 * Wire everything up.
-	 *
-	 * Registered at file-load time, which is where WordPress requires
-	 * activation hooks to be added.
+	 * Register hooks.
 	 */
-	protected function __construct() {
+	private function __construct() {
+		// Must be registered at file-load time, which is when this runs.
 		register_activation_hook( WP_STATS_MAIN_FILE, array( __CLASS__, 'activate' ) );
 
 		WP_Stats_Options::register();
@@ -57,12 +55,12 @@ class WP_Stats {
 	/**
 	 * Create the options on activation, on every site of a network activation.
 	 *
-	 * @param bool $network_wide Whether the plugin is being network activated.
+	 * @param bool $network_wide Whether the plugin is being activated network-wide.
 	 * @return void
 	 */
 	public static function activate( $network_wide = false ) {
 		if ( is_multisite() && $network_wide ) {
-			// 'number' => 0 lifts WP_Site_Query's default cap of 100.
+			// 'number' => 0 lifts WP_Site_Query's default cap of 100, which would otherwise skip every site past the hundredth while reporting success.
 			$site_ids = get_sites(
 				array(
 					'fields' => 'ids',
@@ -71,6 +69,7 @@ class WP_Stats {
 			);
 
 			foreach ( $site_ids as $site_id ) {
+				// Inside the loop: switch_to_blog() pushes onto a stack, so restoring once after the loop unwinds it by exactly one.
 				switch_to_blog( (int) $site_id );
 				WP_Stats_Options::activate();
 				restore_current_blog();
@@ -128,7 +127,7 @@ class WP_Stats {
 			return;
 		}
 
-		wp_enqueue_style( 'wp-stats', plugins_url( 'css/wp-stats.css', WP_STATS_MAIN_FILE ), array(), WP_STATS_VERSION );
+		wp_enqueue_style( 'wp-stats', WP_STATS_URL . 'css/wp-stats.css', array(), WP_STATS_VERSION );
 	}
 
 	/**

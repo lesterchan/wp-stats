@@ -196,7 +196,7 @@ function defaultOptions() {
  * unreleased 3.0.0 build wrote before the name gained its prefix.
  *
  * **It hands back what it can see, and that is not a convenience.**
- * maybe_upgrade() is hooked to plugins_loaded, which a WP-CLI request reaches
+ * maybe_upgrade() is hooked to init, which a WP-CLI request reaches
  * like any other. So the moment this call ends, the next `wp eval` boots
  * WordPress with the markers missing and performs the upgrade itself, before
  * running a line of the code it was given -- and a test that read the rows back

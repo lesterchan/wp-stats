@@ -137,7 +137,7 @@ line turns them red.
 
 ## Migrations, and why they are tested through a browser
 
-`maybe_upgrade()` hangs off `plugins_loaded`, so every request reaches it —
+`maybe_upgrade()` hangs off `init` at priority 5, so every request reaches it —
 activation hooks do not fire on a plugin update, which is the usual reason a
 migration never runs at all.
 
@@ -149,7 +149,7 @@ row is the later word and wins over the copy inside that one.
 Three things `tests/e2e/upgrade.spec.js` relies on:
 
 * **A `wp eval` call is itself an upgrade request**, because WP-CLI reaches
-  `plugins_loaded` like any other request. Seed the fixture and read it back
+  `init` like any other request. Seed the fixture and read it back
   inside *one* call; a second call finds the rows already migrated, and the
   browser request then has nothing left to do.
 * **Read rows raw** — `WP_Stats_Options::get()` merges over the defaults, so it

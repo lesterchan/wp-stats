@@ -3,7 +3,7 @@
  *
  * Activation does not fire when a plugin is merely updated -- a site that
  * updates from the Plugins screen never calls activate() -- so maybe_upgrade()
- * hangs off plugins_loaded instead, which every request goes through. Loading a
+ * hangs off init instead, which every request goes through. Loading a
  * page in a browser is the only way to reach it.
  *
  * WP-Stats is the plugin at the centre of §13, so its migration has a shape none
@@ -70,7 +70,7 @@ test.describe( 'The pre-3.0.0 upgrade', () => {
 		} );
 
 		// The fixture is asserted from what the seeding call itself saw, not
-		// from a second one. maybe_upgrade() runs on plugins_loaded, which a
+		// from a second one. maybe_upgrade() runs on init, which a
 		// WP-CLI request reaches too -- ask again through another `wp eval` and
 		// the rows have already moved, and the request below would have nothing
 		// left to do.

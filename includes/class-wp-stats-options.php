@@ -57,15 +57,14 @@ class WP_Stats_Options {
 	/**
 	 * Register the upgrade check.
 	 *
-	 * Hooked to plugins_loaded rather than left to the activation hook: an
-	 * activation hook does not fire on plugin *update*, which is the usual
-	 * reason a migration silently never runs. Once the markers agree the check
-	 * costs one autoloaded read.
+	 * Hooked rather than left to the activation hook: activation does not fire
+	 * on a plugin update, which is the single most common reason a migration
+	 * never runs. Once the markers agree the check costs one autoloaded read.
 	 *
 	 * @return void
 	 */
 	public static function register() {
-		add_action( 'plugins_loaded', array( __CLASS__, 'maybe_upgrade' ) );
+		add_action( 'init', array( __CLASS__, 'maybe_upgrade' ), 5 );
 	}
 
 	/**
