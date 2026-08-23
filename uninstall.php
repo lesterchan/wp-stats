@@ -57,8 +57,8 @@ if ( is_multisite() ) {
 	);
 
 	foreach ( $wp_stats_site_ids as $wp_stats_site_id ) {
-		// switch_to_blog() pushes onto a stack, so the restore belongs inside
-		// the loop -- restoring once at the end leaves it unwound by one.
+		// Inside the loop: switch_to_blog() pushes onto a stack, so restoring once
+		// after the loop unwinds it by exactly one.
 		switch_to_blog( (int) $wp_stats_site_id );
 
 		wp_stats_uninstall_site();
