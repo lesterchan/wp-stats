@@ -1,18 +1,10 @@
-/*
+/**
  * WP-Stats front end.
  *
- * Everything is scoped under .wp-stats, the wrapper WP_Stats_Page::render()
- * puts round the page, so these rules cannot reach a theme's own markup - or
- * WP-PageNavi's, which uses the same .wp-pagenavi class names. Until 3.0.0 the
- * plugin stood aside entirely when WP-PageNavi was active; scoping is what
- * makes that unnecessary.
- *
- * Nothing here sets font-family, font-size or colour outright: the page is
- * theme content and should read like the rest of it. The borders and the
- * current-page background come from currentColor and from custom properties
- * with sensible fallbacks, so a theme can retune them without a specificity
- * fight, and so light and dark schemes both work without a second stylesheet.
- * Logical properties throughout, so RTL needs none either.
+ * Scoped under .wp-stats so these rules cannot reach a theme's markup, or
+ * WP-PageNavi's, which shares the .wp-pagenavi class names. No font or colour
+ * is set outright; borders come from currentColor and custom properties, so
+ * both schemes work from one sheet. Logical properties throughout.
  */
 
 .wp-stats .wp-pagenavi {
