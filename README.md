@@ -4,7 +4,7 @@ Donate link: https://lesterchan.net/site/donation/
 Tags: stats, statistics, widget, popular, information  
 Requires at least: 6.8  
 Tested up to: 7.1  
-Stable tag: 3.0.0  
+Stable tag: 3.0.1  
 Requires PHP: 8.2  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -134,6 +134,9 @@ add_filter( 'wp_stats_needs_styles', '__return_true' );
 4. The widget, in a sidebar
 
 ## Changelog
+### 3.0.1
+* NEW: A `wp_stats_needs_styles` filter, for code that renders the statistics where WP-Stats cannot see it coming. 3.0.0 loads the stylesheet only where it finds a `[page_stats]` shortcode or the block in the post being viewed, or the widget in a sidebar. A theme calling `WP_Stats_Page::render()` itself, or markup fetched over `admin-ajax.php` into a page carrying none of the three, is none of those and got no stylesheet — leaving the paging strip in the per-commenter view unstyled. Returning true from the filter is how such a page asks for it.
+
 ### 3.0.0
 * FIXED: Recent Posts and Most Commented did not honour a site's own `posts_where` filter. `get_posts()` suppresses filters by default, so a membership or paywall plugin hiding published posts had them listed on the public statistics page anyway — which contradicted the reasoning the rest of the file is built on, that these queries go through core's APIs precisely so a site's content rules still apply
 * FIXED: One of the three places that builds an author link did not escape the URL, relying instead on the caller having encoded the name first. It happens to be true today; nothing enforces it

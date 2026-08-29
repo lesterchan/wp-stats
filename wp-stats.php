@@ -3,7 +3,7 @@
  * Plugin Name: WP-Stats
  * Plugin URI: https://lesterchan.net/portfolio/programming/php/
  * Description: Display your WordPress blog statistics. Ranging from general total statistics, some of my plugins statistics and top 10 statistics.
- * Version: 3.0.0
+ * Version: 3.0.1
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * Author: Lester 'GaMerZ' Chan
@@ -39,7 +39,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * WP-Stats version. The last-run value is kept in the wp_stats_version row.
  */
-define( 'WP_STATS_VERSION', '3.0.0' );
+define( 'WP_STATS_VERSION', '3.0.1' );
 
 /**
  * Schema counter. Bumped only when the stored rows need reshaping.
