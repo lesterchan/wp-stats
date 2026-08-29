@@ -120,6 +120,10 @@ class WP_Stats {
 	 * are scoped under .wp-stats now, so both sheets can load and neither has
 	 * anything to say about the other's markup.
 	 *
+	 * There is only this one pass -- nothing here renders later than the head
+	 * -- so a page the detection cannot see says so through the
+	 * `wp_stats_needs_styles` filter.
+	 *
 	 * @return void
 	 */
 	public static function enqueue_styles() {
@@ -143,6 +147,32 @@ class WP_Stats {
 	 * @return bool
 	 */
 	protected static function needs_styles() {
+		/**
+		 * Filters whether the stylesheet is enqueued.
+		 *
+		 * The shapes detected here are the ones a plugin can see before the
+		 * page is built. Something that renders the statistics by another
+		 * route -- markup fetched over AJAX into an already loaded page, a
+		 * template calling WP_Stats_Page::render() itself -- is invisible to
+		 * both, and returning true says so.
+		 *
+		 * There is no second pass to fall back on: this plugin enqueues from
+		 * the head and nowhere else, so returning false here leaves any
+		 * statistics on the page unstyled.
+		 *
+		 * @since 3.0.1
+		 *
+		 * @param bool $needs_styles Whether the statistics were detected.
+		 */
+		return (bool) apply_filters( 'wp_stats_needs_styles', self::detect_stats() );
+	}
+
+	/**
+	 * Whether the statistics are visible in the request before the page is built.
+	 *
+	 * @return bool
+	 */
+	protected static function detect_stats() {
 		if ( is_active_widget( false, false, 'stats', true ) ) {
 			return true;
 		}

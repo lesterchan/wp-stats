@@ -112,6 +112,20 @@ It only appears now when a plugin has actually contributed a block. Before 3.0.0
 ### Why do my author counts look different?
 "Authors" now means the users who can publish posts, which is what the block always claimed to count. It used to be derived from the legacy `user_level` meta, and it excluded anyone with a password reset in progress.
 
+### My own code renders the stats page and it comes out unstyled
+The stylesheet loads only where WP-Stats can see the page coming: a `[page_stats]`
+shortcode or the block in the post being viewed, or the widget in a sidebar. It is
+enqueued from the head and nowhere else, so a theme calling `WP_Stats_Page::render()`
+itself, or markup fetched over `admin-ajax.php` into a page carrying none of the three,
+gets no stylesheet — and the paging strip in the per-commenter view is what that
+stylesheet is for.
+
+Say so from the page that will hold it:
+
+```php
+add_filter( 'wp_stats_needs_styles', '__return_true' );
+```
+
 ## Screenshots
 
 1. Stats -> Statistics: the site, then a section for every plugin that contributes one
