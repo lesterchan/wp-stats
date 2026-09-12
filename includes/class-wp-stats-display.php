@@ -251,7 +251,7 @@ class WP_Stats_Display {
 	 * Post categories, as core's own list.
 	 *
 	 * @param bool $display Echo rather than return.
-	 * @return string|void
+	 * @return ($display is true ? void : string)
 	 */
 	public static function post_categories( $display = true ) {
 		return wp_list_categories(

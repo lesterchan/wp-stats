@@ -1,0 +1,187 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method WP_Stats_Admin\:\:page_capability\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: includes/class-wp-stats-admin.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$ID\.$#'
+			identifier: property.notFound
+			count: 1
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$comment_author\.$#'
+			identifier: property.notFound
+			count: 1
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$comment_total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$display_name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$posts_total\.$#'
+			identifier: property.notFound
+			count: 1
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Access to an undefined property object\:\:\$user_nicename\.$#'
+			identifier: property.notFound
+			count: 1
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Method WP_Stats_Display\:\:post_categories\(\) should return string\|void but returns string\|false\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_html expects string, int\|string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: includes/class-wp-stats-display.php
+
+		-
+			message: '#^Method WP_Stats_Options\:\:defaults\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-options.php
+
+		-
+			message: '#^Method WP_Stats_Options\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-options.php
+
+		-
+			message: '#^Method WP_Stats_Options\:\:markers\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-options.php
+
+		-
+			message: '#^Method WP_Stats_Options\:\:update\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-options.php
+
+		-
+			message: '#^Method WP_Stats_Options\:\:write\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-options.php
+
+		-
+			message: '#^Property WP_Stats_Options\:\:\$cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-options.php
+
+		-
+			message: '#^Method WP_Stats_Page\:\:render_section\(\) has parameter \$section with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-page.php
+
+		-
+			message: '#^Method WP_Stats_Page\:\:sections\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-page.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_html expects string, int\|string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-stats-page.php
+
+		-
+			message: '#^Method WP_Stats_Query\:\:comment_query\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-query.php
+
+		-
+			message: '#^Method WP_Stats_Query\:\:comment_query\(\) has parameter \$clauses with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-query.php
+
+		-
+			message: '#^Method WP_Stats_Settings\:\:sanitize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-settings.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-stats-settings.php
+
+		-
+			message: '#^Parameter \#3 \$callback of function add_settings_field expects callable\(\)\: mixed, array\{''WP_Stats_Settings'', non\-falsy\-string\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/class-wp-stats-settings.php
+
+		-
+			message: '#^Method WP_Stats_Widget\:\:defaults\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-widget.php
+
+		-
+			message: '#^Method WP_Stats_Widget\:\:form\(\) has parameter \$instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-widget.php
+
+		-
+			message: '#^Method WP_Stats_Widget\:\:update\(\) has parameter \$new_instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-widget.php
+
+		-
+			message: '#^Method WP_Stats_Widget\:\:update\(\) has parameter \$old_instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-widget.php
+
+		-
+			message: '#^Method WP_Stats_Widget\:\:update\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-widget.php
+
+		-
+			message: '#^Method WP_Stats_Widget\:\:widget\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-widget.php
+
+		-
+			message: '#^Method WP_Stats_Widget\:\:widget\(\) has parameter \$instance with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/class-wp-stats-widget.php
+
+		-
+			message: '#^Return type \(void\) of method WP_Stats_Widget\:\:form\(\) should be compatible with return type \(string\|null\) of method WP_Widget\<array\<string, mixed\>\>\:\:form\(\)$#'
+			identifier: method.childReturnType
+			count: 1
+			path: includes/class-wp-stats-widget.php

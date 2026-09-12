@@ -100,7 +100,7 @@ function get_totallinks( $display = true ) {
  * @param string $mode    Post type, 'both', or ''.
  * @param int    $limit   Maximum rows.
  * @param bool   $display Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? void : string)
  */
 function get_recentposts( $mode = '', $limit = 10, $display = true ) {
 	return wp_stats_maybe_echo( WP_Stats_Display::recent_posts( $mode, $limit ), $display );
@@ -112,7 +112,7 @@ function get_recentposts( $mode = '', $limit = 10, $display = true ) {
  * @param string $mode    Post type, 'both', or ''.
  * @param int    $limit   Maximum rows.
  * @param bool   $display Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? void : string)
  */
 function get_recentcomments( $mode = '', $limit = 10, $display = true ) {
 	return wp_stats_maybe_echo( WP_Stats_Display::recent_comments( $mode, $limit ), $display );
@@ -125,7 +125,7 @@ function get_recentcomments( $mode = '', $limit = 10, $display = true ) {
  * @param int    $limit   Maximum rows.
  * @param int    $chars   Truncate titles to this length, 0 to disable.
  * @param bool   $display Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? void : string)
  */
 function get_mostcommented( $mode = '', $limit = 10, $chars = 0, $display = true ) {
 	return wp_stats_maybe_echo( WP_Stats_Display::most_commented( $mode, $limit, $chars ), $display );
@@ -136,7 +136,7 @@ function get_mostcommented( $mode = '', $limit = 10, $chars = 0, $display = true
  *
  * @param string $mode    Post type, 'both', or ''.
  * @param bool   $display Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? void : string)
  */
 function get_authorsstats( $mode = '', $display = true ) {
 	return wp_stats_maybe_echo( WP_Stats_Display::authors( $mode ), $display );
@@ -148,7 +148,7 @@ function get_authorsstats( $mode = '', $display = true ) {
  * @param int  $threshhold Hide anyone below this many comments; -1 disables.
  * @param int  $limit      Maximum rows, 0 for all.
  * @param bool $display    Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? void : string)
  */
 function get_commentmembersstats( $threshhold = -1, $limit = 0, $display = true ) {
 	return wp_stats_maybe_echo( WP_Stats_Display::comment_members( $threshhold, $limit ), $display );
@@ -158,7 +158,7 @@ function get_commentmembersstats( $threshhold = -1, $limit = 0, $display = true 
  * Post categories, as core's own list.
  *
  * @param bool $display Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? null : string)
  */
 function get_postcats( $display = true ) {
 	return WP_Stats_Display::post_categories( $display );
@@ -168,7 +168,7 @@ function get_postcats( $display = true ) {
  * Link categories with counts, as list items.
  *
  * @param bool $display Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? void : string)
  */
 function get_linkcats( $display = true ) {
 	return wp_stats_maybe_echo( WP_Stats_Display::link_categories(), $display );
@@ -178,7 +178,7 @@ function get_linkcats( $display = true ) {
  * Post tags with counts, as list items.
  *
  * @param bool $display Echo when true, return when false.
- * @return string|void
+ * @return ($display is true ? void : string)
  */
 function get_tags_list( $display = true ) {
 	return wp_stats_maybe_echo( WP_Stats_Display::tags(), $display );
